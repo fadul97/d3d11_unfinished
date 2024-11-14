@@ -49,6 +49,27 @@ namespace joj
 
         /** @brief Window Error code, should be used when the window fails to get its client rect. */
         ERR_WINDOW_CLIENT_RECT,
+
+        /** @brief D3D11 Context Error code, should be used when creation of DXGIFactory2 fails. */
+        ERR_CONTEXT_D3D11_DXGI_FACTORY2_CREATION,
+
+        /** @brief D3D11 Context Error code, should be used when creation of D3D11Device fails. */
+        ERR_CONTEXT_D3D11_DEVICE_CREATION,
+
+        /** @brief D3D11 Context Error code, should be used when creation of Warp Adapter fails. */
+        ERR_CONTEXT_D3D11_WARP_ADAPTER_CREATION,
+
+        /** @brief D3D11 Context Error code, should be used when querying ID3D11Debug fails. */
+        ERR_CONTEXT_D3D11_QUERY_INTERFACE_ID3D11_DEBUG,
+
+        /** @brief D3D11 Context Error code, should be used when querying IDXGIDevice fails. */
+        ERR_CONTEXT_D3D11_QUERY_INTERFACE_IDXGI_DEVICE,
+
+        /** @brief D3D11 Context Error code, should be used when getting parent of IDXGIAdapter fails. */
+        ERR_CONTEXT_D3D11_GET_PARENTOF_IDXGI_ADAPTER,
+
+        /** @brief D3D11 Context Error code, should be used when getting parent of IDXGIFactory fails. */
+        ERR_CONTEXT_D3D11_GET_PARENTOF_IDXGI_FACTORY,
     };
 
     /** @brief Get the index of the ErrorCode.
