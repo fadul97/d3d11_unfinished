@@ -239,15 +239,13 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	backbuffer->Release();
 	depth_stencil_buffer->Release();
 
-	JINFO("D3D11Renderer initialized.");
-
 	return ErrorCode::OK;
 }
 
 void joj::D3D11Renderer::clear(f32 r, f32 g, f32 b, f32 a)
 {
 	// Background color of the backbuffer = window background color
-	f32 bgcolor[4]{ 0.23f, 0.23f, 0.23f, 1.0f };
+	f32 bgcolor[4]{ r, g, b, a };
 	m_device_context->ClearRenderTargetView(m_render_target_view, bgcolor);
 	m_device_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
