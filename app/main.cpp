@@ -5,9 +5,6 @@
 
 int main()
 {
-    i32 a = 5;
-    std::cout << "a = " << a << std::endl;
-
     joj::Win32Window window;
     window.create(800, 600, "Joj Window", joj::WindowMode::Windowed);
 
@@ -37,15 +34,7 @@ int main()
             JDEBUG("SPACE down");
     }
 
-    win32_print();
-
-    std::cout << "Hello, Joj!" << std::endl;
-
-    JINFO("Hello, Joj!");
     JDEBUG("Hello, Joj!");
-    JWARN("Hello, Joj!");
-    JERROR(joj::ErrorCode::FAILED, "Hello, Joj!");
-    JFATAL(joj::ErrorCode::FAILED, "Hello, Joj!");
 
     return 0;
 }
