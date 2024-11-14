@@ -8,6 +8,8 @@
  * 
  * @copyright TODO: Copyright (c) 2024
  * 
+ * REFERENCES: Travis Vroman (https://travisvroman.com/) - Kohi Game Engine (https://github.com/travisvroman/kohi)
+ * 
  */
 
 #ifndef JOJ_ERROR_CODE_H
@@ -21,17 +23,17 @@ namespace joj
     /** @brief Represents the error codes for the engine. */
     enum class ErrorCode
     {
-        /** @brief OK code, used when the operation was successful. */
+        /** @brief OK code, should be used when the operation was successful. */
         OK,
 
-        /** @brief Generic error code, used when the operation failed. */
+        /** @brief Generic error code, should be used when the operation failed. */
         FAILED,
     };
 
-    /** @brief Get the index of the ErrorCode */
+    /** @brief Get the index of the ErrorCode. */
     i32 err_to_int(ErrorCode err);
 
-    /** @brief Get the name of the ErrorCode */
+    /** @brief Get the name of the ErrorCode. */
     const char* err_to_str(ErrorCode err);
 }
 

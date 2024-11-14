@@ -8,6 +8,8 @@
  * 
  * @copyright TODO: Copyright (c) 2024
  * 
+ * REFERENCES: Travis Vroman (https://travisvroman.com/) - Kohi Game Engine (https://github.com/travisvroman/kohi)
+ * 
  */
 
 #ifndef JOJ_DEFINES_H
