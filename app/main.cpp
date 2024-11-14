@@ -1,6 +1,7 @@
 #include <iostream>
 #include "joj/logger.h"
 #include "joj/platform/win32/window_win32.h"
+#include "joj/platform/win32/input_win32.h"
 
 int main()
 {
@@ -8,7 +9,10 @@ int main()
     std::cout << "a = " << a << std::endl;
 
     joj::Win32Window window;
-    window.create(200, 200, "Joj Window", joj::WindowMode::Windowed);
+    window.create(800, 600, "Joj Window", joj::WindowMode::Windowed);
+
+    joj::Win32Input input;
+    input.set_window(window.get_window_data().handle);
 
     u16 width = 0, height = 0;
     window.get_window_size(width, height);
@@ -25,6 +29,12 @@ int main()
             TranslateMessage(&msg);
             DispatchMessage(&msg);
         }
+
+        if (input.is_key_pressed('A'))
+            JDEBUG("A pressed");
+
+        if (input.is_key_down(joj::KEY_SPACE))
+            JDEBUG("SPACE down");
     }
 
     win32_print();
