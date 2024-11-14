@@ -51,6 +51,9 @@ namespace joj
         COLORREF m_color;
         DWORD m_style;
     };
+
+    inline WindowData& Win32Window::get_window_data()
+    { return m_data; }
 }
 
 #endif // JPLATFORM_WINDOWS
