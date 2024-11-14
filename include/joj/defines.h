@@ -1,26 +1,62 @@
+/**
+ * @file defines.h
+ * @author Leonardo Fadul ( TODO: todo@domain.com)
+ * @brief This file contains type definitions that are used
+ * throughout the engine and applications referencing it.
+ * @version 0.1
+ * @date 2024-11-13
+ * 
+ * @copyright TODO: Copyright (c) 2024
+ * 
+ */
+
 #ifndef JOJ_DEFINES_H
 #define JOJ_DEFINES_H
 
 #include <cstdint>
 
-/* Unsigned types */
+// Unsigned types
+
+/** @brief Unsigned 8-bit integer */
 typedef std::uint8_t u8;
+
+/** @brief Unsigned 16-bit integer */
 typedef	std::uint16_t u16;
+
+/** @brief Unsigned 32-bit integer */
 typedef std::uint32_t u32;
+
+/** @brief Unsigned 64-bit integer */
 typedef std::uint64_t u64;
 
-/* Signed types */
+// Signed types
+
+/** @brief Signed 8-bit integer */
 typedef std::int8_t i8;
+
+/** @brief Signed 16-bit integer */
 typedef	std::int16_t i16;
+
+/** @brief Signed 32-bit integer */
 typedef std::int32_t i32;
+
+/** @brief Signed 64-bit integer */
 typedef std::int64_t i64;
 
-/* Floating point types */
+// Floating point types
+
+/** @brief 32-bit floating point number */
 typedef float f32;
+
+/** @brief 64-bit floating point number */
 typedef double f64;
 
-/* Boolean types */
+// Boolean types
+
+/** @brief 8-bit boolean type */
 typedef bool b8;
+
+/** @brief 32-bit boolean type */
 typedef int b32;
 
 /* STATIC_ASSERT macro */
@@ -70,7 +106,8 @@ STATIC_ASSERT(sizeof(b8) == 1, "Expected b8 to be 1 byte.");
 /** @brief Assert b32 to be 4 bytes.*/
 STATIC_ASSERT(sizeof(b32) == 4, "Expected f64 to be 4 bytes.");
 
-/* Platform detection */
+// Platform detection
+
 /* Windows OS */
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__)
 #define JPLATFORM_WINDOWS 1
