@@ -17,3 +17,19 @@ target_include_directories(
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../include/joj/
 )
+
+#Add subdirectories
+add_subdirectory(platform)
+
+# Specify library directories for joj
+target_link_directories(
+    joj
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/platform/
+)
+
+target_link_libraries(
+    joj
+    PUBLIC
+    jojPlatform
+)
