@@ -3,6 +3,7 @@
 #include "joj/platform/win32/window_win32.h"
 #include "joj/platform/win32/input_win32.h"
 #include "joj/platform/win32/timer_win32.h"
+#include "joj/renderer/d3d11/context_d3d11.h"
 #include <sstream>
 
 f32 get_frametime(HWND handle, joj::Win32Timer& timer);
@@ -12,7 +13,8 @@ f32 dt = 0.0f;
 int main()
 {
     joj::Win32Window window;
-    window.create(800, 600, "Joj Window", joj::WindowMode::Windowed);
+    if (window.create(800, 600, "Joj Window", joj::WindowMode::Windowed) != joj::ErrorCode::OK)
+        return -1;
 
     joj::Win32Input input;
     input.set_window(window.get_window_data().handle);
@@ -25,6 +27,9 @@ int main()
 
     window.get_client_size(width, height);
     JDEBUG("Window client size: %dx%d", width, height);
+
+    joj::D3D11Context context;
+    context.create();
 
     timer.begin_period();
     timer.start();
