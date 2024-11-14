@@ -28,12 +28,39 @@ namespace joj
 
         /** @brief Generic error code, should be used when the operation failed. */
         FAILED,
+
+        /** @brief Window Error code, should be used for invalid window handle. */
+        ERR_WINDOW_HANDLE,
+
+        /** @brief Window Error code, should be used for invalid window registration. */
+        ERR_WINDOW_REGISTRATION,
+
+        /** @brief Window Error code, should be used when window fails to adjust. */
+        ERR_WINDOW_ADJUST,
+
+        /** @brief Window Error code, should be used when window fails to move. */
+        ERR_WINDOW_MOVE,
+
+        /** @brief Window Error code, should be used when the device context fails to create. */
+        ERR_WINDOW_DEVICE_CONTEXT,
+
+        /** @brief Window Error code, should be used when the window fails to get its rect. */
+        ERR_WINDOW_RECT,
+
+        /** @brief Window Error code, should be used when the window fails to get its client rect. */
+        ERR_WINDOW_CLIENT_RECT,
     };
 
-    /** @brief Get the index of the ErrorCode. */
+    /** @brief Get the index of the ErrorCode.
+     *  @param err The error code to convert.
+     *  @return The integer index of the error code.
+     */
     i32 err_to_int(ErrorCode err);
 
-    /** @brief Get the name of the ErrorCode. */
+    /** @brief Get the name of the ErrorCode.
+     *  @param err The error code to convert.
+     *  @return The string representation of the error code.
+     */
     const char* err_to_str(ErrorCode err);
 }
 
