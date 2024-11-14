@@ -8,7 +8,14 @@ int main()
     std::cout << "a = " << a << std::endl;
 
     joj::Win32Window window;
-    window.create(800, 600, "Joj Window", joj::WindowMode::Windowed);
+    window.create(200, 200, "Joj Window", joj::WindowMode::Windowed);
+
+    u16 width = 0, height = 0;
+    window.get_window_size(width, height);
+    JDEBUG("Window size: %dx%d", width, height);
+
+    window.get_client_size(width, height);
+    JDEBUG("Window client size: %dx%d", width, height);
 
     MSG msg{};
     while (msg.message != WM_QUIT)
@@ -19,7 +26,6 @@ int main()
             DispatchMessage(&msg);
         }
     }
-
 
     win32_print();
 

@@ -74,6 +74,7 @@ joj::ErrorCode joj::Win32Window::create(const u16 width, const u16 height, const
 
     if (mode == WindowMode::Windowed)
     {
+        // If screen and width parameters are higher than Screen size
         i32 screen_width = GetSystemMetrics(SM_CXSCREEN);
         i32 screen_height = GetSystemMetrics(SM_CYSCREEN);
 
@@ -97,8 +98,20 @@ joj::ErrorCode joj::Win32Window::create(const u16 width, const u16 height, const
     else
     {
         m_style = WS_EX_TOPMOST | WS_POPUP | WS_VISIBLE;
-        m_data.width = width;
-        m_data.height = height;
+
+        // If screen and width parameters are higher than Screen size
+        i32 screen_width = GetSystemMetrics(SM_CXSCREEN);
+        i32 screen_height = GetSystemMetrics(SM_CYSCREEN);
+
+        if (width >= screen_width)
+            m_data.width = screen_width;
+        else
+            m_data.width = width;
+
+        if (height >= screen_height)
+            m_data.height = screen_height;
+        else
+            m_data.height = height;
     }
     m_data.window_mode = mode;
 
@@ -121,9 +134,13 @@ joj::ErrorCode joj::Win32Window::create(const u16 width, const u16 height, const
         return ErrorCode::ERR_WINDOW_HANDLE;
     }
 
-    RECT new_rect = { 0, 0, m_data.width, m_data.height };
-    if (m_data.window_mode == WindowMode::Windowed || m_data.window_mode == WindowMode::Borderless)
+    // FIXME: Weird size when creating a Fullscreen with Window style,
+    //        or a small window with width < 120 with the same options.
+    // Maybe something to do with the actual bar width?
+    if (m_data.window_mode == WindowMode::Windowed)
     {
+        RECT new_rect = { 0, 0, m_data.width, m_data.height };
+
         if (!AdjustWindowRectEx(&new_rect,
             GetWindowStyle(m_data.handle),
             GetMenu(m_data.handle) != nullptr,
@@ -132,9 +149,32 @@ joj::ErrorCode joj::Win32Window::create(const u16 width, const u16 height, const
             JERROR(ErrorCode::ERR_WINDOW_ADJUST, "Could not adjust window rect ex.");
         }
 
-        LONG x1 = GetSystemMetrics(SM_CXSCREEN) / 2;
-        LONG x2 = (new_rect.right - new_rect.left) / 2;
-        LONG x3 = x1 - x2;
+        LONG xpos = (GetSystemMetrics(SM_CXSCREEN) / 2) - ((new_rect.right - new_rect.left) / 2);
+        LONG ypos = (GetSystemMetrics(SM_CYSCREEN) / 2) - ((new_rect.bottom - new_rect.top) / 2);
+
+        if (!MoveWindow(
+            m_data.handle,
+            xpos,
+            ypos,
+            new_rect.right - new_rect.left,
+            new_rect.bottom - new_rect.top,
+            TRUE)
+            )
+        {
+            JERROR(ErrorCode::ERR_WINDOW_MOVE, "Could not move window.");
+        }
+    }
+    else if (m_data.window_mode == WindowMode::Borderless)
+    {
+        RECT new_rect = { 0, 0, m_data.width, m_data.height };
+        
+        if (!AdjustWindowRectEx(&new_rect,
+            GetWindowStyle(m_data.handle),
+            GetMenu(m_data.handle) != nullptr,
+            GetWindowExStyle(m_data.handle)))
+        {
+            JERROR(ErrorCode::ERR_WINDOW_ADJUST, "Could not adjust window rect ex.");
+        }
 
         LONG xpos = (GetSystemMetrics(SM_CXSCREEN) / 2) - ((new_rect.right - new_rect.left) / 2);
         LONG ypos = (GetSystemMetrics(SM_CYSCREEN) / 2) - ((new_rect.bottom - new_rect.top) / 2);
