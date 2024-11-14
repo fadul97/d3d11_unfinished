@@ -35,7 +35,9 @@ namespace joj
         IDXGIFactory6* m_factory;
         ID3D11Debug* m_debug;
 
+#ifdef JOJ_DEBUG
         void log_hardware_info();
+#endif
     };
 
     inline ID3D11Device* D3D11Context::get_device() const

@@ -54,9 +54,9 @@ joj::ErrorCode joj::D3D11Context::create()
 
     factory_flags = DXGI_CREATE_FACTORY_DEBUG;
 
-#ifdef _DEBUG
+#ifdef JOJ_DEBUG
     create_device_flags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif // _DEBUG
+#endif // JOJ_DEBUG
 
     if (CreateDXGIFactory2(factory_flags, IID_PPV_ARGS(&m_factory)) != S_OK)
     {
@@ -91,12 +91,12 @@ joj::ErrorCode joj::D3D11Context::create()
         }
     }
 
-#if defined _DEBUG
+#if defined JOJ_DEBUG
     if (m_device->QueryInterface(__uuidof(ID3D11Debug), (void**)&m_debug) != S_OK)
     {
         JERROR(ErrorCode::ERR_CONTEXT_D3D11_QUERY_INTERFACE_ID3D11_DEBUG, "Failed to QueryInterface of ID3D11Debug.");
     }
-#endif // _DEBUG
+#endif // JOJ_DEBUG
 
     IDXGIDevice* dxgi_device = nullptr;
     if (m_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgi_device) != S_OK)
@@ -121,7 +121,7 @@ joj::ErrorCode joj::D3D11Context::create()
         return ErrorCode::ERR_CONTEXT_D3D11_GET_PARENTOF_IDXGI_FACTORY;
     }
 
-#ifdef _DEBUG
+#ifdef JOJ_DEBUG
     log_hardware_info();
 #endif
 
