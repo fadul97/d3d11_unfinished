@@ -70,6 +70,33 @@ namespace joj
 
         /** @brief D3D11 Context Error code, should be used when getting parent of IDXGIFactory fails. */
         ERR_CONTEXT_D3D11_GET_PARENTOF_IDXGI_FACTORY,
+
+        /** @brief D3D11 Context Error code, should be used when creation of D3D11Context fails. */
+        ERR_D3D11CONTEXT_CREATION,
+
+        /** @brief D3D11 Renderer Error code, should be used when creation of SwapChain fails. */
+        ERR_SWAPCHAIN_D311_CREATION,
+
+        /** @brief D3D11 Renderer Error code, should be used when getting back buffer of SwapChain fails. */
+        ERR_SWAPCHAIN_D3D11_GET_BACKBUFFER,
+
+        /** @brief D3D11 Renderer Error code, should be used when creation of RenderTargetView fails. */
+        ERR_RENDER_TARGET_VIEW_D3D11_CREATION,
+
+        /** @brief D3D11 Renderer Error code, should be used when creation of DepthStencil Texture fails. */
+        ERR_DEPTHSTENCIL_D3D11_BUFFER,
+
+        /** @brief D3D11 Renderer Error code, should be used when creation of DepthStencilView fails. */
+        ERR_DEPTHSTENCIL_VIEW_D3D11_CREATION,
+
+        /** @brief D3D11 Renderer Error code, should be used when creation of BlendState fails. */
+        ERR_BLENDSTATE_D3D11_CREATION,
+
+        /** @brief D3D11 Renderer Error code, should be used when creation of RasterizerState fails. */
+        ERR_RASTERIZER_D3D11_CREATION,
+
+        /** @brief D3D11 Renderer Error code, should be used when SwapChain fails to present. */
+        ERR_RENDERER_D3D11_SWAPCHAIN_PRESENT,
     };
 
     /** @brief Get the index of the ErrorCode.
