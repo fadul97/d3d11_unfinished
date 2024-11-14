@@ -6,6 +6,7 @@ add_library(
     jojD3D11Renderer 
     STATIC 
     context_d3d11.cpp
+    renderer_d3d11.cpp
 )
 
 target_link_directories(

@@ -3,7 +3,7 @@
 #include "joj/platform/win32/window_win32.h"
 #include "joj/platform/win32/input_win32.h"
 #include "joj/platform/win32/timer_win32.h"
-#include "joj/renderer/d3d11/context_d3d11.h"
+#include "joj/renderer/d3d11/renderer_d3d11.h"
 #include <sstream>
 
 f32 get_frametime(HWND handle, joj::Win32Timer& timer);
@@ -28,8 +28,9 @@ int main()
     window.get_client_size(width, height);
     JDEBUG("Window client size: %dx%d", width, height);
 
-    joj::D3D11Context context;
-    context.create();
+    joj::D3D11Renderer renderer;
+    if (renderer.init(window.get_window_data()) != joj::ErrorCode::OK)
+        return -2;
 
     timer.begin_period();
     timer.start();
@@ -50,6 +51,9 @@ int main()
 
         if (input.is_key_down(joj::KEY_SPACE))
             JDEBUG("SPACE down");
+
+        renderer.clear();
+        renderer.swap_buffers();
     }
 
     timer.end_period();
