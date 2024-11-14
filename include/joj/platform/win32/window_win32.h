@@ -1,0 +1,6 @@
+#ifndef JOJ_WIN32_WINDOW_H
+#define JOJ_WIN32_WINDOW_H
+
+
+
+#endif // JOJ_WIN32_WINDOW_H
