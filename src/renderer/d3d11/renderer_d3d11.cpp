@@ -15,7 +15,7 @@ joj::D3D11Renderer::D3D11Renderer()
 	m_antialiasing = 1;             // No antialising
 	m_quality = 0;                  // Default quality
 	m_vsync = false;                // No vertical sync
-	m_swapchain = nullptr;         // Swap chain
+	m_swapchain = nullptr;          // Swap chain
 	m_render_target_view = nullptr; // Backbuffer render target view
 	m_depth_stencil_view = nullptr; // Depth/Stencil view
 	m_viewport = { 0 };             // Viewport
@@ -89,8 +89,8 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 
 	// Describe Swap Chain
 	DXGI_SWAP_CHAIN_DESC swap_chain_desc = { 0 };
-	swap_chain_desc.BufferDesc.Width = u32(window.width);                                   // Back buffer width
-	swap_chain_desc.BufferDesc.Height = u32(window.height);                                 // Back buffer height
+	swap_chain_desc.BufferDesc.Width = static_cast<u32>(window.width);                      // Back buffer width
+	swap_chain_desc.BufferDesc.Height = static_cast<u32>(window.height);                    // Back buffer height
 	swap_chain_desc.BufferDesc.RefreshRate.Numerator = 60;                                  // Refresh rate in hertz 
 	swap_chain_desc.BufferDesc.RefreshRate.Numerator = 1;                                   // Numerator is an int
 	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;                         // Color format - RGBA 8 bits
@@ -137,17 +137,17 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 
 	// Describe Depth/Stencil Buffer Desc
 	D3D11_TEXTURE2D_DESC depth_stencil_desc = { 0 };
-	depth_stencil_desc.Width = u32(window.width);               // Depth/Stencil buffer width
-	depth_stencil_desc.Height = u32(window.height);             // Depth/Stencil buffer height
-	depth_stencil_desc.MipLevels = 0;                           // Number of mipmap levels
-	depth_stencil_desc.ArraySize = 1;                           // Number of textures in array
-	depth_stencil_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;  // Color format - Does it need to be the same format of swapChainDesc?
-	depth_stencil_desc.SampleDesc.Count = m_antialiasing;       // Samples per pixel (antialiasing)
-	depth_stencil_desc.SampleDesc.Quality = m_quality;          // Level of image quality
-	depth_stencil_desc.Usage = D3D11_USAGE_DEFAULT;             // Default - GPU will both read and write to the resource
-	depth_stencil_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;    // Where resource will be bound to the pipeline
-	depth_stencil_desc.CPUAccessFlags = 0;                      // CPU will not read not write to the Depth/Stencil buffer
-	depth_stencil_desc.MiscFlags = 0;                           // Optional flags
+	depth_stencil_desc.Width = static_cast<u32>(window.width);   // Depth/Stencil buffer width
+	depth_stencil_desc.Height = static_cast<u32>(window.height); // Depth/Stencil buffer height
+	depth_stencil_desc.MipLevels = 0;                            // Number of mipmap levels
+	depth_stencil_desc.ArraySize = 1;                            // Number of textures in array
+	depth_stencil_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;   // Color format - Does it need to be the same format of swapChainDesc?
+	depth_stencil_desc.SampleDesc.Count = m_antialiasing;        // Samples per pixel (antialiasing)
+	depth_stencil_desc.SampleDesc.Quality = m_quality;           // Level of image quality
+	depth_stencil_desc.Usage = D3D11_USAGE_DEFAULT;              // Default - GPU will both read and write to the resource
+	depth_stencil_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;     // Where resource will be bound to the pipeline
+	depth_stencil_desc.CPUAccessFlags = 0;                       // CPU will not read not write to the Depth/Stencil buffer
+	depth_stencil_desc.MiscFlags = 0;                            // Optional flags
 
 	// Create Depth/Stencil Buffer
 	ID3D11Texture2D* depth_stencil_buffer;
