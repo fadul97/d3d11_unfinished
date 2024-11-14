@@ -7,6 +7,20 @@ int main()
     i32 a = 5;
     std::cout << "a = " << a << std::endl;
 
+    joj::Win32Window window;
+    window.create(800, 600, "Joj Window", joj::WindowMode::Windowed);
+
+    MSG msg{};
+    while (msg.message != WM_QUIT)
+    {
+        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
+    }
+
+
     win32_print();
 
     std::cout << "Hello, Joj!" << std::endl;
