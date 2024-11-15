@@ -47,26 +47,17 @@ public:
 	void shutdown();
 
 public:
-	joj::JFloat4x4 m_sphere_world[10];
-	joj::JFloat4x4 m_cyl_world[10];
-	joj::JFloat4x4 m_box_world;
-	joj::JFloat4x4 m_grid_world;
-	joj::JFloat4x4 m_center_sphere;
+	joj::JFloat4x4 m_box_world = joj::float4x4_identity();
+	joj::JFloat4x4 m_grid_world = joj::float4x4_identity();
 
 	i32 m_box_vertex_offset = 0;
 	i32 m_grid_vertex_offset = 0;
-	i32 m_sphere_vertex_offset = 0;
-	i32 m_cylinder_vertex_offset = 0;
 
 	u32 m_box_index_count = 0;
 	u32 m_grid_index_count = 0;
-	u32 m_sphere_index_count = 0;
-	u32 m_cylinder_index_count = 0;
 
 	u32 m_box_index_offset = 0;
 	u32 m_grid_index_offset = 0;
-	u32 m_sphere_index_offset = 0;
-	u32 m_cylinder_index_offset = 0;
 
 	// joj::Cube geo{ 3.0f, 3.0f, 3.0f };
 	// joj::Sphere geo{ 2.0f, 20.0f, 40 };
@@ -75,7 +66,6 @@ public:
 	// joj::Grid geo{ 3.0f, 5.0f, 3, 2 };
 	// joj::Quad geo{ 2.0f, 2.0f };
 
-	std::vector<std::unique_ptr<joj::D3D11RenderableObject>> m_objects;
 	joj::D3D11VertexBuffer m_vb;
 	joj::D3D11IndexBuffer m_ib;
 	void build_geometry_buffers();
@@ -99,6 +89,7 @@ public:
 	f32 speed = 20.0f;
 	b8 is_wireframe = false;
 
+	joj::JFloat4x4 mWorld = joj::float4x4_identity();
 	joj::JFloat4x4 mView = joj::float4x4_identity();
 	joj::JFloat4x4 mProj = joj::float4x4_identity();
 };
