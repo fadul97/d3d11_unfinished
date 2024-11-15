@@ -216,10 +216,10 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	// Describe rasterizer
 	D3D11_RASTERIZER_DESC rasterizer_desc = { };
 	ZeroMemory(&rasterizer_desc, sizeof(rasterizer_desc));
-	rasterizer_desc.FillMode = D3D11_FILL_SOLID;
-	//rasterizer_desc.FillMode = D3D11_FILL_WIREFRAME;
-	//rasterizer_desc.CullMode = D3D11_CULL_BACK;
-	rasterizer_desc.CullMode = D3D11_CULL_NONE;
+	// rasterizer_desc.FillMode = D3D11_FILL_SOLID;
+	rasterizer_desc.FillMode = D3D11_FILL_WIREFRAME;
+	rasterizer_desc.CullMode = D3D11_CULL_BACK;
+	// rasterizer_desc.CullMode = D3D11_CULL_NONE;
 	rasterizer_desc.DepthClipEnable = true;
 
 	// Create rasterizer state
