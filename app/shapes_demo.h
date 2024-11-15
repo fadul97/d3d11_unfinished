@@ -20,16 +20,12 @@
 #include "joj/systems/camera/free_camera.h"
 #include <memory>
 #include "joj/renderer/d3d11/renderable_object_d3d11.h"
+#include "joj/renderer/d3d11/scene_d3d11.h"
 
 struct Vertex
 {
 	joj::JFloat3 Pos;
 	joj::JFloat4 Color;
-};
-
-struct ObjectConstants
-{
-	joj::JFloat4x4 World = joj::float4x4_identity();
 };
 
 template <typename T>
@@ -74,7 +70,7 @@ public:
 	// joj::Grid geo{ 3.0f, 5.0f, 3, 2 };
 	// joj::Quad geo{ 2.0f, 2.0f };
 
-	std::vector<std::unique_ptr<joj::D3D11RenderableObject>> m_objects;
+	joj::D3D11Scene m_scene;
 	joj::D3D11VertexBuffer m_vb;
 	joj::D3D11IndexBuffer m_ib;
 	void build_geometry_buffers();

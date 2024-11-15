@@ -115,14 +115,14 @@ void ShapesDemo::build_geometry_buffers()
 	box_ro->set_index_count(m_box_index_count);
 	box_ro->set_index_location(m_box_index_offset);
 	box_ro->set_vertex_location(m_box_vertex_offset);
-	m_objects.push_back(std::move(box_ro));
+	m_scene.add_renderable_object(std::move(box_ro));
 
 	auto grid_ro = std::make_unique<joj::D3D11RenderableObject>();
 	grid_ro->set_world_float4x4(m_grid_world);
 	grid_ro->set_index_count(m_grid_index_count);
 	grid_ro->set_index_location(m_grid_index_offset);
 	grid_ro->set_vertex_location(m_grid_vertex_offset);
-	m_objects.push_back(std::move(grid_ro));
+	m_scene.add_renderable_object(std::move(grid_ro));
 
 	for (i32 i = 0; i < 5; ++i)
 	{
@@ -131,28 +131,28 @@ void ShapesDemo::build_geometry_buffers()
 		cyl_ro1->set_index_count(m_cylinder_index_count);
 		cyl_ro1->set_index_location(m_cylinder_index_offset);
 		cyl_ro1->set_vertex_location(m_cylinder_vertex_offset);
-		m_objects.push_back(std::move(cyl_ro1));
+		m_scene.add_renderable_object(std::move(cyl_ro1));
 
 		auto cyl_ro2 = std::make_unique<joj::D3D11RenderableObject>();
 		cyl_ro2->set_world_float4x4(m_cyl_world[i * 2 + 1]);
 		cyl_ro2->set_index_count(m_cylinder_index_count);
 		cyl_ro2->set_index_location(m_cylinder_index_offset);
 		cyl_ro2->set_vertex_location(m_cylinder_vertex_offset);
-		m_objects.push_back(std::move(cyl_ro2));
+		m_scene.add_renderable_object(std::move(cyl_ro2));
 
 		auto sphere_ro1 = std::make_unique<joj::D3D11RenderableObject>();
 		sphere_ro1->set_world_float4x4(m_sphere_world[i * 2 + 0]);
 		sphere_ro1->set_index_count(m_sphere_index_count);
 		sphere_ro1->set_index_location(m_sphere_index_offset);
 		sphere_ro1->set_vertex_location(m_sphere_vertex_offset);
-		m_objects.push_back(std::move(sphere_ro1));
+		m_scene.add_renderable_object(std::move(sphere_ro1));
 
 		auto sphere_ro2 = std::make_unique<joj::D3D11RenderableObject>();
 		sphere_ro2->set_world_float4x4(m_sphere_world[i * 2 + 1]);
 		sphere_ro2->set_index_count(m_sphere_index_count);
 		sphere_ro2->set_index_location(m_sphere_index_offset);
 		sphere_ro2->set_vertex_location(m_sphere_vertex_offset);
-		m_objects.push_back(std::move(sphere_ro2));
+		m_scene.add_renderable_object(std::move(sphere_ro2));
 	}
 
 	// ---------------------------------------------------
@@ -166,30 +166,33 @@ void ShapesDemo::build_geometry_buffers()
 	// ---------------------------------------------------
 
 	const joj::JFloat4 black(0.0f, 0.0f, 0.0f, 1.0f);
+	const joj::JFloat4 blue(0.0f, 0.0f, 1.0f, 1.0f);
+	const joj::JFloat4 purple(1.0f, 0.0f, 1.0f, 1.0f);
+	const joj::JFloat4 yellow(1.0f, 1.0f, 0.0f, 1.0f);
 
 	u32 k = 0;
 	for (size_t i = 0; i < box.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = box.get_vertex_data()[i].pos;
-		vertices[k].color = box.get_vertex_data()[i].color;
+		vertices[k].color = purple;
 	}
 
 	for (size_t i = 0; i < grid.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = grid.get_vertex_data()[i].pos;
-		vertices[k].color = grid.get_vertex_data()[i].color;
+		vertices[k].color = black;
 	}
 
 	for (size_t i = 0; i < sphere.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = sphere.get_vertex_data()[i].pos;
-		vertices[k].color = sphere.get_vertex_data()[i].color;
+		vertices[k].color = yellow;
 	}
 
 	for (size_t i = 0; i < cylinder.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = cylinder.get_vertex_data()[i].pos;
-		vertices[k].color = cylinder.get_vertex_data()[i].color;
+		vertices[k].color = blue;
 	}
 
 	// Create vertex buffer
@@ -272,7 +275,7 @@ void ShapesDemo::build_vertex_layout()
 
 void ShapesDemo::build_constant_buffer()
 {
-	m_cb.setup(joj::calculate_cb_byte_size(sizeof(ObjectConstants)), nullptr);
+	m_cb.setup(joj::calculate_cb_byte_size(sizeof(joj::CBPerObject)), nullptr);
 
 	// Create the buffer.
 	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_cb.get_buffer_desc(), nullptr, &m_cb.get_buffer()) != S_OK)
@@ -376,21 +379,7 @@ void ShapesDemo::draw()
 	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
 	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
 
-	for (const auto& obj : m_objects)
-	{
-		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&obj->get_world_float4x4());
-		joj::JMatrix4x4 wvp = world * view * proj;
-
-		ObjectConstants cbPerObject;
-		XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(wvp));
-		m_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
-
-		joj::Engine::s_renderer->get_device_context()->DrawIndexed(
-			obj->get_index_count(),
-			obj->get_index_location(),
-			obj->get_vertex_location()
-		);
-	}
+	m_scene.update(joj::Engine::s_frametime, &camera, mProj, m_cb);
 
 	joj::Engine::s_renderer->swap_buffers();
 }
