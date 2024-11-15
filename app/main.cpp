@@ -5,6 +5,7 @@
 #include "joj/platform/win32/timer_win32.h"
 #include "joj/renderer/d3d11/renderer_d3d11.h"
 #include "joj/jmacros.h"
+#include "box_demo.h"
 #include <sstream>
 
 f32 get_frametime(HWND handle, joj::Win32Timer& timer);
@@ -13,6 +14,9 @@ f32 dt = 0.0f;
 
 int main()
 {
+    BoxDemo app;
+    app.init();
+
     joj::Win32Window window;
     JOJ_LOG_IF_FAIL(window.create(800, 600, "Joj Window", joj::WindowMode::Windowed));
 
@@ -55,6 +59,8 @@ int main()
     }
 
     timer.end_period();
+
+    app.shutdown();
 
     JDEBUG("Hello, Joj!");
 
