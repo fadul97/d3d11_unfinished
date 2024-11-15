@@ -21,6 +21,7 @@
 #include <resources/geometry/geosphere.h>
 #include <resources/geometry/grid.h>
 #include <resources/geometry/quad.h>
+#include "joj/systems/camera/free_camera.h"
 
 struct Vertex
 {
@@ -69,6 +70,15 @@ public:
 
 	joj::D3D11ConstantBuffer m_cb;
 	void build_constant_buffer();
+
+	joj::FreeCamera camera;
+	b8 firstPerson = true;
+	b8 hideCursor = false;
+	i32 centerX = 400;
+	i32 centerY = 300;
+	b8 fast = false;
+	f32 speed = 20.0f;
+	b8 is_wireframe = false;
 
 	joj::JFloat4x4 mWorld = joj::float4x4_identity();
 	joj::JFloat4x4 mView = joj::float4x4_identity();

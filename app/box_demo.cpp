@@ -11,11 +11,26 @@
 
 void BoxDemo::init()
 {
-	constexpr f32 fov_angle = 45;
-	DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(
-		DirectX::XMConvertToRadians(fov_angle), 800.0f / 600.0f, 0.1f, 100.0f
-	);
-	DirectX::XMStoreFloat4x4(&mProj, P);
+	// Basic Initialization
+	{
+		// Hide camera
+		ShowCursor(false);
+
+		// FIXME: Stop using magical numbers
+		// Locking mouse at the center of window
+		centerX += 1100;
+		centerY += 400;
+
+		// Projection Matrix
+		constexpr f32 fov_angle = 45;
+		DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(
+			DirectX::XMConvertToRadians(fov_angle), 800.0f / 600.0f, 0.1f, 100.0f
+		);
+		DirectX::XMStoreFloat4x4(&mProj, P);
+
+		// Setup Mouse movement speed
+		camera.m_movement_speed = 2.0f;
+	}
 
 	build_geometry_buffers();
 	build_shaders();
@@ -111,16 +126,70 @@ void BoxDemo::build_constant_buffer()
 
 void BoxDemo::update(const f32 dt)
 {
-	float x = 5.0f;
-	float y = 5.0f;
-	float z = -3.0f;
+	// Basic Input for LearningApp projects
+	{
+		// Exit with ESCAPE key
+		if (joj::Engine::s_input->is_key_pressed(joj::KEY_ESCAPE))
+			joj::Engine::close();
+
+		if (joj::Engine::s_input->is_key_pressed(joj::KEY_TAB))
+		{
+			firstPerson = !firstPerson;
+			hideCursor = !hideCursor;
+			ShowCursor(hideCursor);
+		}
+
+		if (firstPerson)
+		{
+			// Now read the mouse position
+			POINT cursorPos;
+			GetCursorPos(&cursorPos);  // Get the current cursor position
+			// Rotate freely inside window
+			SetCursorPos(centerX, centerY);
+
+			// Calculate the mouse movement
+			int xoffset = cursorPos.x - centerX;
+			int yoffset = centerY - cursorPos.y;
+
+			//mouse_callback(JojEngine::Engine::pm->get_xmouse(), JojEngine::Engine::pm->get_ymouse());
+			camera.process_mouse_movement(xoffset, yoffset);
+		}
+
+		// Change Rasterizer State
+		if (joj::Engine::s_input->is_key_pressed('C'))
+			is_wireframe = !is_wireframe;
+
+		// Change Mouse Movement Speed state
+		if (joj::Engine::s_input->is_key_pressed('F'))
+			fast = !fast;
+
+		if (fast)
+			speed = 20.0f;
+		else
+			speed = 1.0f;
+
+		if (joj::Engine::s_input->is_key_down('W'))
+			camera.process_keyboard(joj::CameraMovement::FORWARD, dt * speed);
+
+		if (joj::Engine::s_input->is_key_down(joj::KEY_S))
+			camera.process_keyboard(joj::CameraMovement::BACKWARD, dt * speed);
+
+		if (joj::Engine::s_input->is_key_down(joj::KEY_A))
+			camera.process_keyboard(joj::CameraMovement::LEFT, dt * speed);
+
+		if (joj::Engine::s_input->is_key_down(joj::KEY_D))
+			camera.process_keyboard(joj::CameraMovement::RIGHT, dt * speed);
+	}
+	// float x = 5.0f;
+	// float y = 5.0f;
+	// float z = -3.0f;
 
 	// Build the view matrix.
-	DirectX::XMVECTOR pos = DirectX::XMVectorSet(x, y, z, 1.0f);
-	DirectX::XMVECTOR target = DirectX::XMVectorZero();
-	DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	// DirectX::XMVECTOR pos = DirectX::XMVectorSet(x, y, z, 1.0f);
+	// DirectX::XMVECTOR target = DirectX::XMVectorZero();
+	// DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
-	DirectX::XMMATRIX V = DirectX::XMMatrixLookAtLH(pos, target, up);
+	DirectX::XMMATRIX V = camera.get_view_mat();
 	XMStoreFloat4x4(&mView, V);
 }
 
