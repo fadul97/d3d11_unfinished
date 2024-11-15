@@ -8,6 +8,7 @@ add_library(
     geometry_vertex.cpp
     geometry.cpp
     cube.cpp
+    sphere.cpp
 )
 
 # Specify include directories for jojGeometry
