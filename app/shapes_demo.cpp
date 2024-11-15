@@ -252,9 +252,6 @@ void ShapesDemo::build_vertex_layout()
 	// Create the vertex input layout.
 	m_input_desc =
 	{
-		// {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		// {"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
-
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
@@ -340,14 +337,6 @@ void ShapesDemo::update(const f32 dt)
 		if (joj::Engine::s_input->is_key_down(joj::KEY_D))
 			camera.process_keyboard(joj::CameraMovement::RIGHT, dt * speed);
 	}
-	// float x = 5.0f;
-	// float y = 5.0f;
-	// float z = -3.0f;
-
-	// Build the view matrix.
-	// DirectX::XMVECTOR pos = DirectX::XMVectorSet(x, y, z, 1.0f);
-	// DirectX::XMVECTOR target = DirectX::XMVectorZero();
-	// DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 
 	DirectX::XMMATRIX V = camera.get_view_mat();
 	XMStoreFloat4x4(&mView, V);
