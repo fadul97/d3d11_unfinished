@@ -169,6 +169,8 @@ void BoxDemo::build_vertex_layout(joj::D3D11Renderer& renderer)
 
 void BoxDemo::build_constant_buffer(joj::D3D11Renderer& renderer)
 {
+	m_cb.setup(joj::calculate_cb_byte_size(sizeof(ObjectConstants)), nullptr);
+
 	// Fill in a buffer description.
 	D3D11_BUFFER_DESC cbDesc;
 	cbDesc.ByteWidth = sizeof(ObjectConstants);
@@ -179,7 +181,7 @@ void BoxDemo::build_constant_buffer(joj::D3D11Renderer& renderer)
 	cbDesc.StructureByteStride = 0;
 
 	// Create the buffer.
-	if (renderer.get_device()->CreateBuffer(&cbDesc, nullptr, &m_obj_cb) != S_OK)
+	if (renderer.get_device()->CreateBuffer(m_cb.get_buffer_desc(), nullptr, &m_cb.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Constant Buffer.");
 	}
@@ -187,9 +189,9 @@ void BoxDemo::build_constant_buffer(joj::D3D11Renderer& renderer)
 
 void BoxDemo::update(const f32 dt)
 {
-	float x = 3.0f;
+	float x = 5.0f;
 	float y = 1.0f;
-	float z = -05.0f;
+	float z = -3.0f;
 
 	// Build the view matrix.
 	DirectX::XMVECTOR pos = DirectX::XMVectorSet(x, y, z, 1.0f);
@@ -207,7 +209,6 @@ void BoxDemo::draw()
 
 void BoxDemo::shutdown()
 {
-	m_obj_cb->Release();
 	m_input_layout->Release();
 
 	JINFO("Shutting down App...");

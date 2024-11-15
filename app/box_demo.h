@@ -13,6 +13,7 @@
 #include "joj/renderer/d3d11/shader_d3d11.h"
 #include "joj/renderer/d3d11/vertex_buffer_d3d11.h"
 #include <renderer/d3d11/index_buffer_d3d11.h>
+#include <renderer/d3d11/constant_buffer_d3d11.h>
 
 struct Vertex
 {
@@ -62,7 +63,7 @@ public:
 	ID3D11InputLayout* m_input_layout = nullptr;
 	void build_vertex_layout(joj::D3D11Renderer& renderer);
 
-	ID3D11Buffer* m_obj_cb = nullptr;
+	joj::D3D11ConstantBuffer m_cb;
 	void build_constant_buffer(joj::D3D11Renderer& renderer);
 
 	DirectX::XMFLOAT4X4 mWorld = Identity4x4();
