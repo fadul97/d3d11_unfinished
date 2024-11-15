@@ -5,6 +5,7 @@
 #include "defines.h"
 
 #include "math/jmath.h"
+#include "geometry_vertex.h"
 #include <vector>
 
 namespace joj

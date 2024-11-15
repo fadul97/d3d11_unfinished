@@ -32,7 +32,7 @@ void joj::Geometry::subdivide()
     // *-----*-----*
     // v0    m2     v2
 
-    u32 num_tris = static_cast<u32>(indices_copy.size() / 3);
+    const u32 num_tris = static_cast<u32>(indices_copy.size() / 3);
 
     for (u32 i = 0; i < num_tris; ++i)
     {
