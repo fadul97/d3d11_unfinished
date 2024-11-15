@@ -68,7 +68,7 @@ int main()
         renderer.get_device_context()->IASetInputLayout(app.m_input_layout);
         renderer.get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-        UINT stride = sizeof(Vertex);
+        UINT stride = sizeof(joj::GeometryVertex);
         UINT offset = 0;
         renderer.get_device_context()->IASetVertexBuffers(0, 1, &app.m_vb.get_buffer(), &stride, &offset);
         renderer.get_device_context()->IASetIndexBuffer(app.m_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);

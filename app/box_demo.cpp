@@ -8,66 +8,20 @@
 #include <string>
 #include <d3dcompiler.h>
 
-ID3DBlob* CompileShader(const std::wstring& filename,
-	const D3D_SHADER_MACRO* defines,
-	const std::string& entrypoint,
-	const std::string& target)
-{
-	// use debug flags in debug mode
-	UINT compileFlags = 0;
-#if defined(DEBUG) || defined(_DEBUG)
-	compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-	HRESULT hr = S_OK;
-
-	ID3DBlob* byteCode = nullptr;
-	ID3DBlob* errors;
-	if (D3DCompileFromFile(filename.c_str(),
-		defines,
-		D3D_COMPILE_STANDARD_FILE_INCLUDE,
-		entrypoint.c_str(),
-		target.c_str(),
-		compileFlags,
-		0,
-		&byteCode,
-		&errors) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to Compile Shader.");
-	}
-
-	if (errors != nullptr)
-	{
-		OutputDebugStringA((char*)errors->GetBufferPointer());
-		JERROR(joj::ErrorCode::FAILED, "%s", (char*)errors->GetBufferPointer());
-	}
-
-	return byteCode;
-}
-
 void BoxDemo::init()
 {
 	constexpr f32 fov_angle = 45;
-	DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(DirectX::XMConvertToRadians(fov_angle), 800.0f / 600.0f, 0.1f, 100.0f);
+	DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(
+		DirectX::XMConvertToRadians(fov_angle), 800.0f / 600.0f, 0.1f, 100.0f
+	);
 	DirectX::XMStoreFloat4x4(&mProj, P);
 }
 
 void BoxDemo::build_geometry_buffers(joj::D3D11Renderer& renderer)
 {
-	// Create vertex buffer
-	Vertex vertices[] =
-	{
-		{DirectX::XMFLOAT3(-0.5f, -0.5f, -0.5f), DirectX::XMFLOAT4(DirectX::Colors::White)},
-		{DirectX::XMFLOAT3(-0.5f, +0.5f, -0.5f), DirectX::XMFLOAT4(DirectX::Colors::Black)},
-		{DirectX::XMFLOAT3(+0.5f, +0.5f, -0.5f), DirectX::XMFLOAT4(DirectX::Colors::Red)},
-		{DirectX::XMFLOAT3(+0.5f, -0.5f, -0.5f), DirectX::XMFLOAT4(DirectX::Colors::Green)},
-		{DirectX::XMFLOAT3(-0.5f, -0.5f, +0.5f), DirectX::XMFLOAT4(DirectX::Colors::Blue)},
-		{DirectX::XMFLOAT3(-0.5f, +0.5f, +0.5f), DirectX::XMFLOAT4(DirectX::Colors::Yellow)},
-		{DirectX::XMFLOAT3(+0.5f, +0.5f, +0.5f), DirectX::XMFLOAT4(DirectX::Colors::Cyan)},
-		{DirectX::XMFLOAT3(+0.5f, -0.5f, +0.5f), DirectX::XMFLOAT4(DirectX::Colors::Magenta)}
-	};
 
-	m_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(Vertex) * 8, vertices);
+	// Create vertex buffer
+	m_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * cube.get_vertex_count(), cube.get_vertex_data());
 
 	if (renderer.get_device()->CreateBuffer(m_vb.get_buffer_desc(), m_vb.get_subdata(), &m_vb.get_buffer()) != S_OK)
 	{
@@ -75,44 +29,8 @@ void BoxDemo::build_geometry_buffers(joj::D3D11Renderer& renderer)
 	}
 
 	// Create the index buffer
+	m_ib.setup(sizeof(u32) * cube.get_index_count(), cube.get_index_data());
 
-	UINT indices[] = {
-		// front face
-		0, 1, 2,
-		0, 2, 3,
-
-		// back face
-		4, 6, 5,
-		4, 7, 6,
-
-		// left face
-		4, 5, 1,
-		4, 1, 0,
-
-		// right face
-		3, 2, 6,
-		3, 6, 7,
-
-		// top face
-		1, 5, 6,
-		1, 6, 2,
-
-		// bottom face
-		4, 0, 3,
-		4, 3, 7
-	};
-
-	m_ib.setup(sizeof(u32) * 36, indices);
-
-	D3D11_BUFFER_DESC ibd;
-	ibd.Usage = D3D11_USAGE_IMMUTABLE;
-	ibd.ByteWidth = sizeof(UINT) * 36;
-	ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-	ibd.CPUAccessFlags = 0;
-	ibd.MiscFlags = 0;
-	ibd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA iinitData;
-	iinitData.pSysMem = indices;
 	if (renderer.get_device()->CreateBuffer(m_ib.get_buffer_desc(), m_ib.get_subdata(), &m_ib.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Index Buffer.");
@@ -151,8 +69,13 @@ void BoxDemo::build_vertex_layout(joj::D3D11Renderer& renderer)
 	// Create the vertex input layout.
 	m_input_desc =
 	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+		// {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		// {"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
+
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
 	if (renderer.get_device()->CreateInputLayout(
