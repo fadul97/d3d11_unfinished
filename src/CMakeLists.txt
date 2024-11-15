@@ -38,4 +38,5 @@ target_link_libraries(
     jojPlatform
     jojRenderer
     jojApplication
+    jojMath
 )
