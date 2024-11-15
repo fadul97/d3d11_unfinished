@@ -5,7 +5,7 @@
 #include "joj/platform/win32/timer_win32.h"
 #include "joj/renderer/d3d11/renderer_d3d11.h"
 #include "joj/jmacros.h"
-#include "box_demo.h"
+#include "shapes_demo.h"
 #include <sstream>
 #include <math/jmath.h>
 #include "joj/engine.h"
@@ -17,6 +17,6 @@ int main()
     joj::Engine engine;
     JOJ_LOG_IF_FAIL(engine.start());
 
-    BoxDemo app;
+    ShapesDemo app;
     return engine.run(&app);
 }
