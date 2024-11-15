@@ -9,6 +9,7 @@ add_library(
     geometry.cpp
     cube.cpp
     sphere.cpp
+    cylinder.cpp
 )
 
 # Specify include directories for jojGeometry
