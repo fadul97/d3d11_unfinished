@@ -190,7 +190,7 @@ void BoxDemo::build_constant_buffer(joj::D3D11Renderer& renderer)
 void BoxDemo::update(const f32 dt)
 {
 	float x = 5.0f;
-	float y = 1.0f;
+	float y = 5.0f;
 	float z = -3.0f;
 
 	// Build the view matrix.

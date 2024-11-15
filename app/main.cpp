@@ -7,6 +7,7 @@
 #include "joj/jmacros.h"
 #include "box_demo.h"
 #include <sstream>
+#include <math/jmath.h>
 
 /* TODO: Add comments for new files and refactor Demo App. */
 
@@ -89,10 +90,10 @@ int main()
             0u);
 
         // Set constants
-        DirectX::XMMATRIX world = DirectX::XMLoadFloat4x4(&app.mWorld);
-        DirectX::XMMATRIX view = DirectX::XMLoadFloat4x4(&app.mView);
-        DirectX::XMMATRIX proj = DirectX::XMLoadFloat4x4(&app.mProj);
-        DirectX::XMMATRIX worldViewProj = world * view * proj;
+        joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&app.mWorld);
+        joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&app.mView);
+        joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&app.mProj);
+        joj::JMatrix4x4 worldViewProj = world * view * proj;
 
         ObjectConstants cbPerObject;
         XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(worldViewProj));

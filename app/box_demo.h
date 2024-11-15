@@ -14,27 +14,17 @@
 #include "joj/renderer/d3d11/vertex_buffer_d3d11.h"
 #include <renderer/d3d11/index_buffer_d3d11.h>
 #include <renderer/d3d11/constant_buffer_d3d11.h>
+#include "joj/math/jmath.h"
 
 struct Vertex
 {
-	DirectX::XMFLOAT3 Pos;
-	DirectX::XMFLOAT4 Color;
+	joj::JFloat3 Pos;
+	joj::JFloat4 Color;
 };
-
-static DirectX::XMFLOAT4X4 Identity4x4()
-{
-	static DirectX::XMFLOAT4X4 I(
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f);
-
-	return I;
-}
 
 struct ObjectConstants
 {
-	DirectX::XMFLOAT4X4 World = Identity4x4();
+	joj::JFloat4x4 World = joj::float4x4_identity();
 };
 
 template <typename T>
@@ -66,9 +56,9 @@ public:
 	joj::D3D11ConstantBuffer m_cb;
 	void build_constant_buffer(joj::D3D11Renderer& renderer);
 
-	DirectX::XMFLOAT4X4 mWorld = Identity4x4();
-	DirectX::XMFLOAT4X4 mView = Identity4x4();
-	DirectX::XMFLOAT4X4 mProj = Identity4x4();
+	joj::JFloat4x4 mWorld = joj::float4x4_identity();
+	joj::JFloat4x4 mView = joj::float4x4_identity();
+	joj::JFloat4x4 mProj = joj::float4x4_identity();
 };
 
 #endif // JPLATFORM_WINDOWS
