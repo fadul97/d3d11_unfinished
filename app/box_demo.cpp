@@ -67,16 +67,9 @@ void BoxDemo::build_geometry_buffers(joj::D3D11Renderer& renderer)
 		{DirectX::XMFLOAT3(+0.5f, -0.5f, +0.5f), DirectX::XMFLOAT4(DirectX::Colors::Magenta)}
 	};
 
-	D3D11_BUFFER_DESC vbd;
-	vbd.Usage = D3D11_USAGE_IMMUTABLE;
-	vbd.ByteWidth = sizeof(Vertex) * 8;
-	vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-	vbd.CPUAccessFlags = 0;
-	vbd.MiscFlags = 0;
-	vbd.StructureByteStride = 0;
-	D3D11_SUBRESOURCE_DATA vinitData;
-	vinitData.pSysMem = vertices;
-	if (renderer.get_device()->CreateBuffer(&vbd, &vinitData, &m_box_vb) != S_OK)
+	m_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(Vertex) * 8, vertices);
+
+	if (renderer.get_device()->CreateBuffer(m_vb.get_buffer_desc(), m_vb.get_subdata(), &m_vb.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Vertex Buffer.");
 	}
@@ -193,7 +186,7 @@ void BoxDemo::build_constant_buffer(joj::D3D11Renderer& renderer)
 void BoxDemo::update(const f32 dt)
 {
 	float x = 2.0f;
-	float y = 1.0f;
+	float y = 4.0f;
 	float z = -05.0f;
 
 	// Build the view matrix.
@@ -215,7 +208,6 @@ void BoxDemo::shutdown()
 	m_obj_cb->Release();
 	m_input_layout->Release();
 
-	m_box_vb->Release();
 	m_box_ib->Release();
     
 	JINFO("Shutting down App...");

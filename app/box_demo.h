@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <string>
 #include "joj/renderer/d3d11/shader_d3d11.h"
+#include "joj/renderer/d3d11/vertex_buffer_d3d11.h"
 
 struct Vertex
 {
@@ -49,7 +50,7 @@ public:
 	void shutdown();
 
 public:
-	ID3D11Buffer* m_box_vb = nullptr;
+	joj::D3D11VertexBuffer m_vb;
 	ID3D11Buffer* m_box_ib = nullptr;
 	void build_geometry_buffers(joj::D3D11Renderer& renderer);
 
