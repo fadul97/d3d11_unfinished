@@ -4,6 +4,7 @@ project(joj)
 
 add_subdirectory(platform)
 add_subdirectory(renderer)
-add_subdirectory(application)
 add_subdirectory(math)
 add_subdirectory(resources)
+add_subdirectory(systems)
+add_subdirectory(application)
