@@ -10,6 +10,7 @@ add_library(
     shader_d3d11.cpp
     vertex_buffer_d3d11.cpp
     index_buffer_d3d11.cpp
+    constant_buffer_d3d11.cpp
 )
 
 target_link_directories(
