@@ -18,6 +18,7 @@
 #include "joj/resources/geometry/cube.h"
 #include <resources/geometry/sphere.h>
 #include <resources/geometry/cylinder.h>
+#include <resources/geometry/geosphere.h>
 
 struct Vertex
 {
@@ -47,7 +48,8 @@ public:
 public:
 	// joj::Cube geo{ 3.0f, 3.0f, 3.0f };
 	// joj::Sphere geo{ 2.0f, 20.0f, 40 };
-	joj::Cylinder geo{ 2.0f, 2.0f, 2.0f, 20, 20};
+	// joj::Cylinder geo{ 2.0f, 2.0f, 2.0f, 20, 20};
+	joj::GeoSphere geo{ 2.0f, 5 };
 
 	u32 geo_index_count = 0;
 	joj::D3D11VertexBuffer m_vb;
