@@ -10,6 +10,7 @@
 #include "joj/renderer/d3d11/renderer_d3d11.h"
 #include <unordered_map>
 #include <string>
+#include "joj/renderer/d3d11/shader_d3d11.h"
 
 struct Vertex
 {
@@ -52,9 +53,7 @@ public:
 	ID3D11Buffer* m_box_ib = nullptr;
 	void build_geometry_buffers(joj::D3D11Renderer& renderer);
 
-	std::unordered_map<std::string, ID3DBlob*> m_shaders;
-	ID3D11VertexShader* m_vs = nullptr;
-	ID3D11PixelShader* m_ps = nullptr;
+	joj::D3D11Shader m_shader;
 	void build_shaders(joj::D3D11Renderer& renderer);
 
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_input_desc;

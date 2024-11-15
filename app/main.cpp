@@ -74,7 +74,7 @@ int main()
 
         renderer.get_device_context()->VSSetShader(
             // Pointer to a vertex shader
-            app.m_vs,
+            app.m_shader.get_vertex_shader(),
             // A pointer to an array of class-instance interfaces
             nullptr,
             // The number of class-instance interfaces in the array
@@ -82,7 +82,7 @@ int main()
 
         renderer.get_device_context()->PSSetShader(
             // Pointer to a vertex shader
-            app.m_ps,
+            app.m_shader.get_pixel_shader(),
             // A pointer to an array of class-instance interfaces
             nullptr,
             // The number of class-instance interfaces in the array

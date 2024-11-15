@@ -127,28 +127,28 @@ void BoxDemo::build_geometry_buffers(joj::D3D11Renderer& renderer)
 void BoxDemo::build_shaders(joj::D3D11Renderer& renderer)
 {
 	// FIXME: Path is wrong
-	m_shaders["standardVS"] = CompileShader(L"../../../../app/shaders/color.hlsl", nullptr, "VS", "vs_5_0");
-	m_shaders["standardPS"] = CompileShader(L"../../../../app/shaders/color.hlsl", nullptr, "PS", "ps_5_0");
+	m_shader.compile_vertex_shader(L"../../../../app/shaders/color.hlsl", "VS", "vs_5_0");
+	m_shader.compile_pixel_shader(L"../../../../app/shaders/color.hlsl", "PS", "ps_5_0");
 
 	renderer.get_device()->CreateVertexShader(
 		// A pointer to the compiled shader
-		m_shaders["standardVS"]->GetBufferPointer(),
+		m_shader.get_vsblob()->GetBufferPointer(),
 		// Size of the compiled vertex shader
-		m_shaders["standardVS"]->GetBufferSize(),
+		m_shader.get_vsblob()->GetBufferSize(),
 		// A pointer to a class linkage interface
 		nullptr,
 		// Address of a pointer to a ID3D11VertexShader interface
-		&m_vs);
+		&m_shader.get_vertex_shader());
 
 	renderer.get_device()->CreatePixelShader(
 		// A pointer to the compiled shader
-		m_shaders["standardPS"]->GetBufferPointer(),
+		m_shader.get_psblob()->GetBufferPointer(),
 		// Size of the compiled vertex shader
-		m_shaders["standardPS"]->GetBufferSize(),
+		m_shader.get_psblob()->GetBufferSize(),
 		// A pointer to a class linkage interface
 		nullptr,
 		// Address of a pointer to a ID3D11VertexShader interface
-		&m_ps);
+		&m_shader.get_pixel_shader());
 }
 
 void BoxDemo::build_vertex_layout(joj::D3D11Renderer& renderer)
@@ -163,8 +163,8 @@ void BoxDemo::build_vertex_layout(joj::D3D11Renderer& renderer)
 	if (renderer.get_device()->CreateInputLayout(
 		m_input_desc.data(),
 		(u32)m_input_desc.size(),
-		m_shaders["standardVS"]->GetBufferPointer(),
-		m_shaders["standardVS"]->GetBufferSize(),
+		m_shader.get_vsblob()->GetBufferPointer(),
+		m_shader.get_vsblob()->GetBufferSize(),
 		&m_input_layout
 	) != S_OK)
 	{
@@ -192,8 +192,8 @@ void BoxDemo::build_constant_buffer(joj::D3D11Renderer& renderer)
 
 void BoxDemo::update(const f32 dt)
 {
-	float x = 0.0f;
-	float y = 0.0f;
+	float x = 2.0f;
+	float y = 1.0f;
 	float z = -05.0f;
 
 	// Build the view matrix.
@@ -215,11 +215,6 @@ void BoxDemo::shutdown()
 	m_obj_cb->Release();
 	m_input_layout->Release();
 
-	m_vs->Release();
-	m_ps->Release();
-	m_shaders["standardPS"]->Release();
-	m_shaders["standardVS"]->Release();
-	
 	m_box_vb->Release();
 	m_box_ib->Release();
     
