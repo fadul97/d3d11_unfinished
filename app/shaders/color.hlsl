@@ -30,8 +30,8 @@ VertexOut VS(VertexIn vin)
 
 float4 PS(VertexOut pin) : SV_Target
 {
-    float4 outColor = float4(1.0, 0.0, 0.0, 1.0);
-    return outColor; // pin.Color;
+    // float4 outColor = float4(1.0, 0.0, 0.0, 1.0);
+    return pin.Color;
 
 }
 
