@@ -97,6 +97,12 @@ namespace joj
 
         /** @brief D3D11 Renderer Error code, should be used when SwapChain fails to present. */
         ERR_RENDERER_D3D11_SWAPCHAIN_PRESENT,
+
+        /** @brief D3D11 Shader Error code, should be used when compilation of Vertex Shader fails. */
+        ERR_SHADER_D3D11_VERTEX_COMPILATION,
+
+        /** @brief D3D11 Shader Error code, should be used when compilation of Pixel Shader fails. */
+        ERR_SHADER_D3D11_PIXEL_COMPILATION,
     };
 
     /** @brief Get the index of the ErrorCode.
