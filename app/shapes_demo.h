@@ -49,15 +49,23 @@ public:
 public:
 	joj::JFloat4x4 m_box_world = joj::float4x4_identity();
 	joj::JFloat4x4 m_grid_world = joj::float4x4_identity();
+	joj::JFloat4x4 m_sphere_world[10];
+	joj::JFloat4x4 m_cyl_world[10];
 
 	i32 m_box_vertex_offset = 0;
 	i32 m_grid_vertex_offset = 0;
+	i32 m_sphere_vertex_offset = 0;
+	i32 m_cylinder_vertex_offset = 0;
 
 	u32 m_box_index_count = 0;
 	u32 m_grid_index_count = 0;
+	u32 m_sphere_index_count = 0;
+	u32 m_cylinder_index_count = 0;
 
 	u32 m_box_index_offset = 0;
 	u32 m_grid_index_offset = 0;
+	u32 m_sphere_index_offset = 0;
+	u32 m_cylinder_index_offset = 0;
 
 	// joj::Cube geo{ 3.0f, 3.0f, 3.0f };
 	// joj::Sphere geo{ 2.0f, 20.0f, 40 };
