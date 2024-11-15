@@ -21,6 +21,7 @@ target_link_directories(
     joj
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/joj/math/
+    ${CMAKE_CURRENT_SOURCE_DIR}/geometry/
 )
 
 target_link_libraries(jojResources PUBLIC jojGeometry jojMath)
