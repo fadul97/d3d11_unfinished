@@ -66,6 +66,7 @@ public:
 	// joj::Grid geo{ 3.0f, 5.0f, 3, 2 };
 	// joj::Quad geo{ 2.0f, 2.0f };
 
+	std::vector<std::unique_ptr<joj::D3D11RenderableObject>> m_objects;
 	joj::D3D11VertexBuffer m_vb;
 	joj::D3D11IndexBuffer m_ib;
 	void build_geometry_buffers();

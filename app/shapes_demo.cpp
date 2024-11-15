@@ -85,6 +85,24 @@ void ShapesDemo::build_geometry_buffers()
 		m_grid_index_count;
 
 	// ---------------------------------------------------
+	// Setup and add Renderable Objects to vector
+	// ---------------------------------------------------
+
+	auto box_ro = std::make_unique<joj::D3D11RenderableObject>();
+	box_ro->set_world_float4x4(m_box_world);
+	box_ro->set_index_count(m_box_index_count);
+	box_ro->set_index_location(m_box_index_offset);
+	box_ro->set_vertex_location(m_box_vertex_offset);
+	m_objects.push_back(std::move(box_ro));
+
+	auto grid_ro = std::make_unique<joj::D3D11RenderableObject>();
+	grid_ro->set_world_float4x4(m_grid_world);
+	grid_ro->set_index_count(m_grid_index_count);
+	grid_ro->set_index_location(m_grid_index_offset);
+	grid_ro->set_vertex_location(m_grid_vertex_offset);
+	m_objects.push_back(std::move(grid_ro));
+
+	// ---------------------------------------------------
 	// Unique vector of GeometryVertex
 	// ---------------------------------------------------
 
@@ -301,15 +319,22 @@ void ShapesDemo::draw()
 	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
 	joj::JMatrix4x4 worldViewProj = world * view * proj;
 
-	ObjectConstants cbPerObject;
-	XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(worldViewProj));
+	for (const auto& obj : m_objects)
+	{
+		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&obj->get_world_float4x4());
+		joj::JMatrix4x4 wvp = world * view * proj;
+		
+		ObjectConstants cbPerObject;
+		XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(worldViewProj));
+		m_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
+		
+		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_cb.get_buffer());
+	
+		joj::Engine::s_renderer->get_device_context()->DrawIndexed(obj->get_index_count(), obj->get_index_location(), obj->get_vertex_location());
+		
+	}
 
-	m_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
-
-	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_cb.get_buffer());
-
-	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, m_box_index_offset, m_box_vertex_offset);
-
+	/*
 	world = DirectX::XMLoadFloat4x4(&m_grid_world);
 	worldViewProj = world * view * proj;
 
@@ -320,6 +345,7 @@ void ShapesDemo::draw()
 	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_cb.get_buffer());
 
 	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_grid_index_count, m_grid_index_offset, m_grid_vertex_offset);
+	*/
 
 	joj::Engine::s_renderer->swap_buffers();
 }
