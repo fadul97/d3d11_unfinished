@@ -70,7 +70,7 @@ int main()
         UINT stride = sizeof(Vertex);
         UINT offset = 0;
         renderer.get_device_context()->IASetVertexBuffers(0, 1, &app.m_vb.get_buffer(), &stride, &offset);
-        renderer.get_device_context()->IASetIndexBuffer(app.m_box_ib, DXGI_FORMAT_R32_UINT, 0);
+        renderer.get_device_context()->IASetIndexBuffer(app.m_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
 
         renderer.get_device_context()->VSSetShader(
             // Pointer to a vertex shader

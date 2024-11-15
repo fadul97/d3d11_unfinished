@@ -102,6 +102,8 @@ void BoxDemo::build_geometry_buffers(joj::D3D11Renderer& renderer)
 		4, 3, 7
 	};
 
+	m_ib.setup(sizeof(u32) * 36, indices);
+
 	D3D11_BUFFER_DESC ibd;
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;
 	ibd.ByteWidth = sizeof(UINT) * 36;
@@ -111,7 +113,7 @@ void BoxDemo::build_geometry_buffers(joj::D3D11Renderer& renderer)
 	ibd.StructureByteStride = 0;
 	D3D11_SUBRESOURCE_DATA iinitData;
 	iinitData.pSysMem = indices;
-	if (renderer.get_device()->CreateBuffer(&ibd, &iinitData, &m_box_ib) != S_OK)
+	if (renderer.get_device()->CreateBuffer(m_ib.get_buffer_desc(), m_ib.get_subdata(), &m_ib.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Index Buffer.");
 	}
@@ -185,8 +187,8 @@ void BoxDemo::build_constant_buffer(joj::D3D11Renderer& renderer)
 
 void BoxDemo::update(const f32 dt)
 {
-	float x = 2.0f;
-	float y = 4.0f;
+	float x = 3.0f;
+	float y = 1.0f;
 	float z = -05.0f;
 
 	// Build the view matrix.
@@ -208,8 +210,6 @@ void BoxDemo::shutdown()
 	m_obj_cb->Release();
 	m_input_layout->Release();
 
-	m_box_ib->Release();
-    
 	JINFO("Shutting down App...");
 }
 
