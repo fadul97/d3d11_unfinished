@@ -380,6 +380,8 @@ void ShapesDemo::draw()
 		nullptr,
 		// The number of class-instance interfaces in the array
 		0u);
+	
+	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_cb.get_buffer());
 
 	// Set constants
 	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
@@ -389,15 +391,16 @@ void ShapesDemo::draw()
 	{
 		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&obj->get_world_float4x4());
 		joj::JMatrix4x4 wvp = world * view * proj;
-		
+
 		ObjectConstants cbPerObject;
 		XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(wvp));
 		m_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
-		
-		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_cb.get_buffer());
-	
-		joj::Engine::s_renderer->get_device_context()->DrawIndexed(obj->get_index_count(), obj->get_index_location(), obj->get_vertex_location());
-		
+
+		joj::Engine::s_renderer->get_device_context()->DrawIndexed(
+			obj->get_index_count(),
+			obj->get_index_location(),
+			obj->get_vertex_location()
+		);
 	}
 
 	joj::Engine::s_renderer->swap_buffers();
