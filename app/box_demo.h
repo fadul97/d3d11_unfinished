@@ -20,6 +20,7 @@
 #include <resources/geometry/cylinder.h>
 #include <resources/geometry/geosphere.h>
 #include <resources/geometry/grid.h>
+#include <resources/geometry/quad.h>
 
 struct Vertex
 {
@@ -51,7 +52,8 @@ public:
 	// joj::Sphere geo{ 2.0f, 20.0f, 40 };
 	// joj::Cylinder geo{ 2.0f, 2.0f, 2.0f, 20, 20};
 	// joj::GeoSphere geo{ 2.0f, 5 };
-	joj::Grid geo{ 3.0f, 5.0f, 3, 2 };
+	// joj::Grid geo{ 3.0f, 5.0f, 3, 2 };
+	joj::Quad geo{ 2.0f, 2.0f };
 
 	u32 geo_index_count = 0;
 	joj::D3D11VertexBuffer m_vb;
