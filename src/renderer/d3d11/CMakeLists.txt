@@ -8,6 +8,7 @@ add_library(
     context_d3d11.cpp
     renderer_d3d11.cpp
     shader_d3d11.cpp
+    vertex_buffer_d3d11.cpp
 )
 
 target_link_directories(
