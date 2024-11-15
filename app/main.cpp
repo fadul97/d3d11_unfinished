@@ -8,6 +8,8 @@
 #include "box_demo.h"
 #include <sstream>
 
+/* TODO: Add comments for new files and refactor Demo App. */
+
 f32 get_frametime(HWND handle, joj::Win32Timer& timer);
 f32 frametime = 0.0f;
 f32 dt = 0.0f;
