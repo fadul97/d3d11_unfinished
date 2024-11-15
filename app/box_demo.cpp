@@ -212,7 +212,18 @@ void BoxDemo::draw()
 
 void BoxDemo::shutdown()
 {
-    JINFO("Shutting down App...");
+	m_obj_cb->Release();
+	m_input_layout->Release();
+
+	m_vs->Release();
+	m_ps->Release();
+	m_shaders["standardPS"]->Release();
+	m_shaders["standardVS"]->Release();
+	
+	m_box_vb->Release();
+	m_box_ib->Release();
+    
+	JINFO("Shutting down App...");
 }
 
 #endif // JPLATFORM_WINDOWS
