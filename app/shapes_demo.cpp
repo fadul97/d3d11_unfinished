@@ -171,25 +171,25 @@ void ShapesDemo::build_geometry_buffers()
 	for (size_t i = 0; i < box.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = box.get_vertex_data()[i].pos;
-		vertices[k].color = black;
+		vertices[k].color = box.get_vertex_data()[i].color;
 	}
 
 	for (size_t i = 0; i < grid.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = grid.get_vertex_data()[i].pos;
-		vertices[k].color = black;
+		vertices[k].color = grid.get_vertex_data()[i].color;
 	}
 
 	for (size_t i = 0; i < sphere.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = sphere.get_vertex_data()[i].pos;
-		vertices[k].color = black;
+		vertices[k].color = sphere.get_vertex_data()[i].color;
 	}
 
 	for (size_t i = 0; i < cylinder.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = cylinder.get_vertex_data()[i].pos;
-		vertices[k].color = black;
+		vertices[k].color = cylinder.get_vertex_data()[i].color;
 	}
 
 	// Create vertex buffer
