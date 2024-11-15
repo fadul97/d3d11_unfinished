@@ -48,27 +48,27 @@ public:
 	void shutdown();
 
 public:
-	// joj::Cube geo{ 3.0f, 3.0f, 3.0f };
+	joj::Cube geo{ 3.0f, 3.0f, 3.0f };
 	// joj::Sphere geo{ 2.0f, 20.0f, 40 };
 	// joj::Cylinder geo{ 2.0f, 2.0f, 2.0f, 20, 20};
 	// joj::GeoSphere geo{ 2.0f, 5 };
 	// joj::Grid geo{ 3.0f, 5.0f, 3, 2 };
-	joj::Quad geo{ 2.0f, 2.0f };
+	// joj::Quad geo{ 2.0f, 2.0f };
 
 	u32 geo_index_count = 0;
 	joj::D3D11VertexBuffer m_vb;
 	joj::D3D11IndexBuffer m_ib;
-	void build_geometry_buffers(joj::D3D11Renderer& renderer);
+	void build_geometry_buffers();
 
 	joj::D3D11Shader m_shader;
-	void build_shaders(joj::D3D11Renderer& renderer);
+	void build_shaders();
 
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_input_desc;
 	ID3D11InputLayout* m_input_layout = nullptr;
-	void build_vertex_layout(joj::D3D11Renderer& renderer);
+	void build_vertex_layout();
 
 	joj::D3D11ConstantBuffer m_cb;
-	void build_constant_buffer(joj::D3D11Renderer& renderer);
+	void build_constant_buffer();
 
 	joj::JFloat4x4 mWorld = joj::float4x4_identity();
 	joj::JFloat4x4 mView = joj::float4x4_identity();

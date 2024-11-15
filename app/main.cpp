@@ -8,147 +8,15 @@
 #include "box_demo.h"
 #include <sstream>
 #include <math/jmath.h>
+#include "joj/engine.h"
 
 /* TODO: Add comments for new files and refactor Demo App. */
 
-f32 get_frametime(HWND handle, joj::Win32Timer& timer);
-f32 frametime = 0.0f;
-f32 dt = 0.0f;
-
 int main()
 {
-    joj::Win32Window window;
-    JOJ_LOG_IF_FAIL(window.create(800, 600, "Joj Window", joj::WindowMode::Windowed));
-
-    joj::Win32Input input;
-    input.set_window(window.get_window_data().handle);
-
-    u16 width = 0, height = 0;
-    window.get_window_size(width, height);
-    JDEBUG("Window size: %dx%d", width, height);
-
-    window.get_client_size(width, height);
-    JDEBUG("Window client size: %dx%d", width, height);
-
-    joj::D3D11Renderer renderer;
-    JOJ_LOG_IF_FAIL(renderer.init(window.get_window_data()));
+    joj::Engine engine;
+    JOJ_LOG_IF_FAIL(engine.start());
 
     BoxDemo app;
-    app.init();
-    app.build_geometry_buffers(renderer);
-    app.build_shaders(renderer);
-    app.build_vertex_layout(renderer);
-    app.build_constant_buffer(renderer);
-
-    joj::Win32Timer timer;
-    timer.begin_period();
-    timer.start();
-
-    MSG msg{};
-    while (msg.message != WM_QUIT)
-    {
-        frametime = get_frametime(window.get_window_data().handle, timer);
-
-        if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-
-        if (input.is_key_pressed('A'))
-            JDEBUG("A pressed");
-
-        if (input.is_key_down(joj::KEY_SPACE))
-            JDEBUG("SPACE down");
-
-        app.update(frametime);
-
-        renderer.clear();
-
-        renderer.get_device_context()->IASetInputLayout(app.m_input_layout);
-        renderer.get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-        UINT stride = sizeof(joj::GeometryVertex);
-        UINT offset = 0;
-        renderer.get_device_context()->IASetVertexBuffers(0, 1, &app.m_vb.get_buffer(), &stride, &offset);
-        renderer.get_device_context()->IASetIndexBuffer(app.m_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
-
-        renderer.get_device_context()->VSSetShader(
-            // Pointer to a vertex shader
-            app.m_shader.get_vertex_shader(),
-            // A pointer to an array of class-instance interfaces
-            nullptr,
-            // The number of class-instance interfaces in the array
-            0u);
-
-        renderer.get_device_context()->PSSetShader(
-            // Pointer to a vertex shader
-            app.m_shader.get_pixel_shader(),
-            // A pointer to an array of class-instance interfaces
-            nullptr,
-            // The number of class-instance interfaces in the array
-            0u);
-
-        // Set constants
-        joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&app.mWorld);
-        joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&app.mView);
-        joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&app.mProj);
-        joj::JMatrix4x4 worldViewProj = world * view * proj;
-
-        ObjectConstants cbPerObject;
-        XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(worldViewProj));
-
-        app.m_cb.update(renderer.get_device_context(), cbPerObject);
-
-        renderer.get_device_context()->VSSetConstantBuffers(0, 1, &app.m_cb.get_buffer());
-
-        renderer.get_device_context()->DrawIndexed(app.geo_index_count, 0, 0);
-        renderer.swap_buffers();
-    }
-
-    timer.end_period();
-
-    app.shutdown();
-
-    JDEBUG("Hello, Joj!");
-
-    return 0;
-}
-
-f32 get_frametime(HWND handle, joj::Win32Timer& timer)
-{
-#ifdef _DEBUG
-    static f32 total_time = 0.0f;	// Total time elapsed
-    static u32  frame_count = 0;	// Elapsed frame counter
-#endif
-
-    // Current frame time
-    frametime = timer.reset();
-
-#ifdef _DEBUG
-    // Accumulated frametime
-    total_time += frametime;
-
-    // Increment frame counter
-    frame_count++;
-
-    // Updates FPS indicator in the window every 1000ms (1 second)
-    if (total_time >= 1.0f)
-    {
-        std::stringstream text;		// Text flow for messages
-        text << std::fixed;			// Always show the fractional part
-        text.precision(3);			// three numbers after comma
-
-        text << "Joj Engine" << "    "
-            << "FPS: " << frame_count << "    "
-            << "Frametime: " << frametime * 1000 << " (ms)";
-
-        SetWindowText(handle, text.str().c_str());
-
-        frame_count = 0;
-        total_time -= 1.0f;
-    }
-#endif
-
-    return frametime;
+    return engine.run(&app);
 }
