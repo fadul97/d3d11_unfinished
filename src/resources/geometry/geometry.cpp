@@ -13,10 +13,10 @@ joj::Geometry::~Geometry()
 
 void joj::Geometry::subdivide()
 {
-    // using namespace DirectX;
+    using namespace DirectX; // For math operation in loop
 
     // Save a copy of the original geometry
-    std::vector <Vertex> vertices_copy = m_vertices;
+    std::vector <GeometryVertex> vertices_copy = m_vertices;
     std::vector <u32> indices_copy = m_indices;
 
     m_vertices.resize(0);
@@ -36,12 +36,12 @@ void joj::Geometry::subdivide()
 
     for (u32 i = 0; i < num_tris; ++i)
     {
-        Vertex v0 = vertices_copy[indices_copy[size_t(i) * 3 + 0]];
-        Vertex v1 = vertices_copy[indices_copy[size_t(i) * 3 + 1]];
-        Vertex v2 = vertices_copy[indices_copy[size_t(i) * 3 + 2]];
+        GeometryVertex v0 = vertices_copy[indices_copy[size_t(i) * 3 + 0]];
+        GeometryVertex v1 = vertices_copy[indices_copy[size_t(i) * 3 + 1]];
+        GeometryVertex v2 = vertices_copy[indices_copy[size_t(i) * 3 + 2]];
 
         // Find center points of each edge
-        Vertex m0, m1, m2;
+        GeometryVertex m0, m1, m2;
         DirectX::XMStoreFloat3(&m0.pos, 0.5f * (DirectX::XMLoadFloat3(&v0.pos) + DirectX::XMLoadFloat3(&v1.pos)));
         DirectX::XMStoreFloat3(&m1.pos, 0.5f * (DirectX::XMLoadFloat3(&v1.pos) + DirectX::XMLoadFloat3(&v2.pos)));
         DirectX::XMStoreFloat3(&m2.pos, 0.5f * (DirectX::XMLoadFloat3(&v0.pos) + DirectX::XMLoadFloat3(&v2.pos)));

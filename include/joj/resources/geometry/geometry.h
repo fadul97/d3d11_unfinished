@@ -29,7 +29,7 @@ namespace joj
         u32 get_vertex_count() const;
         u32 get_index_count() const;
 
-        std::vector<Vertex>& get_vertices();
+        std::vector<GeometryVertex>& get_vertices();
         std::vector<u32>& get_indices();
 
         std::vector<u16>& get_indices16();    // TODO: Refactor
@@ -55,7 +55,7 @@ namespace joj
     inline DirectX::XMFLOAT3 Geometry::get_position() const
     { return m_position; }
 
-    inline const Vertex* Geometry::get_vertex_data() const
+    inline const GeometryVertex* Geometry::get_vertex_data() const
     { return m_vertices.data(); }
 
     inline const u32* Geometry::get_index_data() const
@@ -67,7 +67,7 @@ namespace joj
     inline u32 Geometry::get_index_count() const
     { return static_cast<u32>(m_indices.size()); }
 
-    inline std::vector<Vertex>& Geometry::get_vertices()
+    inline std::vector<GeometryVertex>& Geometry::get_vertices()
     { return m_vertices; }
 
     inline std::vector<u32>& Geometry::get_indices()
