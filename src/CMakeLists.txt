@@ -8,6 +8,7 @@ if(WIN32)
         STATIC
         error_code.cpp
         logger_win32.cpp
+        engine.cpp
    )
 endif()
 
