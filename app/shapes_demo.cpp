@@ -43,6 +43,8 @@ void ShapesDemo::init()
 	joj::JMatrix4x4 box_world = XMMatrixMultiply(box_scale, box_offset);
 	XMStoreFloat4x4(&m_box_world, box_world);
 
+	XMStoreFloat4x4(&m_grid_world, I);
+
 	build_geometry_buffers();
 	build_shaders();
 	build_vertex_layout();
@@ -314,10 +316,8 @@ void ShapesDemo::draw()
 		0u);
 
 	// Set constants
-	joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_box_world);
 	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
 	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
-	joj::JMatrix4x4 worldViewProj = world * view * proj;
 
 	for (const auto& obj : m_objects)
 	{
@@ -325,7 +325,7 @@ void ShapesDemo::draw()
 		joj::JMatrix4x4 wvp = world * view * proj;
 		
 		ObjectConstants cbPerObject;
-		XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(worldViewProj));
+		XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(wvp));
 		m_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
 		
 		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_cb.get_buffer());
