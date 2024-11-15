@@ -12,6 +12,7 @@ add_library(
     cylinder.cpp
     geosphere.cpp
     grid.cpp
+    quad.cpp
 )
 
 # Specify include directories for jojGeometry
