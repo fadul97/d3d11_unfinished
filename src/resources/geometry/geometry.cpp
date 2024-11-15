@@ -3,7 +3,7 @@
 #if JPLATFORM_WINDOWS
 
 joj::Geometry::Geometry()
-    : m_type(GeometryType::UNKNOWN)
+    : m_type(GeometryType::UNKNOWN), m_position(0.0f, 0.0f, 0.0f)
 {
 }
 
