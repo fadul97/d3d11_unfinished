@@ -21,6 +21,8 @@ namespace joj
         virtual void translate(f32 dx, f32 dy, f32 dz);
         virtual void move_to(f32 px, f32 py, f32 pz);
 
+        GeometryType get_type() const;
+
         virtual JFloat3 get_position() const;
 
         const GeometryVertex* get_vertex_data() const;
@@ -45,6 +47,9 @@ namespace joj
 
         void subdivide();
     };
+
+    inline GeometryType Geometry::get_type() const
+    { return m_type; }
 
     inline void Geometry::translate(const f32 dx, const f32 dy, const f32 dz)
     { m_position.x += dx; m_position.y += dy; m_position.z += dz; }
