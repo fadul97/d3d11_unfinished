@@ -16,6 +16,7 @@
 #include <renderer/d3d11/constant_buffer_d3d11.h>
 #include "joj/math/jmath.h"
 #include "joj/resources/geometry/cube.h"
+#include <resources/geometry/sphere.h>
 
 struct Vertex
 {
@@ -43,7 +44,9 @@ public:
 	void shutdown();
 
 public:
-	joj::Cube cube{ 3.0f, 3.0f, 3.0f };
+	// joj::Cube geo{ 3.0f, 3.0f, 3.0f };
+	joj::Sphere geo{ 2.0f, 20.0f, 40 };
+	u32 geo_index_count = 0;
 	joj::D3D11VertexBuffer m_vb;
 	joj::D3D11IndexBuffer m_ib;
 	void build_geometry_buffers(joj::D3D11Renderer& renderer);

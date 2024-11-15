@@ -102,7 +102,7 @@ int main()
 
         renderer.get_device_context()->VSSetConstantBuffers(0, 1, &app.m_cb.get_buffer());
 
-        renderer.get_device_context()->DrawIndexed(36, 0, 0);
+        renderer.get_device_context()->DrawIndexed(app.geo_index_count, 0, 0);
         renderer.swap_buffers();
     }
 

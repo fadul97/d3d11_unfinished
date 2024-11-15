@@ -19,9 +19,8 @@ void BoxDemo::init()
 
 void BoxDemo::build_geometry_buffers(joj::D3D11Renderer& renderer)
 {
-
 	// Create vertex buffer
-	m_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * cube.get_vertex_count(), cube.get_vertex_data());
+	m_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * geo.get_vertex_count(), geo.get_vertex_data());
 
 	if (renderer.get_device()->CreateBuffer(m_vb.get_buffer_desc(), m_vb.get_subdata(), &m_vb.get_buffer()) != S_OK)
 	{
@@ -29,12 +28,14 @@ void BoxDemo::build_geometry_buffers(joj::D3D11Renderer& renderer)
 	}
 
 	// Create the index buffer
-	m_ib.setup(sizeof(u32) * cube.get_index_count(), cube.get_index_data());
+	m_ib.setup(sizeof(u32) * geo.get_index_count(), geo.get_index_data());
 
 	if (renderer.get_device()->CreateBuffer(m_ib.get_buffer_desc(), m_ib.get_subdata(), &m_ib.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Index Buffer.");
 	}
+
+	geo_index_count = geo.get_index_count();
 }
 
 void BoxDemo::build_shaders(joj::D3D11Renderer& renderer)
@@ -93,15 +94,6 @@ void BoxDemo::build_vertex_layout(joj::D3D11Renderer& renderer)
 void BoxDemo::build_constant_buffer(joj::D3D11Renderer& renderer)
 {
 	m_cb.setup(joj::calculate_cb_byte_size(sizeof(ObjectConstants)), nullptr);
-
-	// Fill in a buffer description.
-	D3D11_BUFFER_DESC cbDesc;
-	cbDesc.ByteWidth = sizeof(ObjectConstants);
-	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cbDesc.MiscFlags = 0;
-	cbDesc.StructureByteStride = 0;
 
 	// Create the buffer.
 	if (renderer.get_device()->CreateBuffer(m_cb.get_buffer_desc(), nullptr, &m_cb.get_buffer()) != S_OK)
