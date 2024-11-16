@@ -127,7 +127,7 @@ void LitWavesDemo::init()
 	m_spot_light.att = joj::JFloat3(1.0f, 0.0f, 0.0f);
 	m_spot_light.Spot = 96.0f;
 	m_spot_light.Range = 10000.0f;
-	m_spot_light.direction = joj::JFloat3(0.0f, 0.0f, 0.0f);
+	m_spot_light.direction = joj::JFloat3(0.0f, -1.0f, 0.0f);
 	m_spot_light.position = joj::JFloat3(1.0f, 1.0f, 0.0f);
 	m_spot_light.pad = 0.0f;
 
