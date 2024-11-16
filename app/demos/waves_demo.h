@@ -10,7 +10,6 @@
 #include <renderer/d3d11/constant_buffer_d3d11.h>
 #include "joj/math/jmath.h"
 #include "joj/systems/camera/free_camera.h"
-#include "joj/renderer/d3d11/scene_d3d11.h"
 #include "waves.h"
 
 // ---------------------------------------------------------------------------------
