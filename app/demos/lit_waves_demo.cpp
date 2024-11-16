@@ -464,7 +464,7 @@ void LitWavesDemo::update(const f32 dt)
 	}
 
 	joj::GeometryVertex* v = reinterpret_cast<joj::GeometryVertex*>(mappedData.pData);
-	for (UINT i = 0; i < m_waves.get_vertex_count(); ++i)
+	for (u32 i = 0; i < m_waves.get_vertex_count(); ++i)
 	{
 		v[i].pos = m_waves.Position(i);
 		v[i].normal = m_waves.Normal(i);
@@ -485,7 +485,10 @@ void LitWavesDemo::update(const f32 dt)
 		m_point_light.position.z), -3.0f) + 10.0f;
 
 	using namespace DirectX;
-	m_spot_light.position = camera.m_position;
+	m_spot_light.position.x = 35.0f * sinf(0.2f * total_time);
+	m_spot_light.position.z = 35.0f * cosf(0.2f * total_time);
+	m_spot_light.position.y = Max(get_hill_height(m_spot_light.position.x,
+		m_spot_light.position.z), -3.0f) + 10.0f;
 	joj::JVector4 pos = DirectX::XMVectorSet(camera.m_position.x, camera.m_position.y, camera.m_position.z, 1.0f);
 	joj::JVector4 target = DirectX::XMVectorZero();
 	joj::JVector4 normalized = DirectX::XMVector3Normalize(target - pos);
