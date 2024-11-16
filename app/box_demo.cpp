@@ -2,12 +2,16 @@
 
 #if JPLATFORM_WINDOWS
 
+// ---------------------------------------------------------------------------------
+
 #include "logger.h"
 #include <DirectXColors.h>
 #include <d3d11.h>
 #include <string>
 #include <d3dcompiler.h>
 #include "joj/engine.h"
+
+// ---------------------------------------------------------------------------------
 
 void BoxDemo::init()
 {
@@ -38,6 +42,8 @@ void BoxDemo::init()
 	build_constant_buffer();
 }
 
+// ---------------------------------------------------------------------------------
+
 void BoxDemo::build_geometry_buffers()
 {
 	// Create vertex buffer
@@ -58,6 +64,8 @@ void BoxDemo::build_geometry_buffers()
 
 	geo_index_count = geo.get_index_count();
 }
+
+// ---------------------------------------------------------------------------------
 
 void BoxDemo::build_shaders()
 {
@@ -85,6 +93,8 @@ void BoxDemo::build_shaders()
 		&m_shader.get_pixel_shader());
 }
 
+// ---------------------------------------------------------------------------------
+
 void BoxDemo::build_vertex_layout()
 {
 	// Create the vertex input layout.
@@ -108,6 +118,8 @@ void BoxDemo::build_vertex_layout()
 	}
 }
 
+// ---------------------------------------------------------------------------------
+
 void BoxDemo::build_constant_buffer()
 {
 	m_cb.setup(joj::calculate_cb_byte_size(sizeof(ObjectConstants)), nullptr);
@@ -118,6 +130,8 @@ void BoxDemo::build_constant_buffer()
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Constant Buffer.");
 	}
 }
+
+// ---------------------------------------------------------------------------------
 
 void BoxDemo::update(const f32 dt)
 {
@@ -180,6 +194,8 @@ void BoxDemo::update(const f32 dt)
 	XMStoreFloat4x4(&mView, V);
 }
 
+// ---------------------------------------------------------------------------------
+
 void BoxDemo::draw()
 {
 	joj::Engine::s_renderer->clear();
@@ -225,11 +241,15 @@ void BoxDemo::draw()
 	joj::Engine::s_renderer->swap_buffers();
 }
 
+// ---------------------------------------------------------------------------------
+
 void BoxDemo::shutdown()
 {
 	m_input_layout->Release();
 
 	JINFO("Shutting down App...");
 }
+
+// ---------------------------------------------------------------------------------
 
 #endif // JPLATFORM_WINDOWS

@@ -5,6 +5,8 @@
 
 #if JPLATFORM_WINDOWS
 
+// ---------------------------------------------------------------------------------
+
 #include "joj/application/app.h"
 #include <DirectXMath.h>
 #include "joj/renderer/d3d11/renderer_d3d11.h"
@@ -23,22 +25,22 @@
 #include <resources/geometry/quad.h>
 #include "joj/systems/camera/free_camera.h"
 
+// ---------------------------------------------------------------------------------
+
 struct Vertex
 {
 	joj::JFloat3 Pos;
 	joj::JFloat4 Color;
 };
 
+// ---------------------------------------------------------------------------------
+
 struct ObjectConstants
 {
 	joj::JFloat4x4 World = joj::float4x4_identity();
 };
 
-template <typename T>
-static T Clamp(const T& x, const T& low, const T& high)
-{
-	return x < low ? low : (x > high ? high : x);
-}
+// ---------------------------------------------------------------------------------
 
 class BoxDemo : public joj::App
 {
@@ -84,6 +86,8 @@ public:
 	joj::JFloat4x4 mView = joj::float4x4_identity();
 	joj::JFloat4x4 mProj = joj::float4x4_identity();
 };
+
+// ---------------------------------------------------------------------------------
 
 #endif // JPLATFORM_WINDOWS
 
