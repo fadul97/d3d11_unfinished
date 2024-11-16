@@ -15,7 +15,7 @@
 int main()
 {
     joj::Engine engine;
-    JOJ_LOG_IF_FAIL(engine.start());
+    JOJ_RETURN_INT_IF_FAIL(engine.start());
 
     WavesDemo app;
     return engine.run(&app);
