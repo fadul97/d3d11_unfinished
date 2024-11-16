@@ -5,10 +5,11 @@
 // ---------------------------------------------------------------------------------
 
 #include "logger.h"
-#include <DirectXColors.h>
-#include <d3d11.h>
-#include <string>
-#include <d3dcompiler.h>
+#include "joj/resources/geometry/cube.h"
+#include <resources/geometry/sphere.h>
+#include <resources/geometry/cylinder.h>
+#include <resources/geometry/geosphere.h>
+#include <resources/geometry/grid.h>
 #include "joj/engine.h"
 
 // ---------------------------------------------------------------------------------
