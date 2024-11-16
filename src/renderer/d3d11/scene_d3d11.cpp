@@ -3,6 +3,7 @@
 #if JPLATFORM_WINDOWS
 
 #include "engine.h"
+#include "logger.h"
 
 joj::D3D11Scene::D3D11Scene()
 {
@@ -27,8 +28,10 @@ void joj::D3D11Scene::update(
 		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&obj->get_world_float4x4());
 		joj::JMatrix4x4 wvp = world * view * proj;
 
+		// TODO: If scene is used, update code below => It doesn't work with the new CBPerObject struct
+		JDEBUG("Update D3D11Scene::update method.");
 		CBPerObject cbPerObject;
-		XMStoreFloat4x4(&cbPerObject.World, XMMatrixTranspose(wvp));
+		XMStoreFloat4x4(&cbPerObject.world, XMMatrixTranspose(wvp));
 		constant_buffer.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
 
 		joj::Engine::s_renderer->get_device_context()->DrawIndexed(
