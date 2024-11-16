@@ -19,4 +19,15 @@
 }
 #endif // JOJ_LOG_IF_FAIL
 
+#ifndef JOJ_RETURN_INT_IF_FAIL
+#define JOJ_RETURN_INT_IF_FAIL(x)                                                                                         \
+{                                                                                                                  \
+    joj::ErrorCode result = (x);                                                                                   \
+    if(result != joj::ErrorCode::OK) {                                                                             \
+        joj::Logger::log(joj::LogLevel::LOG_LEVEL_ERROR, result, __FILE__, __LINE__, "Function: %s", __func__);    \
+        return joj::err_to_int(result);                                                                            \
+    }                                                                                                              \
+}
+#endif // JOJ_RETURN_INT_IF_FAIL
+
 #endif // JOJ_MACROS_H
