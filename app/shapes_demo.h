@@ -1,6 +1,8 @@
 #ifndef SHAPES_DEMO_H
 #define SHAPES_DEMO_H
 
+// ---------------------------------------------------------------------------------
+
 #include "joj/application/app.h"
 #include <DirectXMath.h>
 #include "joj/renderer/d3d11/renderer_d3d11.h"
@@ -22,17 +24,15 @@
 #include "joj/renderer/d3d11/renderable_object_d3d11.h"
 #include "joj/renderer/d3d11/scene_d3d11.h"
 
+// ---------------------------------------------------------------------------------
+
 struct Vertex
 {
 	joj::JFloat3 Pos;
 	joj::JFloat4 Color;
 };
 
-template <typename T>
-static T Clamp(const T& x, const T& low, const T& high)
-{
-	return x < low ? low : (x > high ? high : x);
-}
+// ---------------------------------------------------------------------------------
 
 class ShapesDemo : public joj::App
 {
@@ -63,13 +63,6 @@ public:
 	u32 m_sphere_index_offset = 0;
 	u32 m_cylinder_index_offset = 0;
 
-	// joj::Cube geo{ 3.0f, 3.0f, 3.0f };
-	// joj::Sphere geo{ 2.0f, 20.0f, 40 };
-	// joj::Cylinder geo{ 2.0f, 2.0f, 2.0f, 20, 20};
-	// joj::GeoSphere geo{ 2.0f, 5 };
-	// joj::Grid geo{ 3.0f, 5.0f, 3, 2 };
-	// joj::Quad geo{ 2.0f, 2.0f };
-
 	joj::D3D11Scene m_scene;
 	joj::D3D11VertexBuffer m_vb;
 	joj::D3D11IndexBuffer m_ib;
@@ -94,9 +87,10 @@ public:
 	f32 speed = 20.0f;
 	b8 is_wireframe = false;
 
-	joj::JFloat4x4 mWorld = joj::float4x4_identity();
 	joj::JFloat4x4 mView = joj::float4x4_identity();
 	joj::JFloat4x4 mProj = joj::float4x4_identity();
 };
+
+// ---------------------------------------------------------------------------------
 
 #endif // SHAPES_DEMO_H

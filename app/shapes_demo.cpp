@@ -2,12 +2,16 @@
 
 #if JPLATFORM_WINDOWS
 
+// ---------------------------------------------------------------------------------
+
 #include "logger.h"
 #include <DirectXColors.h>
 #include <d3d11.h>
 #include <string>
 #include <d3dcompiler.h>
 #include "joj/engine.h"
+
+// ---------------------------------------------------------------------------------
 
 void ShapesDemo::init()
 {
@@ -37,7 +41,6 @@ void ShapesDemo::init()
 	// ---------------------------------------------------
 
 	auto I = joj::matrix4x4_identity();
-	// auto I = DirectX::XMMatrixIdentity();
 	joj::JMatrix4x4 box_scale = DirectX::XMMatrixScaling(2.0f, 1.0f, 2.0f);
 	joj::JMatrix4x4 box_offset = DirectX::XMMatrixTranslation(0.0f, 0.5f, 0.0f);
 	joj::JMatrix4x4 box_world = XMMatrixMultiply(box_scale, box_offset);
@@ -59,6 +62,8 @@ void ShapesDemo::init()
 	build_vertex_layout();
 	build_constant_buffer();
 }
+
+// ---------------------------------------------------------------------------------
 
 void ShapesDemo::build_geometry_buffers()
 {
@@ -223,6 +228,8 @@ void ShapesDemo::build_geometry_buffers()
 	}
 }
 
+// ---------------------------------------------------------------------------------
+
 void ShapesDemo::build_shaders()
 {
 	// FIXME: Path is wrong
@@ -250,6 +257,8 @@ void ShapesDemo::build_shaders()
 		&m_shader.get_pixel_shader());
 }
 
+// ---------------------------------------------------------------------------------
+
 void ShapesDemo::build_vertex_layout()
 {
 	// Create the vertex input layout.
@@ -273,6 +282,8 @@ void ShapesDemo::build_vertex_layout()
 	}
 }
 
+// ---------------------------------------------------------------------------------
+
 void ShapesDemo::build_constant_buffer()
 {
 	m_cb.setup(joj::calculate_cb_byte_size(sizeof(joj::CBPerObject)), nullptr);
@@ -283,6 +294,8 @@ void ShapesDemo::build_constant_buffer()
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Constant Buffer.");
 	}
 }
+
+// ---------------------------------------------------------------------------------
 
 void ShapesDemo::update(const f32 dt)
 {
@@ -341,9 +354,11 @@ void ShapesDemo::update(const f32 dt)
 			camera.process_keyboard(joj::CameraMovement::RIGHT, dt * speed);
 	}
 
-	DirectX::XMMATRIX V = camera.get_view_mat();
+	joj::JMatrix4x4 V = camera.get_view_mat();
 	XMStoreFloat4x4(&mView, V);
 }
+
+// ---------------------------------------------------------------------------------
 
 void ShapesDemo::draw()
 {
@@ -384,11 +399,15 @@ void ShapesDemo::draw()
 	joj::Engine::s_renderer->swap_buffers();
 }
 
+// ---------------------------------------------------------------------------------
+
 void ShapesDemo::shutdown()
 {
 	m_input_layout->Release();
 
 	JINFO("Shutting down App...");
 }
+
+// ---------------------------------------------------------------------------------
 
 #endif // JPLATFORM_WINDOWS
