@@ -10,6 +10,8 @@
 
 namespace joj
 {
+    enum class RasterizerFillMode { Solid, Wireframe };
+
     class JAPI D3D11Renderer
     {
     public:
@@ -22,6 +24,7 @@ namespace joj
         void swap_buffers();
 
         void set_primitive_topology(D3D_PRIMITIVE_TOPOLOGY topology) const;
+        void set_rasterizer_fill_mode(RasterizerFillMode mode);
 
         ID3D11Device* get_device() const;
         ID3D11DeviceContext* get_device_context() const;
@@ -36,15 +39,16 @@ namespace joj
          *
          */
 
-        u32 m_antialiasing;                            // Number of samples for each pixel on the screen
-        u32 m_quality;                                 // Antialiasing sampling quality
-        b8 m_vsync;                                    // Vertical sync 
-        IDXGISwapChain* m_swapchain;                   // Swap chain
-        ID3D11RenderTargetView* m_render_target_view;  // Backbuffer render target view
-        ID3D11DepthStencilView* m_depth_stencil_view;  // Depth/Stencil view
-        D3D11_VIEWPORT m_viewport;                     // Viewport
-        ID3D11BlendState* m_blend_state;               // Color mix settings
-        ID3D11RasterizerState* m_rasterizer_state;     // Rasterizer state
+        u32 m_antialiasing;                                     // Number of samples for each pixel on the screen
+        u32 m_quality;                                          // Antialiasing sampling quality
+        b8 m_vsync;                                             // Vertical sync 
+        IDXGISwapChain* m_swapchain;                            // Swap chain
+        ID3D11RenderTargetView* m_render_target_view;           // Backbuffer render target view
+        ID3D11DepthStencilView* m_depth_stencil_view;           // Depth/Stencil view
+        D3D11_VIEWPORT m_viewport;                              // Viewport
+        ID3D11BlendState* m_blend_state;                        // Color mix settings
+        ID3D11RasterizerState* m_rasterizer_state_solid;        // Solid Rasterizer state
+        ID3D11RasterizerState* m_rasterizer_state_wireframe;    // Wireframe Rasterizer state
     };
 
     inline ID3D11Device* D3D11Renderer::get_device() const

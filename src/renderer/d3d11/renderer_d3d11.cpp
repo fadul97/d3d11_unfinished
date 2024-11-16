@@ -12,24 +12,32 @@ joj::D3D11Renderer::D3D11Renderer()
 	m_device = nullptr;
 	m_device_context = nullptr;
 
-	m_antialiasing = 1;             // No antialising
-	m_quality = 0;                  // Default quality
-	m_vsync = false;                // No vertical sync
-	m_swapchain = nullptr;          // Swap chain
-	m_render_target_view = nullptr; // Backbuffer render target view
-	m_depth_stencil_view = nullptr; // Depth/Stencil view
-	m_viewport = { 0 };             // Viewport
-	m_blend_state = nullptr;        // Color mix settings
-	m_rasterizer_state = nullptr;   // Rasterizer state
+	m_antialiasing = 1;                        // No antialising
+	m_quality = 0;                             // Default quality
+	m_vsync = false;                           // No vertical sync
+	m_swapchain = nullptr;                     // Swap chain
+	m_render_target_view = nullptr;            // Backbuffer render target view
+	m_depth_stencil_view = nullptr;            // Depth/Stencil view
+	m_viewport = { 0 };                        // Viewport
+	m_blend_state = nullptr;                   // Color mix settings
+	m_rasterizer_state_solid = nullptr;        // Solid Rasterizer state
+	m_rasterizer_state_wireframe = nullptr;    // Wireframe Rasterizer state
 }
 
 joj::D3D11Renderer::~D3D11Renderer()
 {
-	// Release rasterizer state
-	if (m_rasterizer_state)
+	// Release wireframe rasterizer state
+	if (m_rasterizer_state_wireframe)
 	{
-		m_rasterizer_state->Release();
-		m_rasterizer_state = nullptr;
+		m_rasterizer_state_wireframe->Release();
+		m_rasterizer_state_wireframe = nullptr;
+	}
+
+	// Release solid rasterizer state
+	if (m_rasterizer_state_solid)
+	{
+		m_rasterizer_state_solid->Release();
+		m_rasterizer_state_solid = nullptr;
 	}
 
 	// Release blend state
@@ -216,21 +224,29 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	// Describe rasterizer
 	D3D11_RASTERIZER_DESC rasterizer_desc = { };
 	ZeroMemory(&rasterizer_desc, sizeof(rasterizer_desc));
-	// rasterizer_desc.FillMode = D3D11_FILL_SOLID;
-	rasterizer_desc.FillMode = D3D11_FILL_WIREFRAME;
-	rasterizer_desc.CullMode = D3D11_CULL_BACK;
-	// rasterizer_desc.CullMode = D3D11_CULL_NONE;
+	rasterizer_desc.FillMode = D3D11_FILL_SOLID;
+	rasterizer_desc.CullMode = D3D11_CULL_NONE;
 	rasterizer_desc.DepthClipEnable = true;
 
-	// Create rasterizer state
-	if (m_device->CreateRasterizerState(&rasterizer_desc, &m_rasterizer_state) != S_OK)
+	// Create Solid rasterizer state
+	if (m_device->CreateRasterizerState(&rasterizer_desc, &m_rasterizer_state_solid) != S_OK)
 	{
 		JFATAL(ErrorCode::ERR_RASTERIZER_D3D11_CREATION, "Failed to create RasterizerState.");
 		return ErrorCode::ERR_RASTERIZER_D3D11_CREATION;
 	}
 
-	// Set rasterizer state
-	m_device_context->RSSetState(m_rasterizer_state);
+	rasterizer_desc.FillMode = D3D11_FILL_WIREFRAME;
+	rasterizer_desc.CullMode = D3D11_CULL_BACK;
+
+	// Create Wireframe rasterizer state
+	if (m_device->CreateRasterizerState(&rasterizer_desc, &m_rasterizer_state_wireframe) != S_OK)
+	{
+		JFATAL(ErrorCode::ERR_RASTERIZER_D3D11_CREATION, "Failed to create RasterizerState.");
+		return ErrorCode::ERR_RASTERIZER_D3D11_CREATION;
+	}
+
+	// Set Solid rasterizer state as default
+	m_device_context->RSSetState(m_rasterizer_state_solid);
 
 	// ---------------------------------------------------
 	//	Release Resources
@@ -260,6 +276,7 @@ void joj::D3D11Renderer::swap_buffers()
 	if (m_swapchain->Present(m_vsync, NULL) != S_OK)
 	{
 		JERROR(ErrorCode::ERR_RENDERER_D3D11_SWAPCHAIN_PRESENT, "Failed to present SwapChain.");
+		return;
 	}
 
 	m_device_context->OMSetRenderTargets(1, &m_render_target_view, m_depth_stencil_view);
@@ -268,6 +285,22 @@ void joj::D3D11Renderer::swap_buffers()
 void joj::D3D11Renderer::set_primitive_topology(D3D_PRIMITIVE_TOPOLOGY topology) const
 {
 	m_device_context->IASetPrimitiveTopology(topology);
+}
+
+void joj::D3D11Renderer::set_rasterizer_fill_mode(RasterizerFillMode mode)
+{
+	switch (mode)
+	{
+	case RasterizerFillMode::Solid:
+		m_device_context->RSSetState(m_rasterizer_state_solid);
+		break;
+	case RasterizerFillMode::Wireframe:
+		m_device_context->RSSetState(m_rasterizer_state_wireframe);
+		break;
+	default:
+		m_device_context->RSSetState(m_rasterizer_state_solid);
+		break;
+	}
 }
 
 #endif // JPLATFORM_WINDOWS
