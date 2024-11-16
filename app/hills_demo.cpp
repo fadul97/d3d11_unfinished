@@ -286,6 +286,11 @@ void HillsDemo::update(const f32 dt)
 
 void HillsDemo::draw()
 {
+	if (is_wireframe)
+		joj::Engine::s_renderer->set_rasterizer_fill_mode(joj::RasterizerFillMode::Wireframe);
+	else
+		joj::Engine::s_renderer->set_rasterizer_fill_mode(joj::RasterizerFillMode::Solid);
+
 	joj::Engine::s_renderer->clear();
 
 	joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
