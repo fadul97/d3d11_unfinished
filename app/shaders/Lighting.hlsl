@@ -6,20 +6,20 @@
 
 #include "LightHelper.hlsl"
  
-cbuffer cbPerFrame
-{
-    DirectionalLight gDirLight;
-    PointLight gPointLight;
-    SpotLight gSpotLight;
-    float3 gEyePosW;
-};
-
-cbuffer cbPerObject
+cbuffer cbPerObject : register(b0)
 {
     float4x4 gWorld;
     float4x4 gWorldInvTranspose;
     float4x4 gWorldViewProj;
     Material gMaterial;
+};
+
+cbuffer cbPerFrame : register(b1)
+{
+    DirectionalLight gDirLight;
+    PointLight gPointLight;
+    SpotLight gSpotLight;
+    float3 gEyePosW;
 };
 
 struct VertexIn
@@ -86,6 +86,3 @@ float4 PS(VertexOut pin) : SV_Target
 
     return litColor;
 }
-
-
-
