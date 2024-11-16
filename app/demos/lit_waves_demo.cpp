@@ -109,6 +109,7 @@ void LitWavesDemo::init()
 	m_dir_light.diffuse = joj::JFloat4(0.5f, 0.5f, 0.5f, 1.0f);
 	m_dir_light.specular = joj::JFloat4(0.5f, 0.5f, 0.5f, 1.0f);
 	m_dir_light.direction = joj::JFloat3(0.57735f, -0.57735f, 0.57735f);
+	m_dir_light.pad = 0.0f;
 
 	// Point light--position is changed every frame to animate in UpdateScene function.
 	m_point_light.ambient = joj::JFloat4(0.3f, 0.3f, 0.3f, 1.0f);
@@ -116,6 +117,8 @@ void LitWavesDemo::init()
 	m_point_light.specular = joj::JFloat4(0.7f, 0.7f, 0.7f, 1.0f);
 	m_point_light.att = joj::JFloat3(0.0f, 0.1f, 0.0f);
 	m_point_light.range = 25.0f;
+	m_point_light.pad = 0.0f;
+	m_point_light.position = joj::JFloat3(1.0f, 1.0f, 0.0f);
 
 	// Spot light--position and direction changed every frame to animate in UpdateScene function.
 	m_spot_light.ambient = joj::JFloat4(0.0f, 0.0f, 0.0f, 1.0f);
@@ -124,6 +127,9 @@ void LitWavesDemo::init()
 	m_spot_light.att = joj::JFloat3(1.0f, 0.0f, 0.0f);
 	m_spot_light.Spot = 96.0f;
 	m_spot_light.Range = 10000.0f;
+	m_spot_light.direction = joj::JFloat3(0.0f, 0.0f, 0.0f);
+	m_spot_light.position = joj::JFloat3(1.0f, 1.0f, 0.0f);
+	m_spot_light.pad = 0.0f;
 
 	// ---------------------------------------------------
 	// Initialize Materials
@@ -132,10 +138,12 @@ void LitWavesDemo::init()
 	m_land_mat.ambient = joj::JFloat4(0.48f, 0.77f, 0.46f, 1.0f);
 	m_land_mat.diffuse = joj::JFloat4(0.48f, 0.77f, 0.46f, 1.0f);
 	m_land_mat.specular = joj::JFloat4(0.2f, 0.2f, 0.2f, 16.0f);
+	m_land_mat.Reflect = joj::JFloat4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	m_waves_mat.ambient = joj::JFloat4(0.137f, 0.42f, 0.556f, 1.0f);
 	m_waves_mat.diffuse = joj::JFloat4(0.137f, 0.42f, 0.556f, 1.0f);
 	m_waves_mat.specular = joj::JFloat4(0.8f, 0.8f, 0.8f, 96.0f);
+	m_waves_mat.Reflect = joj::JFloat4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	// ---------------------------------------------------
 	// Build Resources
@@ -459,7 +467,7 @@ void LitWavesDemo::update(const f32 dt)
 	for (UINT i = 0; i < m_waves.get_vertex_count(); ++i)
 	{
 		v[i].pos = m_waves.Position(i);
-		v[i].color = joj::JFloat4(0.0f, 0.0f, 1.0f, 1.0f);
+		v[i].normal = m_waves.Normal(i);
 	}
 
 	joj::Engine::s_renderer->get_device_context()->Unmap(m_waves_vb.get_buffer(), 0);
