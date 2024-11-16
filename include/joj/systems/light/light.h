@@ -38,8 +38,8 @@ namespace joj
 		JFloat4 specular;
 
 		// Packed into 4D vector: (Position, Range)
-		JFloat3 Position;
-		f32 Range;
+		JFloat3 position;
+		f32 range;
 
 		// Packed into 4D vector: (A0, A1, A2, pad)
 		JFloat3 att;
@@ -55,7 +55,7 @@ namespace joj
 		JFloat4 specular;
 
 		// Packed into 4D vector: (Position, Range)
-		JFloat3 Position;
+		JFloat3 position;
 		f32 Range;
 
 		// Packed into 4D vector: (direction, Spot)
