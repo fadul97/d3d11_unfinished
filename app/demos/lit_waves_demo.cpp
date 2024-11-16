@@ -414,7 +414,7 @@ void LitWavesDemo::update(const f32 dt)
 			fast = !fast;
 
 		if (fast)
-			speed = 20.0f;
+			speed = 50.0f;
 		else
 			speed = 1.0f;
 

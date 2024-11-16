@@ -63,7 +63,7 @@ public:
 	i32 centerX = 400;
 	i32 centerY = 300;
 	b8 fast = false;
-	f32 speed = 20.0f;
+	f32 speed = 50.0f;
 	b8 is_wireframe = false;
 
 	joj::JFloat4x4 mView = joj::float4x4_identity();
