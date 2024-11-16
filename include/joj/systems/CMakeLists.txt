@@ -4,3 +4,4 @@ project(joj)
 
 add_subdirectory(camera)
 add_subdirectory(light)
+add_subdirectory(material)
