@@ -6,8 +6,8 @@ add_executable(
 	main.cpp
 	
 	# Demo App
-	hills_demo.cpp
-) # box_demo.cpp shapes_demo.cpp
+	skull_demo.cpp
+) # box_demo.cpp shapes_demo.cpp hills_demo.cpp
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET jojApp PROPERTY CXX_STANDARD 20)
