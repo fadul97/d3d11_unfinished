@@ -5,7 +5,7 @@
 #include "joj/platform/win32/timer_win32.h"
 #include "joj/renderer/d3d11/renderer_d3d11.h"
 #include "joj/jmacros.h"
-#include "skull_demo.h"
+#include "demos/skull_demo.h"
 #include <sstream>
 #include <math/jmath.h>
 #include "joj/engine.h"
