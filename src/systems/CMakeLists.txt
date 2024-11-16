@@ -6,9 +6,10 @@ add_library(
     jojSystems
     STATIC
     systems.cpp
- )
+)
 
 add_subdirectory(camera)
+add_subdirectory(light)
 
 # Specify include directories for jojSystems
 target_include_directories(
@@ -22,6 +23,7 @@ target_link_directories(
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../../include/joj/math/
     ${CMAKE_CURRENT_SOURCE_DIR}/camera/
+    ${CMAKE_CURRENT_SOURCE_DIR}/light/
 )
 
-target_link_libraries(jojSystems PUBLIC jojCamera jojMath)
+target_link_libraries(jojSystems PUBLIC jojCamera jojLight jojMath)
