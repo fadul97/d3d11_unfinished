@@ -66,16 +66,6 @@ namespace joj
 		JFloat3 att;
 		f32 pad; // pad the last float so we can set an array of lights if we wanted.
 	};
-
-	struct SimpleMaterial
-	{
-		SimpleMaterial() { ZeroMemory(this, sizeof(this)); }
-
-		JFloat4 ambient;
-		JFloat4 diffuse;
-		JFloat4 specular; // w = SpecPower
-		JFloat4 Reflect;
-	};
 }
 
 #endif // JPLATFORM_WINDOWS
