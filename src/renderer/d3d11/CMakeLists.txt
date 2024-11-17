@@ -13,6 +13,7 @@ add_library(
     constant_buffer_d3d11.cpp
     renderable_object_d3d11.cpp
     scene_d3d11.cpp
+    DDSTextureLoader11.cpp
 )
 
 target_link_directories(
