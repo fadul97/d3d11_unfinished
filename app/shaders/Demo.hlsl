@@ -31,14 +31,7 @@ cbuffer cbPerFrame : register(b1)
 // Nonnumeric values cannot be added to a cbuffer.
 Texture2D gDiffuseMap : register(t0);
 
-SamplerState samAnisotropic : register(s0)
-{
-    Filter = ANISOTROPIC;
-    MaxAnisotropy = 4;
-
-    AddressU = WRAP;
-    AddressV = WRAP;
-};
+SamplerState samAnisotropic : register(s0);
 
 struct VertexIn
 {
@@ -79,8 +72,6 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
-    // return gDiffuseMap.Sample(samAnisotropic, pin.Tex) * pin.Color;
-
     // Interpolating normal can unnormalize it, so normalize it.
     pin.NormalW = normalize(pin.NormalW);
 
