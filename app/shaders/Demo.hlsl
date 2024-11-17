@@ -13,6 +13,9 @@ cbuffer cbPerObject : register(b0)
     float4x4 gWorldViewProj;
     float4x4 gTexTransform;
     Material gMaterial;
+    float2 gCellSize;  // Each cell size (e.g., {1.0f / 10, 1.0f / 12})
+    int gCurrentFrame; // Current frame index
+    float gNumColumns; // Number of atlas columns
 }; 
 
 cbuffer cbPerFrame : register(b1)
@@ -72,57 +75,17 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
-    // Interpolating normal can unnormalize it, so normalize it.
-    pin.NormalW = normalize(pin.NormalW);
+    // Calcula linha e coluna do frame atual.
+    int column = gCurrentFrame % int(gNumColumns);
+    int row = gCurrentFrame / int(gNumColumns);
 
-	// The toEye vector is used in lighting.
-    float3 toEye = gEyePosW - pin.PosW;
+    // Offset da textura para o frame atual.
+    float2 texOffset = float2(column * gCellSize.x, row * gCellSize.y);
+    // return float4(column, column, column, 1.0f);
 
-	// Cache the distance to the eye from this surface point.
-    float distToEye = length(toEye);
+    // Coordenadas ajustadas para o frame atual.
+    float2 adjustedTexCoord = texOffset + pin.Tex * gCellSize;
 
-	// Normalize.
-    toEye /= distToEye;
-	
-    // Default to multiplicative identity.
-    float4 texColor = float4(1, 1, 1, 1);
-    if (gUseTexure)
-    {
-		// Sample texture.
-        texColor = gDiffuseMap.Sample(samAnisotropic, pin.Tex);
-    }
-	 
-	//
-	// Lighting.
-	//
-
-    float4 litColor = texColor;
-    if (gLightCount > 0)
-    {
-		// Start with a sum of zero. 
-        float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
-        float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
-        float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
-
-		// Sum the light contribution from each light source.  
-		[unroll]
-        for (int i = 0; i < gLightCount; ++i)
-        {
-            float4 A, D, S;
-            ComputeDirectionalLight(gMaterial, gDirLights[i], pin.NormalW, toEye,
-				A, D, S);
-
-            ambient += A;
-            diffuse += D;
-            spec += S;
-        }
-
-		// Modulate with late add.
-        litColor = texColor * (ambient + diffuse) + spec;
-    }
-
-	// Common to take alpha from diffuse material and texture.
-    litColor.a = gMaterial.Diffuse.a * texColor.a;
-
-    return litColor;
+    // Amostra a textura.
+    return gDiffuseMap.Sample(samAnisotropic, adjustedTexCoord);
 }
