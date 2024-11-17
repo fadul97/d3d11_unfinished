@@ -19,15 +19,18 @@ namespace joj
         joj::JFloat4x4 world = joj::float4x4_identity();
         joj::JFloat4x4 world_inv_transpose = joj::float4x4_identity();
         joj::JFloat4x4 wvp = joj::float4x4_identity();
+        joj::JFloat4x4 tex_transform = joj::float4x4_identity();
         joj::SimpleMaterial material;
     };
 
     struct CBPerFrame
     {
-        joj::DirectionalLight dir_light;
-        joj::PointLight point_light;
-        joj::SpotLight spot_light;
+        joj::DirectionalLight dir_light[3];
         joj::JFloat3 eye_posw;
+
+        f32 fog_start;
+        f32 fog_range;
+        f32 fog_color;
     };
 }
 
