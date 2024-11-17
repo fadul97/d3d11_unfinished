@@ -348,6 +348,18 @@ void FireAnimationDemo::update(const f32 dt)
 
 	DirectX::XMMATRIX V = camera.get_view_mat();
 	XMStoreFloat4x4(&mView, V);
+
+	// ---------------------------------------------------
+	// Update Fire Animation
+	// ---------------------------------------------------
+	static f32 timeElapsed = 0.0f;
+
+	timeElapsed += dt; // deltaTime = tempo entre frames.
+	if (timeElapsed >= (1.0f / 30.0f)) // A cada 1/30 segundos.
+	{
+		m_current_frame = (m_current_frame + 1) % m_total_frames; // Avança para o próximo frame.
+		timeElapsed = 0.0f;
+	}
 }
 
 // ---------------------------------------------------------------------------------
@@ -431,6 +443,9 @@ void FireAnimationDemo::draw()
 	joj::JMatrix4x4 I = joj::matrix4x4_identity();
 	XMStoreFloat4x4(&cbPerObject.tex_transform, I);
 	cbPerObject.material = m_box_mat;
+	cbPerObject.cell_size = joj::JFloat2(m_cell_width, m_cell_height);
+	cbPerObject.current_frame = m_current_frame;
+	cbPerObject.num_columns = 10.0f;
 	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
 
 	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, m_box_index_offset, m_box_vertex_offset);

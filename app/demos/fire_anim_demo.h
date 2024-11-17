@@ -70,6 +70,10 @@ public:
 
 	i32 m_light_count = 2;
 	b32 m_use_texture = 1;
+	u32 m_current_frame = 0;
+	u32 m_total_frames = 120;
+	f32 m_cell_width = 1.0f / 10.0f;
+	f32 m_cell_height = 1.0f / 12.0f;
 };
 
 // ---------------------------------------------------------------------------------
