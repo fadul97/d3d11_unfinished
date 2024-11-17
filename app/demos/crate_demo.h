@@ -69,7 +69,7 @@ public:
 	joj::JFloat4x4 mProj = joj::float4x4_identity();
 
 	i32 m_light_count = 2;
-	b8 m_use_texture = true;
+	b32 m_use_texture = 1;
 };
 
 // ---------------------------------------------------------------------------------

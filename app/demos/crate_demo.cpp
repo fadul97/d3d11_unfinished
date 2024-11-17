@@ -116,7 +116,10 @@ void CrateDemo::build_texture()
 	if (joj::Engine::s_renderer->get_device()->CreateSamplerState(&sampler_desc, &m_sampler_state) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Sampler State.");
+		return;
 	}
+
+	joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 }
 
 // ---------------------------------------------------------------------------------
@@ -337,11 +340,11 @@ void CrateDemo::update(const f32 dt)
 	if (joj::Engine::s_input->is_key_pressed('1'))
 		m_light_count = 1;
 
+	if (joj::Engine::s_input->is_key_pressed('2'))
+		m_light_count = 2;
+
 	if (joj::Engine::s_input->is_key_pressed('T'))
-	{
-		m_use_texture = !m_use_texture;
-		JDEBUG("Changed bool using texture.");
-	}
+		m_use_texture ^= 1;
 
 	DirectX::XMMATRIX V = camera.get_view_mat();
 	XMStoreFloat4x4(&mView, V);
@@ -401,7 +404,7 @@ void CrateDemo::draw()
 	frame_cb.dir_lights[2] = m_dir_lights[1]; // Unecessary
 	frame_cb.eye_posw = camera.m_position;
 	frame_cb.fog_start = 0.0f;
-	frame_cb.fog_color = 0.0f;
+	frame_cb.fog_color = joj::JFloat4{ 0.0f, 0.0f, 0.0f, 0.0f };
 	frame_cb.fog_range = 0.0f;
 	frame_cb.light_count = m_light_count;
 	frame_cb.use_texture = m_use_texture;
