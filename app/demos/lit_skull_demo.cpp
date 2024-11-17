@@ -5,11 +5,16 @@
 // ---------------------------------------------------------------------------------
 
 #include "logger.h"
-#include <DirectXColors.h>
-#include <d3d11.h>
 #include <string>
-#include <d3dcompiler.h>
 #include "joj/engine.h"
+#include <fstream>
+#include <string>
+#include "joj/resources/geometry/cube.h"
+#include <resources/geometry/sphere.h>
+#include <resources/geometry/cylinder.h>
+#include <resources/geometry/grid.h>
+#include "joj/renderer/d3d11/renderable_object_d3d11.h"
+#include "joj/renderer/d3d11/cbuffer_structs_d3d11.h"
 
 // ---------------------------------------------------------------------------------
 
@@ -41,12 +46,17 @@ void LitSkullDemo::init()
 	// ---------------------------------------------------
 
 	auto I = joj::matrix4x4_identity();
+	XMStoreFloat4x4(&m_grid_world, I);
+
 	joj::JMatrix4x4 box_scale = DirectX::XMMatrixScaling(2.0f, 1.0f, 2.0f);
 	joj::JMatrix4x4 box_offset = DirectX::XMMatrixTranslation(0.0f, 0.5f, 0.0f);
 	joj::JMatrix4x4 box_world = XMMatrixMultiply(box_scale, box_offset);
 	XMStoreFloat4x4(&m_box_world, box_world);
 
-	XMStoreFloat4x4(&m_grid_world, I);
+	joj::JMatrix4x4 skull_scale = DirectX::XMMatrixScaling(0.5f, 0.5f, 0.5f);
+	joj::JMatrix4x4 skull_offset = DirectX::XMMatrixTranslation(0.0f, 1.0f, 0.0f);
+	joj::JMatrix4x4 skull_world = XMMatrixMultiply(skull_scale, skull_offset);
+	XMStoreFloat4x4(&m_skull_world, skull_world);
 
 	for (i32 i = 0; i < 5; ++i)
 	{
@@ -57,15 +67,63 @@ void LitSkullDemo::init()
 		DirectX::XMStoreFloat4x4(&m_sphere_world[i * 2 + 1], DirectX::XMMatrixTranslation(+5.0f, 3.5f, -10.0f + i * 5.0f));
 	}
 
-	build_geometry_buffers();
+	// ---------------------------------------------------
+	// Initialize Lights
+	// ---------------------------------------------------
+
+	m_dir_lights[0].ambient = joj::JFloat4(0.2f, 0.2f, 0.2f, 1.0f);
+	m_dir_lights[0].diffuse = joj::JFloat4(0.5f, 0.5f, 0.5f, 1.0f);
+	m_dir_lights[0].specular = joj::JFloat4(0.5f, 0.5f, 0.5f, 1.0f);
+	m_dir_lights[0].direction = joj::JFloat3(0.57735f, -0.57735f, 0.57735f);
+
+	m_dir_lights[1].ambient = joj::JFloat4(0.0f, 0.0f, 0.0f, 1.0f);
+	m_dir_lights[1].diffuse = joj::JFloat4(0.20f, 0.20f, 0.20f, 1.0f);
+	m_dir_lights[1].specular = joj::JFloat4(0.25f, 0.25f, 0.25f, 1.0f);
+	m_dir_lights[1].direction = joj::JFloat3(-0.57735f, -0.57735f, 0.57735f);
+
+	m_dir_lights[2].ambient = joj::JFloat4(0.0f, 0.0f, 0.0f, 1.0f);
+	m_dir_lights[2].diffuse = joj::JFloat4(0.2f, 0.2f, 0.2f, 1.0f);
+	m_dir_lights[2].specular = joj::JFloat4(0.0f, 0.0f, 0.0f, 1.0f);
+	m_dir_lights[2].direction = joj::JFloat3(0.0f, -0.707f, -0.707f);
+
+	// ---------------------------------------------------
+	// Initialize Materials
+	// ---------------------------------------------------
+
+	m_grid_mat.ambient = joj::JFloat4(0.48f, 0.77f, 0.46f, 1.0f);
+	m_grid_mat.diffuse = joj::JFloat4(0.48f, 0.77f, 0.46f, 1.0f);
+	m_grid_mat.specular = joj::JFloat4(0.2f, 0.2f, 0.2f, 16.0f);
+
+	m_cylinder_mat.ambient = joj::JFloat4(0.7f, 0.85f, 0.7f, 1.0f);
+	m_cylinder_mat.diffuse = joj::JFloat4(0.7f, 0.85f, 0.7f, 1.0f);
+	m_cylinder_mat.specular = joj::JFloat4(0.8f, 0.8f, 0.8f, 16.0f);
+
+	m_sphere_mat.ambient = joj::JFloat4(0.1f, 0.2f, 0.3f, 1.0f);
+	m_sphere_mat.diffuse = joj::JFloat4(0.2f, 0.4f, 0.6f, 1.0f);
+	m_sphere_mat.specular = joj::JFloat4(0.9f, 0.9f, 0.9f, 16.0f);
+
+	m_box_mat.ambient = joj::JFloat4(0.651f, 0.5f, 0.392f, 1.0f);
+	m_box_mat.diffuse = joj::JFloat4(0.651f, 0.5f, 0.392f, 1.0f);
+	m_box_mat.specular = joj::JFloat4(0.2f, 0.2f, 0.2f, 16.0f);
+
+	m_skull_mat.ambient = joj::JFloat4(0.8f, 0.8f, 0.8f, 1.0f);
+	m_skull_mat.diffuse = joj::JFloat4(0.8f, 0.8f, 0.8f, 1.0f);
+	m_skull_mat.specular = joj::JFloat4(0.8f, 0.8f, 0.8f, 16.0f);
+
+	// ---------------------------------------------------
+	// Build Resources
+	// ---------------------------------------------------
+
+	build_shapes_geometry_buffers();
+	build_skull_geometry_buffer();
 	build_shaders();
 	build_vertex_layout();
-	build_constant_buffer();
+	build_constant_buffers();
 }
 
 // ---------------------------------------------------------------------------------
 
-void LitSkullDemo::build_geometry_buffers()
+void LitSkullDemo::build_shapes_geometry_buffers()
 {
 	joj::Cube box(1.0f, 1.0f, 1.0f);
 	joj::Grid grid(20.0f, 30.0f, 60, 40);
@@ -112,55 +170,6 @@ void LitSkullDemo::build_geometry_buffers()
 		m_cylinder_index_count;
 
 	// ---------------------------------------------------
-	// Setup and add Renderable Objects to vector
-	// ---------------------------------------------------
-
-	auto box_ro = std::make_unique<joj::D3D11RenderableObject>();
-	box_ro->set_world_float4x4(m_box_world);
-	box_ro->set_index_count(m_box_index_count);
-	box_ro->set_index_location(m_box_index_offset);
-	box_ro->set_vertex_location(m_box_vertex_offset);
-	m_scene.add_renderable_object(std::move(box_ro));
-
-	auto grid_ro = std::make_unique<joj::D3D11RenderableObject>();
-	grid_ro->set_world_float4x4(m_grid_world);
-	grid_ro->set_index_count(m_grid_index_count);
-	grid_ro->set_index_location(m_grid_index_offset);
-	grid_ro->set_vertex_location(m_grid_vertex_offset);
-	m_scene.add_renderable_object(std::move(grid_ro));
-
-	for (i32 i = 0; i < 5; ++i)
-	{
-		auto cyl_ro1 = std::make_unique<joj::D3D11RenderableObject>();
-		cyl_ro1->set_world_float4x4(m_cyl_world[i * 2 + 0]);
-		cyl_ro1->set_index_count(m_cylinder_index_count);
-		cyl_ro1->set_index_location(m_cylinder_index_offset);
-		cyl_ro1->set_vertex_location(m_cylinder_vertex_offset);
-		m_scene.add_renderable_object(std::move(cyl_ro1));
-
-		auto cyl_ro2 = std::make_unique<joj::D3D11RenderableObject>();
-		cyl_ro2->set_world_float4x4(m_cyl_world[i * 2 + 1]);
-		cyl_ro2->set_index_count(m_cylinder_index_count);
-		cyl_ro2->set_index_location(m_cylinder_index_offset);
-		cyl_ro2->set_vertex_location(m_cylinder_vertex_offset);
-		m_scene.add_renderable_object(std::move(cyl_ro2));
-
-		auto sphere_ro1 = std::make_unique<joj::D3D11RenderableObject>();
-		sphere_ro1->set_world_float4x4(m_sphere_world[i * 2 + 0]);
-		sphere_ro1->set_index_count(m_sphere_index_count);
-		sphere_ro1->set_index_location(m_sphere_index_offset);
-		sphere_ro1->set_vertex_location(m_sphere_vertex_offset);
-		m_scene.add_renderable_object(std::move(sphere_ro1));
-
-		auto sphere_ro2 = std::make_unique<joj::D3D11RenderableObject>();
-		sphere_ro2->set_world_float4x4(m_sphere_world[i * 2 + 1]);
-		sphere_ro2->set_index_count(m_sphere_index_count);
-		sphere_ro2->set_index_location(m_sphere_index_offset);
-		sphere_ro2->set_vertex_location(m_sphere_vertex_offset);
-		m_scene.add_renderable_object(std::move(sphere_ro2));
-	}
-
-	// ---------------------------------------------------
 	// Unique vector of GeometryVertex
 	// ---------------------------------------------------
 
@@ -179,31 +188,35 @@ void LitSkullDemo::build_geometry_buffers()
 	for (size_t i = 0; i < box.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = box.get_vertex_data()[i].pos;
-		vertices[k].color = purple;
+		vertices[k].normal = box.get_vertex_data()[i].normal;
+		vertices[k].color = purple; // Not using in Demo.hlsl shader file
 	}
 
 	for (size_t i = 0; i < grid.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = grid.get_vertex_data()[i].pos;
-		vertices[k].color = black;
+		vertices[k].normal = grid.get_vertex_data()[i].normal;
+		vertices[k].color = black; // Not using in Demo.hlsl shader file
 	}
 
 	for (size_t i = 0; i < sphere.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = sphere.get_vertex_data()[i].pos;
-		vertices[k].color = yellow;
+		vertices[k].normal = sphere.get_vertex_data()[i].normal;
+		vertices[k].color = yellow; // Not using in Demo.hlsl shader file
 	}
 
 	for (size_t i = 0; i < cylinder.get_vertex_count(); ++i, ++k)
 	{
 		vertices[k].pos = cylinder.get_vertex_data()[i].pos;
-		vertices[k].color = blue;
+		vertices[k].normal = cylinder.get_vertex_data()[i].normal;
+		vertices[k].color = blue; // Not using in Demo.hlsl shader file
 	}
 
 	// Create vertex buffer
-	m_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * total_vertex_count, vertices.data());
+	m_shapes_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * total_vertex_count, vertices.data());
 
-	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_vb.get_buffer_desc(), m_vb.get_subdata(), &m_vb.get_buffer()) != S_OK)
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_shapes_vb.get_buffer_desc(), m_shapes_vb.get_subdata(), &m_shapes_vb.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Vertex Buffer.");
 	}
@@ -218,11 +231,85 @@ void LitSkullDemo::build_geometry_buffers()
 	indices.insert(indices.end(), std::begin(sphere.get_indices()), std::end(sphere.get_indices()));
 	indices.insert(indices.end(), std::begin(cylinder.get_indices()), std::end(cylinder.get_indices()));
 
+	// Create the index buffer
+	m_shapes_ib.setup(sizeof(u32) * total_index_count, indices.data());
+
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_shapes_ib.get_buffer_desc(), m_shapes_ib.get_subdata(), &m_shapes_ib.get_buffer()) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create Index Buffer.");
+	}
+}
+
+// ---------------------------------------------------------------------------------
+
+void LitSkullDemo::build_skull_geometry_buffer()
+{
+	// ---------------------------------------------------
+	// Read model file
+	// ---------------------------------------------------
+
+	std::ifstream fin("../../../../app/models/skull.txt");
+	if (!fin)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to find file 'skull.txt'.");
+	}
+
+	u32 vcount = 0;
+	u32 tcount = 0;
+	std::string ignore;
+
+	fin >> ignore >> vcount;
+	fin >> ignore >> tcount;
+	fin >> ignore >> ignore >> ignore >> ignore;
+
+	joj::JFloat4 black(0.0f, 0.0f, 0.0f, 1.0f);
+
+	// ---------------------------------------------------
+	// Setup vertices vector for model file
+	// ---------------------------------------------------
+
+	std::vector<joj::GeometryVertex> vertices(vcount);
+	for (u32 i = 0; i < vcount; ++i)
+	{
+		fin >> vertices[i].pos.x >> vertices[i].pos.y >> vertices[i].pos.z;
+		fin >> vertices[i].normal.x >> vertices[i].normal.y >> vertices[i].normal.z;
+		vertices[i].color = black; // Not using in Demo.hlsl shader file
+	}
+
+	fin >> ignore;
+	fin >> ignore;
+	fin >> ignore;
+
+	// Create vertex buffer
+	m_skull_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * vcount, vertices.data());
+
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_skull_vb.get_buffer_desc(), m_skull_vb.get_subdata(), &m_skull_vb.get_buffer()) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create Vertex Buffer.");
+	}
+
+	// ---------------------------------------------------
+	// Setup Grid Index Count
+	// ---------------------------------------------------
+
+	m_skull_index_count = 3 * tcount;
+
+	// ---------------------------------------------------
+	// Setup indices vector for model file
+	// ---------------------------------------------------
+
+	std::vector<u32> indices(m_skull_index_count);
+	for (u32 i = 0; i < tcount; ++i)
+	{
+		fin >> indices[i * 3 + 0] >> indices[i * 3 + 1] >> indices[i * 3 + 2];
+	}
+
+	fin.close();
 
 	// Create the index buffer
-	m_ib.setup(sizeof(u32) * total_index_count, indices.data());
+	m_skull_ib.setup(sizeof(u32) * m_skull_index_count, indices.data());
 
-	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_ib.get_buffer_desc(), m_ib.get_subdata(), &m_ib.get_buffer()) != S_OK)
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_skull_ib.get_buffer_desc(), m_skull_ib.get_subdata(), &m_skull_ib.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Index Buffer.");
 	}
@@ -232,9 +319,8 @@ void LitSkullDemo::build_geometry_buffers()
 
 void LitSkullDemo::build_shaders()
 {
-	// FIXME: Path is wrong
-	m_shader.compile_vertex_shader(L"../../../../app/shaders/color.hlsl", "VS", "vs_5_0");
-	m_shader.compile_pixel_shader(L"../../../../app/shaders/color.hlsl", "PS", "ps_5_0");
+	m_shader.compile_vertex_shader(L"../../../../app/shaders/Demo.hlsl", "VS", "vs_5_0");
+	m_shader.compile_pixel_shader(L"../../../../app/shaders/Demo.hlsl", "PS", "ps_5_0");
 
 	joj::Engine::s_renderer->get_device()->CreateVertexShader(
 		// A pointer to the compiled shader
@@ -284,12 +370,28 @@ void LitSkullDemo::build_vertex_layout()
 
 // ---------------------------------------------------------------------------------
 
-void LitSkullDemo::build_constant_buffer()
+void LitSkullDemo::build_constant_buffers()
 {
-	m_cb.setup(joj::calculate_cb_byte_size(sizeof(joj::CBPerObject)), nullptr);
+	// ---------------------------------------------------
+	// Setup and Create PerObject Constant Buffer
+	// ---------------------------------------------------
+
+	m_object_cb.setup(joj::calculate_cb_byte_size(sizeof(joj::CBPerObject)), nullptr);
 
 	// Create the buffer.
-	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_cb.get_buffer_desc(), nullptr, &m_cb.get_buffer()) != S_OK)
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_object_cb.get_buffer_desc(), nullptr, &m_object_cb.get_buffer()) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create Constant Buffer.");
+	}
+
+	// ---------------------------------------------------
+	// Setup and Create PerFrame Constant Buffer
+	// ---------------------------------------------------
+
+	m_frame_cb.setup(joj::calculate_cb_byte_size(sizeof(joj::CBPerFrame)), nullptr);
+
+	// Create the buffer.
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_frame_cb.get_buffer_desc(), nullptr, &m_frame_cb.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Constant Buffer.");
 	}
@@ -354,6 +456,18 @@ void LitSkullDemo::update(const f32 dt)
 			camera.process_keyboard(joj::CameraMovement::RIGHT, dt * speed);
 	}
 
+	if (joj::Engine::s_input->is_key_pressed('0'))
+		m_light_count = 0;
+
+	if (joj::Engine::s_input->is_key_pressed('1'))
+		m_light_count = 1;
+
+	if (joj::Engine::s_input->is_key_pressed('2'))
+		m_light_count = 2;
+
+	if (joj::Engine::s_input->is_key_pressed('3'))
+		m_light_count = 3;
+
 	joj::JMatrix4x4 V = camera.get_view_mat();
 	XMStoreFloat4x4(&mView, V);
 }
@@ -372,10 +486,10 @@ void LitSkullDemo::draw()
 	joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
 	joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-	UINT stride = sizeof(joj::GeometryVertex);
-	UINT offset = 0;
-	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_vb.get_buffer(), &stride, &offset);
-	joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+	u32 stride = sizeof(joj::GeometryVertex);
+	u32 offset = 0;
+	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_shapes_vb.get_buffer(), &stride, &offset);
+	joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_shapes_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
 
 	joj::Engine::s_renderer->get_device_context()->VSSetShader(
 		// Pointer to a vertex shader
@@ -393,13 +507,137 @@ void LitSkullDemo::draw()
 		// The number of class-instance interfaces in the array
 		0u);
 	
-	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_cb.get_buffer());
+	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
+	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
 
-	// Set constants
+	joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
+	joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
+
+	// ---------------------------------------------------
+	// Set and Update PerFrame Constants
+	// ---------------------------------------------------
+
 	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
 	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
 
-	m_scene.update(joj::Engine::s_frametime, &camera, mProj, m_cb);
+	joj::CBPerFrame frame_cb;
+	frame_cb.dir_lights[0] = m_dir_lights[0];
+	frame_cb.dir_lights[1] = m_dir_lights[1];
+	frame_cb.dir_lights[2] = m_dir_lights[2];
+	frame_cb.eye_posw = camera.m_position;
+	frame_cb.light_count = m_light_count;
+	frame_cb.fog_start = 0.0f;
+	frame_cb.fog_color = 0.0f;
+	frame_cb.fog_range = 0.0f;
+	m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
+
+	// ---------------------------------------------------
+	// Draw Grid
+	// ---------------------------------------------------
+
+	joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_grid_world);
+
+	joj::JVector4 world_determinant = XMMatrixDeterminant(world);
+	joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
+	joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
+
+	joj::JMatrix4x4 wvp = world * view * proj;
+
+	joj::CBPerObject cbPerObject;
+	XMStoreFloat4x4(&cbPerObject.world, XMMatrixTranspose(world));
+	XMStoreFloat4x4(&cbPerObject.world_inv_transpose, world_inv_transpose);
+	XMStoreFloat4x4(&cbPerObject.wvp, XMMatrixTranspose(wvp));
+	cbPerObject.material = m_grid_mat;
+	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
+
+	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_grid_index_count, m_grid_index_offset, m_grid_vertex_offset);
+
+	// ---------------------------------------------------
+	// Draw Box
+	// ---------------------------------------------------
+
+	world = DirectX::XMLoadFloat4x4(&m_box_world);
+
+	world_determinant = XMMatrixDeterminant(world);
+	world_inv = XMMatrixInverse(&world_determinant, world);
+	world_inv_transpose = XMMatrixTranspose(world_inv);
+
+	wvp = world * view * proj;
+	
+	XMStoreFloat4x4(&cbPerObject.world, XMMatrixTranspose(world));
+	XMStoreFloat4x4(&cbPerObject.world_inv_transpose, world_inv_transpose);
+	XMStoreFloat4x4(&cbPerObject.wvp, XMMatrixTranspose(wvp));
+	cbPerObject.material = m_box_mat;
+	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
+
+	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, m_box_index_offset, m_box_vertex_offset);
+
+	// ---------------------------------------------------
+	// Draw Cylinders
+	// ---------------------------------------------------
+
+	for (i32 i = 0; i < 10; ++i)
+	{
+		world = XMLoadFloat4x4(&m_cyl_world[i]);
+		world_determinant = XMMatrixDeterminant(world);
+		world_inv = XMMatrixInverse(&world_determinant, world);
+		world_inv_transpose = XMMatrixTranspose(world_inv);
+
+		wvp = world * view * proj;
+
+		XMStoreFloat4x4(&cbPerObject.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&cbPerObject.world_inv_transpose, world_inv_transpose);
+		XMStoreFloat4x4(&cbPerObject.wvp, XMMatrixTranspose(wvp));
+		cbPerObject.material = m_cylinder_mat;
+		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
+
+		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_cylinder_index_count, m_cylinder_index_offset, m_cylinder_vertex_offset);
+	}
+
+	// ---------------------------------------------------
+	// Draw Spheres
+	// ---------------------------------------------------
+
+	for (i32 i = 0; i < 10; ++i)
+	{
+		world = XMLoadFloat4x4(&m_sphere_world[i]);
+		world_determinant = XMMatrixDeterminant(world);
+		world_inv = XMMatrixInverse(&world_determinant, world);
+		world_inv_transpose = XMMatrixTranspose(world_inv);
+
+		wvp = world * view * proj;
+
+		XMStoreFloat4x4(&cbPerObject.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&cbPerObject.world_inv_transpose, world_inv_transpose);
+		XMStoreFloat4x4(&cbPerObject.wvp, XMMatrixTranspose(wvp));
+		cbPerObject.material = m_sphere_mat;
+		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
+
+		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_sphere_index_count, m_sphere_index_offset, m_sphere_vertex_offset);
+	}
+
+	// ---------------------------------------------------
+	// Draw Skull
+	// ---------------------------------------------------
+
+	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_skull_vb.get_buffer(), &stride, &offset);
+	joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_skull_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+
+	world = DirectX::XMLoadFloat4x4(&m_skull_world);
+
+	world_determinant = XMMatrixDeterminant(world);
+	world_inv = XMMatrixInverse(&world_determinant, world);
+	world_inv_transpose = XMMatrixTranspose(world_inv);
+
+	wvp = world * view * proj;
+
+	XMStoreFloat4x4(&cbPerObject.world, XMMatrixTranspose(world));
+	XMStoreFloat4x4(&cbPerObject.world_inv_transpose, world_inv_transpose);
+	XMStoreFloat4x4(&cbPerObject.wvp, XMMatrixTranspose(wvp));
+	cbPerObject.material = m_skull_mat;
+	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), cbPerObject);
+
+	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_skull_index_count, 0, 0);
 
 	joj::Engine::s_renderer->swap_buffers();
 }
