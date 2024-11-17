@@ -25,8 +25,10 @@ namespace joj
 
     struct CBPerFrame
     {
-        joj::DirectionalLight dir_light[3];
+        joj::DirectionalLight dir_lights[3];
         joj::JFloat3 eye_posw;
+
+        i32 light_count;
 
         f32 fog_start;
         f32 fog_range;
