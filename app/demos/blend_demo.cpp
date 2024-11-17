@@ -187,8 +187,8 @@ void BlendDemo::build_render_states()
 
 	D3D11_RASTERIZER_DESC no_cull_desc;
 	ZeroMemory(&no_cull_desc, sizeof(D3D11_RASTERIZER_DESC));
-	no_cull_desc.FillMode = D3D11_FILL_WIREFRAME;
-	no_cull_desc.CullMode = D3D11_CULL_BACK;
+	no_cull_desc.FillMode = D3D11_FILL_SOLID;
+	no_cull_desc.CullMode = D3D11_CULL_NONE;
 	no_cull_desc.FrontCounterClockwise = false;
 	no_cull_desc.DepthClipEnable = true;
 
@@ -909,8 +909,12 @@ void BlendDemo::draw()
 	waves_cb.material = m_waves_mat;
 	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), waves_cb);
 
+	f32 blendFactor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blendFactor, 0xffffffff);
+
 	joj::Engine::s_renderer->get_device_context()->DrawIndexed(3 * m_waves.get_triangle_count(), 0, 0);
 
+	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_alpha_to_coverage_BS, nullptr, 0xffffffff);
 	joj::Engine::s_renderer->swap_buffers();
 }
 
