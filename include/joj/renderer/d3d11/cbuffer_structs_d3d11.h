@@ -28,11 +28,12 @@ namespace joj
         joj::DirectionalLight dir_lights[3];
         joj::JFloat3 eye_posw;
 
-        i32 light_count;
-
         f32 fog_start;
         f32 fog_range;
         f32 fog_color;
+
+        i32 light_count;
+        b8 use_texture;
     };
 }
 
