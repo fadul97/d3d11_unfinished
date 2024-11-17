@@ -21,9 +21,6 @@ namespace joj
         joj::JFloat4x4 wvp = joj::float4x4_identity();
         joj::JFloat4x4 tex_transform = joj::float4x4_identity();
         joj::SimpleMaterial material;
-        joj::JFloat2 cell_size = { 0.0f, 0.0f };    // Cell size in atlas
-        i32 current_frame = 0;
-        f32 num_columns = 0;                        // Column number in atlas
     };
 
     struct CBPerFrame
@@ -39,6 +36,9 @@ namespace joj
 
         i32 light_count;                      // 4 bytes
         b32 use_texture;                      // 4 bytes
+
+        b32 alpha_clip;
+        b32 fog_enabled;
     };
 }
 
