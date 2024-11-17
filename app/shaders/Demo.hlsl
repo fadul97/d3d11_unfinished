@@ -20,17 +20,18 @@ cbuffer cbPerFrame : register(b1)
     DirectionalLight gDirLights[3];
     float3 gEyePosW;
 
-    int gLightCount;
-    
     float gFogStart;
     float gFogRange;
     float4 gFogColor;
+    
+    int gLightCount;
+    bool gUseTexure;
 };
 
 // Nonnumeric values cannot be added to a cbuffer.
-Texture2D gDiffuseMap;
+Texture2D gDiffuseMap : register(t0);
 
-SamplerState samAnisotropic
+SamplerState samAnisotropic : register(s0)
 {
     Filter = ANISOTROPIC;
     MaxAnisotropy = 4;
@@ -53,6 +54,7 @@ struct VertexOut
     float3 PosW : POSITION;
     float3 NormalW : NORMAL;
     float4 Color : COLOR;
+    float2 Tex : TEXCOORD;
 };
 
 VertexOut VS(VertexIn vin)
@@ -66,6 +68,9 @@ VertexOut VS(VertexIn vin)
 	// Transform to homogeneous clip space.
     vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
     
+    // Output vertex attributes for interpolation across triangle.
+    vout.Tex = mul(float4(vin.Tex, 0.0f, 1.0f), gTexTransform).xy;
+    
     // Set color
     vout.Color = vin.Color;
     
@@ -74,6 +79,8 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
+    // return gDiffuseMap.Sample(samAnisotropic, pin.Tex) * pin.Color;
+
     // Interpolating normal can unnormalize it, so normalize it.
     pin.NormalW = normalize(pin.NormalW);
 
@@ -86,32 +93,45 @@ float4 PS(VertexOut pin) : SV_Target
 	// Normalize.
     toEye /= distToEye;
 	
+    // Default to multiplicative identity.
+    float4 texColor = float4(1, 1, 1, 1);
+    if (gUseTexure)
+    {
+		// Sample texture.
+        texColor = gDiffuseMap.Sample(samAnisotropic, pin.Tex);
+    }
+	 
 	//
 	// Lighting.
 	//
 
-	// Start with a sum of zero. 
-    float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
-    float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
-
-	// Sum the light contribution from each light source.  
-	[unroll]
-    for (int i = 0; i < gLightCount; ++i)
+    float4 litColor = texColor;
+    if (gLightCount > 0)
     {
-        float4 A, D, S;
-        ComputeDirectionalLight(gMaterial, gDirLights[i], pin.NormalW, toEye,
-			A, D, S);
+		// Start with a sum of zero. 
+        float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
+        float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
+        float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-        ambient += A;
-        diffuse += D;
-        spec += S;
+		// Sum the light contribution from each light source.  
+		[unroll]
+        for (int i = 0; i < gLightCount; ++i)
+        {
+            float4 A, D, S;
+            ComputeDirectionalLight(gMaterial, gDirLights[i], pin.NormalW, toEye,
+				A, D, S);
+
+            ambient += A;
+            diffuse += D;
+            spec += S;
+        }
+
+		// Modulate with late add.
+        litColor = texColor * (ambient + diffuse) + spec;
     }
 
-    float4 litColor = ambient + diffuse + spec;
-
-	// Common to take alpha from diffuse material.
-    litColor.a = gMaterial.Diffuse.a;
+	// Common to take alpha from diffuse material and texture.
+    litColor.a = gMaterial.Diffuse.a * texColor.a;
 
     return litColor;
 }
