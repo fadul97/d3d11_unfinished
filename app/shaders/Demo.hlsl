@@ -75,17 +75,16 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
-    // Calcula linha e coluna do frame atual.
+    // Calculate current frame line and column
     int column = gCurrentFrame % int(gNumColumns);
     int row = gCurrentFrame / int(gNumColumns);
 
-    // Offset da textura para o frame atual.
+    // Texture offset for current frame
     float2 texOffset = float2(column * gCellSize.x, row * gCellSize.y);
-    // return float4(column, column, column, 1.0f);
 
-    // Coordenadas ajustadas para o frame atual.
+    // Adjust coordinates for current frame
     float2 adjustedTexCoord = texOffset + pin.Tex * gCellSize;
 
-    // Amostra a textura.
+    // Sample texture
     return gDiffuseMap.Sample(samAnisotropic, adjustedTexCoord);
 }
