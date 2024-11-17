@@ -26,14 +26,16 @@ namespace joj
     struct CBPerFrame
     {
         joj::DirectionalLight dir_lights[3];
-        joj::JFloat3 eye_posw;
 
-        f32 fog_start;
-        f32 fog_range;
-        f32 fog_color;
+        alignas(16) joj::JFloat3 eye_posw;    // Aligned to 16 bytes
+        f32 pad1;                             // Pad for next member
 
-        i32 light_count;
-        b8 use_texture;
+        f32 fog_start;                        // 4 bytes
+        f32 fog_range;                        // 4 bytes
+        alignas(16) joj::JFloat4 fog_color;   // Aligned to 4 bytes
+
+        i32 light_count;                      // 4 bytes
+        b32 use_texture;                      // 4 bytes
     };
 }
 
