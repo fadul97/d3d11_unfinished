@@ -11,27 +11,10 @@
 #include "renderable_object_d3d11.h"
 #include "systems/camera/free_camera.h"
 #include "constant_buffer_d3d11.h"
-#include <systems/material/material.h>
-#include <systems/light/light.h>
+#include "cbuffer_structs_d3d11.h"
 
 namespace joj
 {
-    struct CBPerObject
-    {
-        joj::JFloat4x4 world = joj::float4x4_identity();
-        joj::JFloat4x4 world_inv_transpose = joj::float4x4_identity();
-        joj::JFloat4x4 wvp = joj::float4x4_identity();
-        joj::SimpleMaterial material;
-    };
-
-    struct CBPerFrame
-    {
-        joj::DirectionalLight dir_light;
-        joj::PointLight point_light;
-        joj::SpotLight spot_light;
-        joj::JFloat3 eye_posw;
-    };
-
     class JAPI D3D11Scene
     {
     public:
