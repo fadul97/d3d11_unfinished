@@ -352,13 +352,25 @@ void FireAnimationDemo::update(const f32 dt)
 	// ---------------------------------------------------
 	// Update Fire Animation
 	// ---------------------------------------------------
-	static f32 timeElapsed = 0.0f;
+	static f32 time_elapsed = 0.0f;
 
-	timeElapsed += dt; // deltaTime = tempo entre frames.
-	if (timeElapsed >= (1.0f / 30.0f)) // A cada 1/30 segundos.
+	if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
 	{
-		m_current_frame = (m_current_frame + 1) % m_total_frames; // Avança para o próximo frame.
-		timeElapsed = 0.0f;
+		time_elapsed += dt;                    // Time between frames
+		if (time_elapsed >= (1.0f / 30.0f))    // Every 1/30 seconds
+		{
+			m_current_frame = (m_current_frame + 1) % m_total_frames; // Increment frame
+			time_elapsed = 0.0f;
+		}
+	}
+	else if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
+	{
+		time_elapsed += dt;                    // Time between frames
+		if (time_elapsed >= (1.0f / 30.0f))    // Every 1/30 seconds
+		{
+			m_current_frame = (m_current_frame - 1 + m_total_frames) % m_total_frames; // Decrement frame
+			time_elapsed = 0.0f;
+		}
 	}
 }
 
