@@ -39,11 +39,14 @@ namespace joj
          *
          */
 
-        u32 m_antialiasing;                                     // Number of samples for each pixel on the screen
-        u32 m_quality;                                          // Antialiasing sampling quality
+        b8 m_4xmsaa_enabled;
+        u32 m_4xmsaa_quality;
+        u32 m_buffer_count;
+        u32 m_mip_levels;
         b8 m_vsync;                                             // Vertical sync 
         IDXGISwapChain* m_swapchain;                            // Swap chain
         ID3D11RenderTargetView* m_render_target_view;           // Backbuffer render target view
+        ID3D11Texture2D* m_depth_stencil_buffer;                // Depth/Stencil buffer
         ID3D11DepthStencilView* m_depth_stencil_view;           // Depth/Stencil view
         D3D11_VIEWPORT m_viewport;                              // Viewport
         ID3D11BlendState* m_blend_state;                        // Color mix settings

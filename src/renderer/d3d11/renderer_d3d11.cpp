@@ -12,11 +12,14 @@ joj::D3D11Renderer::D3D11Renderer()
 	m_device = nullptr;
 	m_device_context = nullptr;
 
-	m_antialiasing = 1;                        // No antialising
-	m_quality = 0;                             // Default quality
+	m_4xmsaa_enabled = false;                  // No antialising
+	m_4xmsaa_quality = 0;                      // Default quality
+	m_buffer_count = 2;                        // 2 buffers: Back and Front
+	m_mip_levels = 1;                          // Number of mip levels
 	m_vsync = false;                           // No vertical sync
 	m_swapchain = nullptr;                     // Swap chain
 	m_render_target_view = nullptr;            // Backbuffer render target view
+	m_depth_stencil_buffer = nullptr;          // Depth/Stencil buffer
 	m_depth_stencil_view = nullptr;            // Depth/Stencil view
 	m_viewport = { 0 };                        // Viewport
 	m_blend_state = nullptr;                   // Color mix settings
@@ -54,6 +57,13 @@ joj::D3D11Renderer::~D3D11Renderer()
 		m_depth_stencil_view = nullptr;
 	}
 
+	// Release depth stencil buffer
+	if (m_depth_stencil_buffer)
+	{
+		m_depth_stencil_buffer->Release();
+		m_depth_stencil_buffer = nullptr;
+	}
+
 	// Release render target view
 	if (m_render_target_view)
 	{
@@ -87,6 +97,22 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	m_device = m_context->get_device();
 	m_device_context = m_context->get_device_context();
 
+	// Check 4X MSAA quality support for our back buffer format.
+	// All Direct3D 11 capable devices support 4X MSAA for all render 
+	// target formats, so we only need to check quality support.
+
+	if (m_device->CheckMultisampleQualityLevels(DXGI_FORMAT_R8G8B8A8_UNORM, 4, &m_4xmsaa_quality) != S_OK)
+	{
+		// TODO: Better ErrorCode
+		JERROR(ErrorCode::FAILED, "Failed to check multi sample quality levels.");
+	}
+
+	if (m_4xmsaa_quality <= 0)
+	{
+		// TODO: Better ErrorCode
+		JERROR(ErrorCode::FAILED, "MSAA Quality is too low.");
+	}
+
 	// ------------------------------------------------------------------------------------------------------
 	//                                          PIPELINE SETUP
 	// ------------------------------------------------------------------------------------------------------
@@ -104,12 +130,29 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;                         // Color format - RGBA 8 bits
 	swap_chain_desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;     // Default value for Flags
 	swap_chain_desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;                     // Default mode for scaling
-	swap_chain_desc.SampleDesc.Count = m_antialiasing;                                      // Samples per pixel (antialiasing)
-	swap_chain_desc.SampleDesc.Quality = m_quality;                                         // Level of image quality
+
+	// Using 4x MSAA
+	if (m_4xmsaa_enabled)
+	{
+		swap_chain_desc.SampleDesc.Count = 4;                                               // Samples per pixel (antialiasing)
+		swap_chain_desc.SampleDesc.Quality = m_4xmsaa_quality - 1;                          // Level of image quality
+	}
+	// No MSAA
+	else
+	{
+		swap_chain_desc.SampleDesc.Count = 1;
+		swap_chain_desc.SampleDesc.Quality = 0;
+	}
+
 	swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;                          // Use surface as Render Target
-	swap_chain_desc.BufferCount = 2;                                                        // Number of buffers (Front + Back)
+
+	// Check value
+	swap_chain_desc.BufferCount = m_buffer_count;                                           // Number of buffers (Front + Back)
+
 	swap_chain_desc.OutputWindow = window.handle;                                           // Window ID
 	swap_chain_desc.Windowed = (window.window_mode == joj::WindowMode::Windowed);           // Fullscreen or windowed 
+	
+	// Check values
 	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;                             // Discard surface after presenting
 	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;                         // Use Back buffer size for Fullscreen
 
@@ -145,28 +188,39 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 
 	// Describe Depth/Stencil Buffer Desc
 	D3D11_TEXTURE2D_DESC depth_stencil_desc = { 0 };
-	depth_stencil_desc.Width = static_cast<u32>(window.width);   // Depth/Stencil buffer width
-	depth_stencil_desc.Height = static_cast<u32>(window.height); // Depth/Stencil buffer height
-	depth_stencil_desc.MipLevels = 0;                            // Number of mipmap levels
-	depth_stencil_desc.ArraySize = 1;                            // Number of textures in array
-	depth_stencil_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;   // Color format - Does it need to be the same format of swapChainDesc?
-	depth_stencil_desc.SampleDesc.Count = m_antialiasing;        // Samples per pixel (antialiasing)
-	depth_stencil_desc.SampleDesc.Quality = m_quality;           // Level of image quality
-	depth_stencil_desc.Usage = D3D11_USAGE_DEFAULT;              // Default - GPU will both read and write to the resource
-	depth_stencil_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;     // Where resource will be bound to the pipeline
-	depth_stencil_desc.CPUAccessFlags = 0;                       // CPU will not read not write to the Depth/Stencil buffer
-	depth_stencil_desc.MiscFlags = 0;                            // Optional flags
+	depth_stencil_desc.Width = static_cast<u32>(window.width);           // Depth/Stencil buffer width
+	depth_stencil_desc.Height = static_cast<u32>(window.height);         // Depth/Stencil buffer height
+	depth_stencil_desc.MipLevels = m_mip_levels;                         // Number of mipmap levels
+	depth_stencil_desc.ArraySize = 1;                                    // Number of textures in array
+	depth_stencil_desc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;           // Color format
+
+	// Use 4x MSAA? It must match swap chain MSAA values.
+	if (m_4xmsaa_enabled)
+	{
+		depth_stencil_desc.SampleDesc.Count = 4;                         // Samples per pixel (antialiasing)
+		depth_stencil_desc.SampleDesc.Quality = m_4xmsaa_quality - 1;    // Level of image quality
+	}
+	// No MSAA
+	else
+	{
+		depth_stencil_desc.SampleDesc.Count = 1;
+		depth_stencil_desc.SampleDesc.Quality = 0;
+	}
+
+	depth_stencil_desc.Usage = D3D11_USAGE_DEFAULT;                      // Default - GPU will both read and write to the resource
+	depth_stencil_desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;             // Where resource will be bound to the pipeline
+	depth_stencil_desc.CPUAccessFlags = 0;                               // CPU will not read not write to the Depth/Stencil buffer
+	depth_stencil_desc.MiscFlags = 0;                                    // Optional flags
 
 	// Create Depth/Stencil Buffer
-	ID3D11Texture2D* depth_stencil_buffer;
-	if (m_device->CreateTexture2D(&depth_stencil_desc, 0, &depth_stencil_buffer) != S_OK)
+	if (m_device->CreateTexture2D(&depth_stencil_desc, 0, &m_depth_stencil_buffer) != S_OK)
 	{
 		JFATAL(ErrorCode::ERR_DEPTHSTENCIL_D3D11_BUFFER, "Failed to create DepthStencil buffer (Texture2D).");
 		return ErrorCode::ERR_DEPTHSTENCIL_D3D11_BUFFER;
 	}
 
 	// Create Depth/Stencil View
-	if (m_device->CreateDepthStencilView(depth_stencil_buffer, 0, &m_depth_stencil_view) != S_OK)
+	if (m_device->CreateDepthStencilView(m_depth_stencil_buffer, 0, &m_depth_stencil_view) != S_OK)
 	{
 		JFATAL(ErrorCode::ERR_DEPTHSTENCIL_VIEW_D3D11_CREATION, "Failed to create DepthStencilView.");
 		return ErrorCode::ERR_DEPTHSTENCIL_VIEW_D3D11_CREATION;
@@ -253,7 +307,6 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	// ---------------------------------------------------
 
 	backbuffer->Release();
-	depth_stencil_buffer->Release();
 
 	return ErrorCode::OK;
 }
