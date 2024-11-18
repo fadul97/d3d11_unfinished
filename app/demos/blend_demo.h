@@ -34,7 +34,7 @@ public:
 	void shutdown();
 
 public:
-	joj::JFloat4x4 m_grid_world = joj::float4x4_identity();
+	joj::JFloat4x4 m_land_world = joj::float4x4_identity();
 	joj::JFloat4x4 m_waves_world = joj::float4x4_identity();
 	joj::JFloat4x4 m_grass_tex_transform = joj::float4x4_identity();
 	joj::JFloat4x4 m_water_tex_transform = joj::float4x4_identity();
@@ -51,7 +51,7 @@ public:
 	ID3D11BlendState* m_transparent_BS = nullptr;
 	void build_render_states();
 
-	Waves m_waves{ 200, 200, 0.8f, 0.03f, 3.25f, 0.4f };
+	Waves m_waves{ 160, 160, 1.0f, 0.03f, 5.0f, 0.3f };
 	
 	joj::D3D11VertexBuffer m_land_vb;
 	joj::D3D11IndexBuffer m_land_ib;
@@ -107,6 +107,8 @@ public:
 	b32 m_alpha_clip = 1;
 	b32 m_fog_enabled = 0;
 	RenderOptions m_render_options = RenderOptions::Lighting;
+	b8 m_is_blend_transparent = false;
+	b8 m_is_rasterizer_solid = true;
 };
 
 // ---------------------------------------------------------------------------------

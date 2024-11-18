@@ -96,8 +96,9 @@ void BlendDemo::init()
 	// ---------------------------------------------------
 
 	joj::JMatrix4x4 I = joj::matrix4x4_identity();
-	XMStoreFloat4x4(&m_grid_world, I);
+	XMStoreFloat4x4(&m_land_world, I);
 	XMStoreFloat4x4(&m_waves_world, I);
+	XMStoreFloat4x4(&mView, I);
 
 	joj::JMatrix4x4 box_scale = DirectX::XMMatrixScaling(15.0f, 15.0f, 15.0f);
 	joj::JMatrix4x4 box_offset = DirectX::XMMatrixTranslation(8.0f, 5.0f, -15.0f);
@@ -150,13 +151,13 @@ void BlendDemo::init()
 	// Build Resources
 	// ---------------------------------------------------
 
+	build_shaders();
+	build_vertex_layout();
 	build_render_states();
 	build_textures();
 	build_land_geometry_buffers();
 	build_waves_geometry_buffers();
 	build_crate_geometry_buffers();
-	build_shaders();
-	build_vertex_layout();
 	build_constant_buffers();
 }
 
@@ -213,8 +214,6 @@ void BlendDemo::build_render_states()
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Blend State.");
 	}
-
-	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_alpha_to_coverage_BS, nullptr, 0xffffffff);
 
 	// ---------------------------------------------------
 	// Describe and Create Transparent Blend State
@@ -281,12 +280,12 @@ void BlendDemo::build_textures()
 	}
 
 	// ---------------------------------------------------
-	// Create Water DDS Texture
+	// Create Crate DDS Texture
 	// ---------------------------------------------------
 
 	if (DirectX::CreateDDSTextureFromFile(
 		joj::Engine::s_renderer->get_device(),
-		L"../../../../app/textures/WoodCrate01.dds",
+		L"../../../../app/textures/WireFence.dds",
 		nullptr,
 		&m_box_map_SRV
 	) != S_OK)
@@ -318,8 +317,6 @@ void BlendDemo::build_textures()
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Sampler State.");
 		return;
 	}
-
-	joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 }
 
 // ---------------------------------------------------------------------------------
@@ -412,7 +409,7 @@ void BlendDemo::build_land_geometry_buffers()
 void BlendDemo::build_waves_geometry_buffers()
 {
 	// ---------------------------------------------------
-	// Create Grid Vertex Buffer
+	// Create Waves Vertex Buffer
 	// ---------------------------------------------------
 
 	m_waves_vb.setup(D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE, sizeof(joj::GeometryVertex) * m_waves.get_vertex_count(), nullptr);
@@ -423,7 +420,7 @@ void BlendDemo::build_waves_geometry_buffers()
 	}
 
 	// ---------------------------------------------------
-	// Create Grid Index Buffer
+	// Create Waves Index Buffer
 	// ---------------------------------------------------
 
 	std::vector<u32> indices(3 * m_waves.get_triangle_count());
@@ -668,217 +665,206 @@ void BlendDemo::update(const f32 dt)
 
 		if (joj::Engine::s_input->is_key_down(joj::KEY_D))
 			camera.process_keyboard(joj::CameraMovement::RIGHT, dt * speed);
+		
+		DirectX::XMMATRIX V = camera.get_view_mat();
+		XMStoreFloat4x4(&mView, V);
 	}
 
-	DirectX::XMMATRIX V = camera.get_view_mat();
-	XMStoreFloat4x4(&mView, V);
-
-	if (joj::Engine::s_input->is_key_pressed('0'))
-		m_render_options = RenderOptions::Lighting;
-
-	if (joj::Engine::s_input->is_key_pressed('1'))
-		m_render_options = RenderOptions::Textures;
-
-	if (joj::Engine::s_input->is_key_pressed('2'))
 	{
-		m_render_options = RenderOptions::TexturesAndFog;
-		JDEBUG("TexturesAndFog");
+		// ---------------------------------------------------
+		// Generate a random wave
+		// ---------------------------------------------------
+
+		if (joj::Engine::s_timer->total_elapsed() - prev >= 0.25f)
+		{
+			t_base += 0.25f;
+
+			i32 i = 5 + rand() % (m_waves.get_row_count() - 10);
+			i32 j = 5 + rand() % (m_waves.get_column_count() - 10);
+
+			f32 r = RandF(0.5f, 1.0f);
+
+			m_waves.disturb(i, j, r);
+			prev = joj::Engine::s_timer->total_elapsed();
+		}
+
+		m_waves.update(dt);
+
+		// ---------------------------------------------------
+		// Update Waves Vertex Buffer with new solution
+		// ---------------------------------------------------
+
+		D3D11_MAPPED_SUBRESOURCE mappedData;
+		if (joj::Engine::s_renderer->get_device_context()->Map(m_waves_vb.get_buffer(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData) != S_OK)
+		{
+			JERROR(joj::ErrorCode::FAILED, "Failed to map Subresource data.");
+		}
+
+		joj::GeometryVertex* v = reinterpret_cast<joj::GeometryVertex*>(mappedData.pData);
+		for (u32 i = 0; i < m_waves.get_vertex_count(); ++i)
+		{
+			v[i].pos = m_waves.Position(i);
+			v[i].normal = m_waves.Normal(i);
+
+			// Derive tex-coords in [0,1] from position.
+			v[i].tex.x = 0.5f + m_waves.Position(i).x / m_waves.get_width();
+			v[i].tex.y = 0.5f - m_waves.Position(i).z / m_waves.get_depth();
+		}
+
+		joj::Engine::s_renderer->get_device_context()->Unmap(m_waves_vb.get_buffer(), 0);
+
+		// ---------------------------------------------------
+		// Animate Water texture coordinates
+		// ---------------------------------------------------
+
+		// Tile water texture.
+		joj::JMatrix4x4 waves_scale = DirectX::XMMatrixScaling(5.0f, 5.0f, 0.0f);
+
+		// Translate texture over time.
+		m_water_tex_offset.y += 0.05f * dt;
+		m_water_tex_offset.x += 0.1f * dt;
+		joj::JMatrix4x4 waves_offset = DirectX::XMMatrixTranslation(m_water_tex_offset.x, m_water_tex_offset.y, 0.0f);
+
+		joj::JMatrix4x4 combined = waves_scale * waves_offset;
+
+		// Combine scale and translation.
+		DirectX::XMStoreFloat4x4(&m_water_tex_transform, combined);
 	}
 
-	if (joj::Engine::s_input->is_key_pressed('T'))
-		m_use_texture ^= 1;
-
-	if (joj::Engine::s_input->is_key_pressed('L'))
-		m_light_count = (m_light_count + 1) % 3; // 3 is the array size
-
-	/*
-	if (joj::Engine::s_input->is_key_pressed('L'))
-		m_render_options = RenderOptions::Lighting;
-
-	if (joj::Engine::s_input->is_key_pressed('K'))
-		m_render_options = RenderOptions::Textures;
-
-	if (joj::Engine::s_input->is_key_pressed('J'))
-		m_render_options = RenderOptions::TexturesAndFog;
-	*/
-
-	if (joj::Engine::s_input->is_key_pressed('U'))
-		m_alpha_clip ^= 1;
-
-	if (joj::Engine::s_input->is_key_pressed('I'))
-		m_fog_enabled ^= 1;
-
 	// ---------------------------------------------------
-	// Generate a random wave
+	// Read Demo Input
 	// ---------------------------------------------------
-
-	if (joj::Engine::s_timer->total_elapsed() - prev >= 0.25f)
 	{
-		t_base += 0.25f;
+		if (joj::Engine::s_input->is_key_pressed('1'))
+		{
+			m_render_options = RenderOptions::Lighting;
+			JDEBUG("Lighting");
+		}
 
-		i32 i = 5 + rand() % (m_waves.get_row_count() - 10);
-		i32 j = 5 + rand() % (m_waves.get_column_count() - 10);
+		if (joj::Engine::s_input->is_key_pressed('2'))
+		{
+			m_render_options = RenderOptions::Textures;
+			JDEBUG("Textures");
+		}
 
-		f32 r = RandF(0.5f, 1.0f);
+		if (joj::Engine::s_input->is_key_pressed('3'))
+		{
+			m_render_options = RenderOptions::TexturesAndFog;
+			JDEBUG("TexturesAndFog");
+		}
 
-		m_waves.disturb(i, j, r);
-		prev = joj::Engine::s_timer->total_elapsed();
+		if (joj::Engine::s_input->is_key_pressed('V'))
+		{
+			m_alpha_clip ^= 1;
+			JDEBUG("AlphaClip = %d", m_alpha_clip);
+		}
+
+		if (joj::Engine::s_input->is_key_pressed('T'))
+		{
+			m_use_texture ^= 1;
+			JDEBUG("UseTexture = %d", m_use_texture);
+		}
+
+		if (joj::Engine::s_input->is_key_pressed('I'))
+		{
+			m_fog_enabled ^= 1;
+			JDEBUG("FogEnabled = %d", m_fog_enabled);
+		}
+
+		if (joj::Engine::s_input->is_key_pressed('L'))
+			m_light_count = (m_light_count + 1) % 3; // 3 is the array size
+
+		// Change Rasterizer State
+		if (joj::Engine::s_input->is_key_pressed('N'))
+			m_is_rasterizer_solid = !m_is_rasterizer_solid;
+
+		// Change Mouse Movement Speed state
+		if (joj::Engine::s_input->is_key_pressed('B'))
+			m_is_blend_transparent = !m_is_blend_transparent;
 	}
-
-	m_waves.update(dt);
-
-	// ---------------------------------------------------
-	// Update Waves Vertex Buffer with new solution
-	// ---------------------------------------------------
-
-	D3D11_MAPPED_SUBRESOURCE mappedData;
-	if (joj::Engine::s_renderer->get_device_context()->Map(m_waves_vb.get_buffer(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedData) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to map Subresource data.");
-	}
-
-	joj::GeometryVertex* v = reinterpret_cast<joj::GeometryVertex*>(mappedData.pData);
-	for (u32 i = 0; i < m_waves.get_vertex_count(); ++i)
-	{
-		v[i].pos = m_waves.Position(i);
-		v[i].normal = m_waves.Normal(i);
-
-		// Derive tex-coords in [0,1] from position.
-		v[i].tex.x = 0.5f + m_waves.Position(i).x / m_waves.get_width();
-		v[i].tex.y = 0.5f - m_waves.Position(i).z / m_waves.get_depth();
-	}
-
-	joj::Engine::s_renderer->get_device_context()->Unmap(m_waves_vb.get_buffer(), 0);
-
-	// ---------------------------------------------------
-	// Animate Water texture coordinates
-	// ---------------------------------------------------
-
-	// Tile water texture.
-	joj::JMatrix4x4 waves_scale = DirectX::XMMatrixScaling(5.0f, 5.0f, 0.0f);
-
-	// Translate texture over time.
-	m_water_tex_offset.y += 0.05f * dt;
-	m_water_tex_offset.x += 0.1f * dt;
-	joj::JMatrix4x4 waves_offset = DirectX::XMMatrixTranslation(m_water_tex_offset.x, m_water_tex_offset.y, 0.0f);
-
-	joj::JMatrix4x4 combined = waves_scale * waves_offset;
-
-	// Combine scale and translation.
-	DirectX::XMStoreFloat4x4(&m_water_tex_transform, combined);
 }
 
 // ---------------------------------------------------------------------------------
 
 void BlendDemo::draw()
 {
-	/*
-	if (is_wireframe)
-		joj::Engine::s_renderer->set_rasterizer_fill_mode(joj::RasterizerFillMode::Wireframe);
-	else
-		joj::Engine::s_renderer->set_rasterizer_fill_mode(joj::RasterizerFillMode::Solid);
-	*/
-
-	f32 blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	switch (m_render_options)
+	// Default draw calls for every object
 	{
-	case RenderOptions::Lighting:
-		break;
-	case RenderOptions::Textures:
-		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_alpha_to_coverage_BS, blend_factor, 0xffffffff);
-		break;
-	case RenderOptions::TexturesAndFog:
-		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
-		break;
-	default:
-		break;
+		joj::Engine::s_renderer->clear();
+
+		joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
+		joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+		joj::Engine::s_renderer->get_device_context()->VSSetShader(m_shader.get_vertex_shader(), nullptr, 0u);
+		joj::Engine::s_renderer->get_device_context()->PSSetShader(m_shader.get_pixel_shader(), nullptr, 0u);
+
+		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
+		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
+
+		joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
+		joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
+
+		joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 	}
 
-	joj::Engine::s_renderer->clear();
+	// Set constants and Update CBPerFrame
+	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
+	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
+	{
+		// ---------------------------------------------------
+		// Set Per Frame Constants
+		// ---------------------------------------------------
+		joj::CBPerFrame frame_cb;
+		frame_cb.dir_lights[0] = m_dir_lights[0];
+		frame_cb.dir_lights[1] = m_dir_lights[1];
+		frame_cb.dir_lights[2] = m_dir_lights[2];
+		frame_cb.eye_posw = camera.m_position;
+		frame_cb.fog_start = 15.0f;
+		frame_cb.fog_range = 175.0f;
+		const joj::JFloat4 silver{ 0.75f, 0.75f, 0.75f, 1.0f };
+		frame_cb.fog_color = joj::JFloat4{ 0.7f, 0.0f, 0.0f, 1.0f };
+		frame_cb.light_count = m_light_count;
+		m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
+	}
 
-	joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
-	joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	f32 blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	u32 stride = sizeof(joj::GeometryVertex);
 	u32 offset = 0;
 
-	joj::Engine::s_renderer->get_device_context()->VSSetShader(
-		// Pointer to a vertex shader
-		m_shader.get_vertex_shader(),
-		// A pointer to an array of class-instance interfaces
-		nullptr,
-		// The number of class-instance interfaces in the array
-		0u);
-
-	joj::Engine::s_renderer->get_device_context()->PSSetShader(
-		// Pointer to a vertex shader
-		m_shader.get_pixel_shader(),
-		// A pointer to an array of class-instance interfaces
-		nullptr,
-		// The number of class-instance interfaces in the array
-		0u);
-
-	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
-	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-	joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
-	joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-	joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
-
-	// ---------------------------------------------------
-	// Set Per Frame Constants
-	// ---------------------------------------------------
-	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
-	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
-
-	joj::CBPerFrame frame_cb;
-	frame_cb.dir_lights[0] = m_dir_lights[0];
-	frame_cb.dir_lights[1] = m_dir_lights[1];
-	frame_cb.dir_lights[2] = m_dir_lights[2];
-	frame_cb.eye_posw = camera.m_position;
-	frame_cb.fog_start = 15.0f;
-	frame_cb.fog_range = 175.0f;
-	frame_cb.fog_color = joj::JFloat4{ 0.1f, 0.0f, 0.0f, 1.0f };
-	frame_cb.light_count = m_light_count;
-	m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
-
 	// ---------------------------------------------------
 	// Draw Box with alpha clipping
 	// ---------------------------------------------------
+	{
+		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_box_vb.get_buffer(), &stride, &offset);
+		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_box_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
 
+		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_box_map_SRV);
 
-	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_box_vb.get_buffer(), &stride, &offset);
-	joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_box_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_box_world);
+		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
+		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
+		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
 
-	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_box_map_SRV);
+		joj::JMatrix4x4 wvp = world * view * proj;
 
-	joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_box_world);
-	joj::JMatrix4x4 wvp = world * view * proj;
+		joj::JMatrix4x4 I = joj::matrix4x4_identity();
 
-	joj::JVector4 world_determinant = XMMatrixDeterminant(world);
-	joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
-	joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
+		joj::CBPerObject box_cb;
+		XMStoreFloat4x4(&box_cb.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&box_cb.world_inv_transpose, world_inv_transpose);
+		XMStoreFloat4x4(&box_cb.wvp, XMMatrixTranspose(wvp));
+		XMStoreFloat4x4(&box_cb.tex_transform, I);
+		box_cb.material = m_box_mat;
+		box_cb.use_texture = m_use_texture;
+		box_cb.alpha_clip = m_alpha_clip;
+		box_cb.fog_enabled = m_fog_enabled;
+		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), box_cb);
 
-	joj::CBPerObject box_cb;
-	XMStoreFloat4x4(&box_cb.world, XMMatrixTranspose(world));
-	XMStoreFloat4x4(&box_cb.world_inv_transpose, world_inv_transpose);
-	XMStoreFloat4x4(&box_cb.wvp, XMMatrixTranspose(wvp));
-	joj::JMatrix4x4 I = joj::matrix4x4_identity();
-	XMStoreFloat4x4(&box_cb.tex_transform, I);
-	box_cb.material = m_box_mat;
-	box_cb.use_texture = m_use_texture;
-	box_cb.alpha_clip = m_alpha_clip;
-	box_cb.fog_enabled = m_fog_enabled;
-	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), box_cb);
-
-	joj::Engine::s_renderer->get_device_context()->RSSetState(m_no_cull_RS);
-
-	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, 0, 0);
-
-	// Restore default render state
-	joj::Engine::s_renderer->get_device_context()->RSSetState(nullptr);
+		joj::Engine::s_renderer->get_device_context()->RSSetState(m_no_cull_RS);
+		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, 0, 0);
+		joj::Engine::s_renderer->get_device_context()->RSSetState(nullptr);
+	}
 
 	// --------------------------------------------------------------------------
 	// Draw hills and water with texture and fog(no alpha clipping needed)
@@ -887,66 +873,69 @@ void BlendDemo::draw()
 	// ---------------------------------------------------
 	// Draw Land
 	// ---------------------------------------------------
-	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_land_vb.get_buffer(), &stride, &offset);
-	joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_land_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+	{
+		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_land_vb.get_buffer(), &stride, &offset);
+		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_land_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
 
-	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_grass_map_SRV);
+		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_grass_map_SRV);
 
-	world = DirectX::XMLoadFloat4x4(&m_grid_world);
-	wvp = world * view * proj;
+		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_land_world);
+		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
+		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
+		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
 
-	world_determinant = XMMatrixDeterminant(world);
-	world_inv = XMMatrixInverse(&world_determinant, world);
-	world_inv_transpose = XMMatrixTranspose(world_inv);
+		joj::JMatrix4x4 wvp = world * view * proj;
 
-	joj::CBPerObject land_cb;
-	XMStoreFloat4x4(&land_cb.world, XMMatrixTranspose(world));
-	XMStoreFloat4x4(&land_cb.world_inv_transpose, world_inv_transpose);
-	XMStoreFloat4x4(&land_cb.wvp, XMMatrixTranspose(wvp));
-	joj::JMatrix4x4 grass_textransf = XMLoadFloat4x4(&m_grass_tex_transform);
-	joj::JMatrix4x4 grass_textrasnf_transposed = DirectX::XMMatrixTranspose(grass_textransf);
-	XMStoreFloat4x4(&land_cb.tex_transform, grass_textrasnf_transposed);
-	land_cb.material = m_land_mat;
-	land_cb.use_texture = m_use_texture;
-	land_cb.alpha_clip = 0;
-	land_cb.fog_enabled = m_fog_enabled;
-	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), land_cb);
-
-	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_grid_index_count, 0, 0);
+		joj::CBPerObject land_cb;
+		XMStoreFloat4x4(&land_cb.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&land_cb.world_inv_transpose, world_inv_transpose);
+		XMStoreFloat4x4(&land_cb.wvp, XMMatrixTranspose(wvp));
+		joj::JMatrix4x4 grass_textransf = XMLoadFloat4x4(&m_grass_tex_transform);
+		joj::JMatrix4x4 grass_textrasnf_transposed = DirectX::XMMatrixTranspose(grass_textransf);
+		XMStoreFloat4x4(&land_cb.tex_transform, grass_textrasnf_transposed);
+		land_cb.material = m_land_mat;
+		land_cb.use_texture = m_use_texture;
+		land_cb.alpha_clip = 0;
+		land_cb.fog_enabled = m_fog_enabled;
+		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), land_cb);
+		
+		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_grid_index_count, 0, 0);
+	}
 
 	// ---------------------------------------------------
 	// Draw Waves
 	// ---------------------------------------------------
-	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_waves_vb.get_buffer(), &stride, &offset);
-	joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_waves_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+	{
+		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_waves_vb.get_buffer(), &stride, &offset);
+		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_waves_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
 
-	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_waves_map_SRV);
+		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_waves_map_SRV);
 
-	world = DirectX::XMLoadFloat4x4(&m_waves_world);
-	wvp = world * view * proj;
+		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_waves_world);
+		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
+		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
+		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
 
-	world_determinant = XMMatrixDeterminant(world);
-	world_inv = XMMatrixInverse(&world_determinant, world);
-	world_inv_transpose = XMMatrixTranspose(world_inv);
+		joj::JMatrix4x4 wvp = world * view * proj;
 
-	joj::CBPerObject waves_cb;
-	XMStoreFloat4x4(&waves_cb.world, XMMatrixTranspose(world));
-	XMStoreFloat4x4(&waves_cb.world_inv_transpose, world_inv);
-	XMStoreFloat4x4(&waves_cb.wvp, XMMatrixTranspose(wvp));
-	joj::JMatrix4x4 waves_textransf = XMLoadFloat4x4(&m_water_tex_transform);
-	joj::JMatrix4x4 waves_textrasnf_transposed = DirectX::XMMatrixTranspose(waves_textransf);
-	XMStoreFloat4x4(&land_cb.tex_transform, waves_textrasnf_transposed);
-	waves_cb.material = m_waves_mat;
-	waves_cb.use_texture = m_use_texture;
-	waves_cb.alpha_clip = 0;
-	waves_cb.fog_enabled = m_fog_enabled;
-	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), waves_cb);
+		joj::CBPerObject waves_cb;
+		XMStoreFloat4x4(&waves_cb.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&waves_cb.world_inv_transpose, world_inv);
+		XMStoreFloat4x4(&waves_cb.wvp, XMMatrixTranspose(wvp));
 
-	// joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
+		joj::JMatrix4x4 waves_textransf = XMLoadFloat4x4(&m_water_tex_transform);
+		joj::JMatrix4x4 waves_textrasnf_transposed = DirectX::XMMatrixTranspose(waves_textransf);
+		XMStoreFloat4x4(&waves_cb.tex_transform, waves_textrasnf_transposed);
+		waves_cb.material = m_waves_mat;
+		waves_cb.use_texture = m_use_texture;
+		waves_cb.alpha_clip = 0;
+		waves_cb.fog_enabled = m_fog_enabled;
+		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), waves_cb);
 
-	joj::Engine::s_renderer->get_device_context()->DrawIndexed(3 * m_waves.get_triangle_count(), 0, 0);
-
-	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
+		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
+		joj::Engine::s_renderer->get_device_context()->DrawIndexed(3 * m_waves.get_triangle_count(), 0, 0);
+		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
+	}
 
 	joj::Engine::s_renderer->swap_buffers();
 }
