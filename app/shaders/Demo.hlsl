@@ -13,7 +13,11 @@ cbuffer cbPerObject : register(b0)
     float4x4 gWorldViewProj;
     float4x4 gTexTransform;
     Material gMaterial;
-}; 
+    bool gUseTexure;
+    
+    bool gAlphaClip;
+    bool gFogEnabled;
+};
 
 cbuffer cbPerFrame : register(b1)
 {
@@ -25,10 +29,6 @@ cbuffer cbPerFrame : register(b1)
     float4 gFogColor;
     
     int gLightCount;
-    bool gUseTexure;
-    
-    bool gAlphaClip;
-    bool gFogEnabled;
 };
 
 // Nonnumeric values cannot be added to a cbuffer.
