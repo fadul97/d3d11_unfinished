@@ -105,7 +105,7 @@ public:
 	i32 m_light_count = 2;
 	b32 m_use_texture = 1;
 	b32 m_alpha_clip = 1;
-	b32 m_fog_enabled = 1;
+	b32 m_fog_enabled = 0;
 	RenderOptions m_render_options = RenderOptions::Lighting;
 };
 

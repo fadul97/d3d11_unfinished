@@ -214,6 +214,8 @@ void BlendDemo::build_render_states()
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Blend State.");
 	}
 
+	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_alpha_to_coverage_BS, nullptr, 0xffffffff);
+
 	// ---------------------------------------------------
 	// Describe and Create Transparent Blend State
 	// ---------------------------------------------------
@@ -253,7 +255,7 @@ void BlendDemo::build_textures()
 		&m_grass_map_SRV
 	) != S_OK)
 	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'WoodCrate01.dds'.");
+		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'grass.dds'.");
 	}
 	else
 	{
@@ -271,7 +273,7 @@ void BlendDemo::build_textures()
 		&m_waves_map_SRV
 	) != S_OK)
 	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'WoodCrate01.dds'.");
+		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'water2.dds'.");
 	}
 	else
 	{
@@ -672,16 +674,22 @@ void BlendDemo::update(const f32 dt)
 	XMStoreFloat4x4(&mView, V);
 
 	if (joj::Engine::s_input->is_key_pressed('0'))
-		m_light_count = 0;
+		m_render_options = RenderOptions::Lighting;
 
 	if (joj::Engine::s_input->is_key_pressed('1'))
-		m_light_count = 1;
+		m_render_options = RenderOptions::Textures;
 
 	if (joj::Engine::s_input->is_key_pressed('2'))
-		m_light_count = 2;
+	{
+		m_render_options = RenderOptions::TexturesAndFog;
+		JDEBUG("TexturesAndFog");
+	}
 
 	if (joj::Engine::s_input->is_key_pressed('T'))
 		m_use_texture ^= 1;
+
+	if (joj::Engine::s_input->is_key_pressed('L'))
+		m_light_count = (m_light_count + 1) % 3; // 3 is the array size
 
 	/*
 	if (joj::Engine::s_input->is_key_pressed('L'))
@@ -764,10 +772,28 @@ void BlendDemo::update(const f32 dt)
 
 void BlendDemo::draw()
 {
+	/*
 	if (is_wireframe)
 		joj::Engine::s_renderer->set_rasterizer_fill_mode(joj::RasterizerFillMode::Wireframe);
 	else
 		joj::Engine::s_renderer->set_rasterizer_fill_mode(joj::RasterizerFillMode::Solid);
+	*/
+
+	f32 blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	switch (m_render_options)
+	{
+	case RenderOptions::Lighting:
+		break;
+	case RenderOptions::Textures:
+		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_alpha_to_coverage_BS, blend_factor, 0xffffffff);
+		break;
+	case RenderOptions::TexturesAndFog:
+		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
+		break;
+	default:
+		break;
+	}
 
 	joj::Engine::s_renderer->clear();
 
@@ -814,17 +840,14 @@ void BlendDemo::draw()
 	frame_cb.eye_posw = camera.m_position;
 	frame_cb.fog_start = 15.0f;
 	frame_cb.fog_range = 175.0f;
-	frame_cb.fog_color = joj::JFloat4{ 0.75f, 0.75f, 0.75f, 1.0f };
+	frame_cb.fog_color = joj::JFloat4{ 0.1f, 0.0f, 0.0f, 1.0f };
 	frame_cb.light_count = m_light_count;
-	frame_cb.use_texture = m_use_texture;
+	m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
 
 	// ---------------------------------------------------
 	// Draw Box with alpha clipping
 	// ---------------------------------------------------
 
-	frame_cb.alpha_clip = 1;
-	frame_cb.fog_enabled = m_fog_enabled;
-	m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
 
 	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_box_vb.get_buffer(), &stride, &offset);
 	joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_box_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
@@ -845,17 +868,21 @@ void BlendDemo::draw()
 	joj::JMatrix4x4 I = joj::matrix4x4_identity();
 	XMStoreFloat4x4(&box_cb.tex_transform, I);
 	box_cb.material = m_box_mat;
+	box_cb.use_texture = m_use_texture;
+	box_cb.alpha_clip = m_alpha_clip;
+	box_cb.fog_enabled = m_fog_enabled;
 	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), box_cb);
 
+	joj::Engine::s_renderer->get_device_context()->RSSetState(m_no_cull_RS);
+
 	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, 0, 0);
+
+	// Restore default render state
+	joj::Engine::s_renderer->get_device_context()->RSSetState(nullptr);
 
 	// --------------------------------------------------------------------------
 	// Draw hills and water with texture and fog(no alpha clipping needed)
 	// --------------------------------------------------------------------------
-
-	frame_cb.alpha_clip = 0;
-	frame_cb.fog_enabled = m_fog_enabled;
-	m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
 
 	// ---------------------------------------------------
 	// Draw Land
@@ -880,6 +907,9 @@ void BlendDemo::draw()
 	joj::JMatrix4x4 grass_textrasnf_transposed = DirectX::XMMatrixTranspose(grass_textransf);
 	XMStoreFloat4x4(&land_cb.tex_transform, grass_textrasnf_transposed);
 	land_cb.material = m_land_mat;
+	land_cb.use_texture = m_use_texture;
+	land_cb.alpha_clip = 0;
+	land_cb.fog_enabled = m_fog_enabled;
 	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), land_cb);
 
 	joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_grid_index_count, 0, 0);
@@ -907,14 +937,17 @@ void BlendDemo::draw()
 	joj::JMatrix4x4 waves_textrasnf_transposed = DirectX::XMMatrixTranspose(waves_textransf);
 	XMStoreFloat4x4(&land_cb.tex_transform, waves_textrasnf_transposed);
 	waves_cb.material = m_waves_mat;
+	waves_cb.use_texture = m_use_texture;
+	waves_cb.alpha_clip = 0;
+	waves_cb.fog_enabled = m_fog_enabled;
 	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), waves_cb);
 
-	f32 blendFactor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blendFactor, 0xffffffff);
+	// joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
 
 	joj::Engine::s_renderer->get_device_context()->DrawIndexed(3 * m_waves.get_triangle_count(), 0, 0);
 
-	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_alpha_to_coverage_BS, nullptr, 0xffffffff);
+	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
+
 	joj::Engine::s_renderer->swap_buffers();
 }
 
