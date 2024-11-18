@@ -102,10 +102,6 @@ public:
 	f64 prev = 0.0f;
 	f32 t_base = 0.0f;
 	joj::JFloat2 m_water_tex_offset;
-	i32 m_light_count = 2;
-	b32 m_use_texture = 1;
-	b32 m_alpha_clip = 1;
-	b32 m_fog_enabled = 0;
 	RenderOptions m_render_options = RenderOptions::Lighting;
 	b8 m_is_blend_transparent = false;
 	b8 m_is_rasterizer_solid = true;

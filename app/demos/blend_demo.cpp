@@ -753,27 +753,6 @@ void BlendDemo::update(const f32 dt)
 			JDEBUG("TexturesAndFog");
 		}
 
-		if (joj::Engine::s_input->is_key_pressed('V'))
-		{
-			m_alpha_clip ^= 1;
-			JDEBUG("AlphaClip = %d", m_alpha_clip);
-		}
-
-		if (joj::Engine::s_input->is_key_pressed('T'))
-		{
-			m_use_texture ^= 1;
-			JDEBUG("UseTexture = %d", m_use_texture);
-		}
-
-		if (joj::Engine::s_input->is_key_pressed('I'))
-		{
-			m_fog_enabled ^= 1;
-			JDEBUG("FogEnabled = %d", m_fog_enabled);
-		}
-
-		if (joj::Engine::s_input->is_key_pressed('L'))
-			m_light_count = (m_light_count + 1) % 3; // 3 is the array size
-
 		// Change Rasterizer State
 		if (joj::Engine::s_input->is_key_pressed('N'))
 			m_is_rasterizer_solid = !m_is_rasterizer_solid;
@@ -807,6 +786,56 @@ void BlendDemo::draw()
 		joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 	}
 
+	i32 light_count = 0;
+
+	i32 box_use_texture = 0;
+	i32 hills_use_texture = 0;
+
+	i32 box_alpha_clip = 0;
+	i32 hills_alpha_clip = 0;
+
+	i32 box_fog_enabled = 0;
+	i32 hills_fog_enabled = 0;
+
+	switch (m_render_options)
+	{
+	case RenderOptions::Lighting:
+		light_count = 3;
+
+		box_use_texture = 0;
+		box_alpha_clip = 0;
+		box_fog_enabled = 0;
+		
+		hills_use_texture = 0;
+		hills_alpha_clip = 0;
+		hills_fog_enabled = 0;
+		break;
+	case RenderOptions::Textures:
+		light_count = 3;
+		
+		box_use_texture = 1;
+		box_alpha_clip = 1;
+		box_fog_enabled = 0;
+		
+		hills_use_texture = 1;
+		hills_alpha_clip = 0;
+		hills_fog_enabled = 0;
+		break;
+	case RenderOptions::TexturesAndFog:
+		light_count = 3;
+		
+		box_use_texture = 1;
+		box_alpha_clip = 1;
+		box_fog_enabled = 1;
+		
+		hills_use_texture = 1;
+		hills_alpha_clip = 0;
+		hills_fog_enabled = 1;
+		break;
+	default:
+		break;
+	}
+
 	// Set constants and Update CBPerFrame
 	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
 	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
@@ -823,7 +852,7 @@ void BlendDemo::draw()
 		frame_cb.fog_range = 175.0f;
 		const joj::JFloat4 silver{ 0.75f, 0.75f, 0.75f, 1.0f };
 		frame_cb.fog_color = joj::JFloat4{ 0.7f, 0.0f, 0.0f, 1.0f };
-		frame_cb.light_count = m_light_count;
+		frame_cb.light_count = light_count;
 		m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
 	}
 
@@ -856,9 +885,9 @@ void BlendDemo::draw()
 		XMStoreFloat4x4(&box_cb.wvp, XMMatrixTranspose(wvp));
 		XMStoreFloat4x4(&box_cb.tex_transform, I);
 		box_cb.material = m_box_mat;
-		box_cb.use_texture = m_use_texture;
-		box_cb.alpha_clip = m_alpha_clip;
-		box_cb.fog_enabled = m_fog_enabled;
+		box_cb.use_texture = box_use_texture;
+		box_cb.alpha_clip = box_alpha_clip;
+		box_cb.fog_enabled = box_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), box_cb);
 
 		joj::Engine::s_renderer->get_device_context()->RSSetState(m_no_cull_RS);
@@ -894,9 +923,9 @@ void BlendDemo::draw()
 		joj::JMatrix4x4 grass_textrasnf_transposed = DirectX::XMMatrixTranspose(grass_textransf);
 		XMStoreFloat4x4(&land_cb.tex_transform, grass_textrasnf_transposed);
 		land_cb.material = m_land_mat;
-		land_cb.use_texture = m_use_texture;
-		land_cb.alpha_clip = 0;
-		land_cb.fog_enabled = m_fog_enabled;
+		land_cb.use_texture = hills_use_texture;
+		land_cb.alpha_clip = hills_alpha_clip;
+		land_cb.fog_enabled = hills_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), land_cb);
 		
 		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_grid_index_count, 0, 0);
@@ -927,9 +956,9 @@ void BlendDemo::draw()
 		joj::JMatrix4x4 waves_textrasnf_transposed = DirectX::XMMatrixTranspose(waves_textransf);
 		XMStoreFloat4x4(&waves_cb.tex_transform, waves_textrasnf_transposed);
 		waves_cb.material = m_waves_mat;
-		waves_cb.use_texture = m_use_texture;
-		waves_cb.alpha_clip = 0;
-		waves_cb.fog_enabled = m_fog_enabled;
+		waves_cb.use_texture = hills_use_texture;
+		waves_cb.alpha_clip = hills_alpha_clip;
+		waves_cb.fog_enabled = hills_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), waves_cb);
 
 		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
