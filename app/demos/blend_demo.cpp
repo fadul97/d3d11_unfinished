@@ -753,13 +753,9 @@ void BlendDemo::update(const f32 dt)
 			JDEBUG("TexturesAndFog");
 		}
 
-		// Change Rasterizer State
-		if (joj::Engine::s_input->is_key_pressed('N'))
-			m_is_rasterizer_solid = !m_is_rasterizer_solid;
-
-		// Change Mouse Movement Speed state
-		if (joj::Engine::s_input->is_key_pressed('B'))
-			m_is_blend_transparent = !m_is_blend_transparent;
+		// Increment Light count
+		if (joj::Engine::s_input->is_key_pressed('L'))
+			m_light_count = (m_light_count + 1) % 3;
 	}
 }
 
@@ -789,8 +785,6 @@ void BlendDemo::draw()
 		joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 	}
 
-	i32 light_count = 0;
-
 	i32 box_use_texture = 0;
 	i32 hills_use_texture = 0;
 
@@ -803,8 +797,6 @@ void BlendDemo::draw()
 	switch (m_render_options)
 	{
 	case RenderOptions::Lighting:
-		light_count = 3;
-
 		box_use_texture = 0;
 		box_alpha_clip = 0;
 		box_fog_enabled = 0;
@@ -814,8 +806,6 @@ void BlendDemo::draw()
 		hills_fog_enabled = 0;
 		break;
 	case RenderOptions::Textures:
-		light_count = 3;
-		
 		box_use_texture = 1;
 		box_alpha_clip = 1;
 		box_fog_enabled = 0;
@@ -825,8 +815,6 @@ void BlendDemo::draw()
 		hills_fog_enabled = 0;
 		break;
 	case RenderOptions::TexturesAndFog:
-		light_count = 3;
-		
 		box_use_texture = 1;
 		box_alpha_clip = 1;
 		box_fog_enabled = 1;
@@ -854,7 +842,7 @@ void BlendDemo::draw()
 		frame_cb.fog_start = 15.0f;
 		frame_cb.fog_range = 175.0f;
 		frame_cb.fog_color = silver;
-		frame_cb.light_count = light_count;
+		frame_cb.light_count = m_light_count;
 		m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
 	}
 

@@ -103,8 +103,7 @@ public:
 	f32 t_base = 0.0f;
 	joj::JFloat2 m_water_tex_offset;
 	RenderOptions m_render_options = RenderOptions::Lighting;
-	b8 m_is_blend_transparent = false;
-	b8 m_is_rasterizer_solid = true;
+	i32 m_light_count = 2;
 };
 
 // ---------------------------------------------------------------------------------
