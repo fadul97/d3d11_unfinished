@@ -97,7 +97,7 @@ void MirrorDemo::init()
 
 	joj::JMatrix4x4 I = joj::matrix4x4_identity();
 	XMStoreFloat4x4(&m_room_world, I);
-	XMStoreFloat4x4(&m_skull_world, I);
+	// XMStoreFloat4x4(&m_skull_world, I);
 	XMStoreFloat4x4(&mView, I);
 
 	// ---------------------------------------------------
@@ -407,7 +407,7 @@ void MirrorDemo::build_textures()
 		joj::Engine::s_renderer->get_device(),
 		L"../../../../app/textures/ice.dds",
 		nullptr,
-		&m_mirror_map_SRV
+		&m_mirror_diffuse_map_SRV
 	) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'ice.dds'.");
@@ -568,6 +568,7 @@ void MirrorDemo::build_skull_geometry_buffers()
 	// ---------------------------------------------------
 
 	m_skull_index_count = 3 * tcount;
+	JDEBUG("Skull Index Count = %d", m_skull_index_count);
 
 	// ---------------------------------------------------
 	// Setup indices vector for model file
@@ -714,22 +715,24 @@ void MirrorDemo::update(const f32 dt)
 		if (joj::Engine::s_input->is_key_pressed('F'))
 			fast = !fast;
 
+		f32 camera_speed = m_camera_speed;
+
 		if (fast)
-			speed = 50.0f;
+			camera_speed = m_camera_speed;
 		else
-			speed = 1.0f;
+			camera_speed = 1.0f;
 
 		if (joj::Engine::s_input->is_key_down('W'))
-			camera.process_keyboard(joj::CameraMovement::FORWARD, dt * speed);
+			camera.process_keyboard(joj::CameraMovement::FORWARD, dt * camera_speed);
 
 		if (joj::Engine::s_input->is_key_down(joj::KEY_S))
-			camera.process_keyboard(joj::CameraMovement::BACKWARD, dt * speed);
+			camera.process_keyboard(joj::CameraMovement::BACKWARD, dt * camera_speed);
 
 		if (joj::Engine::s_input->is_key_down(joj::KEY_A))
-			camera.process_keyboard(joj::CameraMovement::LEFT, dt * speed);
+			camera.process_keyboard(joj::CameraMovement::LEFT, dt * camera_speed);
 
 		if (joj::Engine::s_input->is_key_down(joj::KEY_D))
-			camera.process_keyboard(joj::CameraMovement::RIGHT, dt * speed);
+			camera.process_keyboard(joj::CameraMovement::RIGHT, dt * camera_speed);
 
 		DirectX::XMMATRIX V = camera.get_view_mat();
 		XMStoreFloat4x4(&mView, V);
@@ -761,16 +764,16 @@ void MirrorDemo::update(const f32 dt)
 		if (joj::Engine::s_input->is_key_pressed('L'))
 			m_light_count = (m_light_count + 1) % 3;
 
-		if (joj::Engine::s_input->is_key_pressed(joj::KEY_LEFT))
+		if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
 			m_skull_translation.x -= 1.0f * dt;
 
-		if (joj::Engine::s_input->is_key_pressed(joj::KEY_RIGHT))
+		if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
 			m_skull_translation.x += 1.0f * dt;
 
-		if (joj::Engine::s_input->is_key_pressed('K'))
+		if (joj::Engine::s_input->is_key_down(joj::KEY_UP))
 			m_skull_translation.y += 1.0f * dt;
 
-		if (joj::Engine::s_input->is_key_pressed('J'))
+		if (joj::Engine::s_input->is_key_down(joj::KEY_DOWN))
 			m_skull_translation.y -= 1.0f * dt;
 	}
 
@@ -790,7 +793,7 @@ void MirrorDemo::update(const f32 dt)
 void MirrorDemo::draw()
 {
 	// Color fog and clear color should be the same so it can actually look like a fog
-	const joj::JFloat4 fog_color{ 0.0f, 0.0f, 0.0f, 1.0f };
+	const joj::JFloat4 fog_color{ 0.7f, 0.7f, 0.7f, 1.0f };
 
 	// Default draw calls for every object
 	{
@@ -876,7 +879,7 @@ void MirrorDemo::draw()
 
 	u32 stride = sizeof(joj::GeometryVertex);
 	u32 offset = 0;
-
+	
 	// ---------------------------------------------------
 	// Draw Floors and Walls to the back buffer as usual
 	// ---------------------------------------------------
@@ -910,10 +913,6 @@ void MirrorDemo::draw()
 		// Draw Wall
 		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_wall_diffuse_map_SRV);
 		joj::Engine::s_renderer->get_device_context()->Draw(18, 6);
-
-		// Restore defaults states
-		ID3D11ShaderResourceView* null_SRV[1] = { nullptr };
-		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, null_SRV);
 	}
 
 	// ---------------------------------------------------
@@ -967,7 +966,7 @@ void MirrorDemo::draw()
 		XMStoreFloat4x4(&mirror_cb.world_inv_transpose, world_inv_transpose);
 		XMStoreFloat4x4(&mirror_cb.wvp, XMMatrixTranspose(wvp));
 		XMStoreFloat4x4(&mirror_cb.tex_transform, I);
-		// mirror_cb.material = m_mirror_mat;
+		mirror_cb.material = m_mirror_mat;
 		mirror_cb.use_texture = room_use_texture;
 		mirror_cb.alpha_clip = room_alpha_clip;
 		mirror_cb.fog_enabled = room_fog_enabled;
@@ -1104,16 +1103,16 @@ void MirrorDemo::draw()
 		mirror_cb.fog_enabled = room_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), mirror_cb);
 
-		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_mirror_map_SRV);
+		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_mirror_diffuse_map_SRV);
 
 		// Draw Mirror
 		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
 		joj::Engine::s_renderer->get_device_context()->Draw(6, 24);
 
 		// Restore states.
-		ID3D11ShaderResourceView* null_SRV[1] = { nullptr };
-		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, null_SRV);
 		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
+		joj::Engine::s_renderer->get_device_context()->RSSetState(nullptr);
+		joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(nullptr, 0);
 	}
 
 	// ---------------------------------------------------
@@ -1167,7 +1166,7 @@ void MirrorDemo::shutdown()
 {
 	m_floor_diffuse_map_SRV->Release();
 	m_wall_diffuse_map_SRV->Release();
-	m_mirror_map_SRV->Release();
+	m_mirror_diffuse_map_SRV->Release();
 	m_sampler_state->Release();
 	m_wireframe_RS->Release();
 	m_no_cull_RS->Release();

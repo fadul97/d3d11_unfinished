@@ -36,7 +36,7 @@ public:
 public:
 	joj::JFloat4x4 m_room_world = joj::float4x4_identity();
 	joj::JFloat4x4 m_skull_world = joj::float4x4_identity();
-	joj::JFloat3 m_skull_translation;
+	joj::JFloat3 m_skull_translation{ 0.0f, 1.0f, -5.0f };
 
 	joj::DirectionalLight m_dir_lights[3];
 	joj::SimpleMaterial m_room_mat;
@@ -57,7 +57,7 @@ public:
 
 	ID3D11ShaderResourceView* m_floor_diffuse_map_SRV = nullptr;
 	ID3D11ShaderResourceView* m_wall_diffuse_map_SRV = nullptr;
-	ID3D11ShaderResourceView* m_mirror_map_SRV = nullptr;
+	ID3D11ShaderResourceView* m_mirror_diffuse_map_SRV = nullptr;
 	ID3D11SamplerState* m_sampler_state = nullptr;
 	void build_textures();
 
@@ -86,7 +86,7 @@ public:
 	i32 centerX = 400;
 	i32 centerY = 300;
 	b8 fast = false;
-	f32 speed = 50.0f;
+	f32 m_camera_speed = 10.0f;
 	b8 is_wireframe = false;
 
 	joj::JFloat4x4 mView = joj::float4x4_identity();
