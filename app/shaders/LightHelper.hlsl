@@ -4,13 +4,14 @@
 // Structures and functions for lighting calculations.
 //***************************************************************************************
 
+//  4 x 16 byte elements
 struct DirectionalLight
 {
-    float4 Ambient;
-    float4 Diffuse;
-    float4 Specular;
-    float3 Direction;
-    float pad;
+    float4 Ambient;      // 16 Bytes
+    float4 Diffuse;      // 16 Bytes
+    float4 Specular;     // 16 Bytes
+    float3 Direction;    // 16 Bytes
+    float pad;           // 4 bytes
 };
 
 struct PointLight

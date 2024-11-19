@@ -19,14 +19,15 @@ cbuffer cbPerObject : register(b0)
     bool gFogEnabled;
 };
 
+// 3 * (4 * 16) + 4 * 16 byte elements
 cbuffer cbPerFrame : register(b1)
 {
-    DirectionalLight gDirLights[3];
-    float3 gEyePosW;
+    DirectionalLight gDirLights[3];    //  3 * (4 x 16 byte elements)
+    float3 gEyePosW;                   // 16 Bytes
 
-    float gFogStart;
-    float gFogRange;
-    float4 gFogColor;
+    float gFogStart;                   // 4 Bytes
+    float gFogRange;                   // 4 Bytes
+    float4 gFogColor;                  // 16 Bytes
     
     int gLightCount;
 };
@@ -141,7 +142,7 @@ float4 PS(VertexOut pin) : SV_Target
 
     if (gFogEnabled)
     {
-        float fogLerp = saturate((distToEye - FogStart) / FogRange);
+        float fogLerp = saturate((distToEye - gFogStart) / gFogRange);
 
         // return float4(distToEye / 200.0, distToEye / 200.0, distToEye / 200.0, 1.0);
         
