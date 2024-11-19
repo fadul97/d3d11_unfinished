@@ -767,9 +767,12 @@ void BlendDemo::update(const f32 dt)
 
 void BlendDemo::draw()
 {
+	// Color fog and clear color should be the same so it can actually look like a fog
+	const joj::JFloat4 silver{ 0.75f, 0.75f, 0.75f, 1.0f };
+
 	// Default draw calls for every object
 	{
-		joj::Engine::s_renderer->clear();
+		joj::Engine::s_renderer->clear(silver.x, silver.y, silver.z, silver.w);
 
 		joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
 		joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -850,8 +853,7 @@ void BlendDemo::draw()
 		frame_cb.eye_posw = camera.m_position;
 		frame_cb.fog_start = 15.0f;
 		frame_cb.fog_range = 175.0f;
-		const joj::JFloat4 silver{ 0.75f, 0.75f, 0.75f, 1.0f };
-		frame_cb.fog_color = joj::JFloat4{ 0.7f, 0.0f, 0.0f, 1.0f };
+		frame_cb.fog_color = silver;
 		frame_cb.light_count = light_count;
 		m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
 	}

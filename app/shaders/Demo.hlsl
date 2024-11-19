@@ -76,9 +76,6 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
-    float FogStart = 15.0;
-    float FogRange = 175.0;
-    
     // Interpolating normal can unnormalize it, so normalize it.
     pin.NormalW = normalize(pin.NormalW);
 
