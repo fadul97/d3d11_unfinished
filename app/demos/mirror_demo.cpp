@@ -715,7 +715,7 @@ void MirrorDemo::update(const f32 dt)
 			fast = !fast;
 
 		if (fast)
-			speed = 20.0f;
+			speed = 50.0f;
 		else
 			speed = 1.0f;
 
@@ -761,10 +761,10 @@ void MirrorDemo::update(const f32 dt)
 		if (joj::Engine::s_input->is_key_pressed('L'))
 			m_light_count = (m_light_count + 1) % 3;
 
-		if (joj::Engine::s_input->is_key_pressed('N'))
+		if (joj::Engine::s_input->is_key_pressed(joj::KEY_LEFT))
 			m_skull_translation.x -= 1.0f * dt;
 
-		if (joj::Engine::s_input->is_key_pressed('M'))
+		if (joj::Engine::s_input->is_key_pressed(joj::KEY_RIGHT))
 			m_skull_translation.x += 1.0f * dt;
 
 		if (joj::Engine::s_input->is_key_pressed('K'))
@@ -811,48 +811,6 @@ void MirrorDemo::draw()
 		joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 	}
 
-	i32 active_use_texture = 0;
-	i32 skull_use_texture = 0;
-
-	i32 active_alpha_clip = 0;
-	i32 skull_alpha_clip = 0;
-
-	i32 active_fog_enabled = 0;
-	i32 skull_fog_enabled = 0;
-
-	switch (m_render_options)
-	{
-	case RenderOptions::Lighting:
-		active_use_texture = 0;
-		active_alpha_clip = 0;
-		active_fog_enabled = 0;
-		
-		skull_use_texture = 0;
-		skull_alpha_clip = 0;
-		skull_fog_enabled = 0;
-		break;
-	case RenderOptions::Textures:
-		active_use_texture = 1;
-		active_alpha_clip = 0;
-		active_fog_enabled = 0;
-		
-		skull_use_texture = 0;
-		skull_alpha_clip = 0;
-		skull_fog_enabled = 0;
-		break;
-	case RenderOptions::TexturesAndFog:
-		active_use_texture = 1;
-		active_alpha_clip = 0;
-		active_fog_enabled = 1;
-		
-		skull_use_texture = 0;
-		skull_alpha_clip = 0;
-		skull_fog_enabled = 1;
-		break;
-	default:
-		break;
-	}
-
 	// Set constants and Update CBPerFrame
 	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
 	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
@@ -872,43 +830,53 @@ void MirrorDemo::draw()
 		m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
 	}
 
+	i32 room_use_texture = 0;
+	i32 skull_use_texture = 0;
+
+	i32 room_alpha_clip = 0;
+	i32 skull_alpha_clip = 0;
+
+	i32 room_fog_enabled = 0;
+	i32 skull_fog_enabled = 0;
+
+	switch (m_render_options)
+	{
+	case RenderOptions::Lighting:
+		room_use_texture = 0;
+		room_alpha_clip = 0;
+		room_fog_enabled = 0;
+		
+		skull_use_texture = 0;
+		skull_alpha_clip = 0;
+		skull_fog_enabled = 0;
+		break;
+	case RenderOptions::Textures:
+		room_use_texture = 1;
+		room_alpha_clip = 0;
+		room_fog_enabled = 0;
+		
+		skull_use_texture = 0;
+		skull_alpha_clip = 0;
+		skull_fog_enabled = 0;
+		break;
+	case RenderOptions::TexturesAndFog:
+		room_use_texture = 1;
+		room_alpha_clip = 0;
+		room_fog_enabled = 1;
+		
+		skull_use_texture = 0;
+		skull_alpha_clip = 0;
+		skull_fog_enabled = 1;
+		break;
+	default:
+		break;
+	}
+
 	f32 blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	u32 stride = sizeof(joj::GeometryVertex);
 	u32 offset = 0;
 
-	// ---------------------------------------------------
-	// Draw Skull to the back buffer as usual
-	// ---------------------------------------------------
-	{
-		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_skull_vb.get_buffer(), &stride, &offset);
-		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_skull_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
-
-		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_skull_world);
-		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
-		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
-		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
-
-		joj::JMatrix4x4 wvp = world * view * proj;
-
-		joj::JMatrix4x4 I = joj::matrix4x4_identity();
-
-		joj::CBPerObject skull_cb;
-		XMStoreFloat4x4(&skull_cb.world, XMMatrixTranspose(world));
-		XMStoreFloat4x4(&skull_cb.world_inv_transpose, world_inv_transpose);
-		XMStoreFloat4x4(&skull_cb.wvp, XMMatrixTranspose(wvp));
-		XMStoreFloat4x4(&skull_cb.tex_transform, I);
-		skull_cb.material = m_skull_mat;
-		skull_cb.use_texture = skull_use_texture;
-		skull_cb.alpha_clip = skull_alpha_clip;
-		skull_cb.fog_enabled = skull_fog_enabled;
-		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), skull_cb);
-
-		// Draw Skull
-		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_skull_index_count, 0, 0);
-	}
-
-	/*
 	// ---------------------------------------------------
 	// Draw Floors and Walls to the back buffer as usual
 	// ---------------------------------------------------
@@ -930,9 +898,9 @@ void MirrorDemo::draw()
 		XMStoreFloat4x4(&room_cb.wvp, XMMatrixTranspose(wvp));
 		XMStoreFloat4x4(&room_cb.tex_transform, I);
 		room_cb.material = m_room_mat;
-		room_cb.use_texture = active_use_texture;
-		room_cb.alpha_clip = active_alpha_clip;
-		room_cb.fog_enabled = active_fog_enabled;
+		room_cb.use_texture = room_use_texture;
+		room_cb.alpha_clip = room_alpha_clip;
+		room_cb.fog_enabled = room_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), room_cb);
 
 		// Draw Floor
@@ -996,9 +964,9 @@ void MirrorDemo::draw()
 		XMStoreFloat4x4(&mirror_cb.wvp, XMMatrixTranspose(wvp));
 		XMStoreFloat4x4(&mirror_cb.tex_transform, I);
 		mirror_cb.material = m_mirror_mat;
-		mirror_cb.use_texture = active_use_texture;
-		mirror_cb.alpha_clip = active_alpha_clip;
-		mirror_cb.fog_enabled = active_fog_enabled;
+		mirror_cb.use_texture = room_use_texture;
+		mirror_cb.alpha_clip = room_alpha_clip;
+		mirror_cb.fog_enabled = room_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), mirror_cb);
 
 		// Do not write to render target.
@@ -1034,16 +1002,16 @@ void MirrorDemo::draw()
 
 		joj::JMatrix4x4 I = joj::matrix4x4_identity();
 
-		joj::CBPerObject skull_cb;
-		XMStoreFloat4x4(&skull_cb.world, XMMatrixTranspose(world));
-		XMStoreFloat4x4(&skull_cb.world_inv_transpose, world_inv_transpose);
-		XMStoreFloat4x4(&skull_cb.wvp, XMMatrixTranspose(wvp));
-		XMStoreFloat4x4(&skull_cb.tex_transform, I);
-		skull_cb.material = m_skull_mat;
-		skull_cb.use_texture = skull_use_texture;
-		skull_cb.alpha_clip = skull_alpha_clip;
-		skull_cb.fog_enabled = skull_fog_enabled;
-		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), skull_cb);
+		joj::CBPerObject skull_reflection_cb;
+		XMStoreFloat4x4(&skull_reflection_cb.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&skull_reflection_cb.world_inv_transpose, world_inv_transpose);
+		XMStoreFloat4x4(&skull_reflection_cb.wvp, XMMatrixTranspose(wvp));
+		XMStoreFloat4x4(&skull_reflection_cb.tex_transform, I);
+		skull_reflection_cb.material = m_skull_mat;
+		skull_reflection_cb.use_texture = skull_use_texture;
+		skull_reflection_cb.alpha_clip = skull_alpha_clip;
+		skull_reflection_cb.fog_enabled = skull_fog_enabled;
+		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), skull_reflection_cb);
 
 		// Cache the old light directions, and reflect the light directions.
 		joj::JFloat3 old_light_directions[3];
@@ -1121,22 +1089,27 @@ void MirrorDemo::draw()
 
 		joj::JMatrix4x4 I = joj::matrix4x4_identity();
 
-		joj::CBPerObject shadow_cb;
-		XMStoreFloat4x4(&shadow_cb.world, XMMatrixTranspose(world));
-		XMStoreFloat4x4(&shadow_cb.world_inv_transpose, world_inv_transpose);
-		XMStoreFloat4x4(&shadow_cb.wvp, XMMatrixTranspose(wvp));
-		XMStoreFloat4x4(&shadow_cb.tex_transform, I);
-		shadow_cb.material = m_mirror_mat;
-		shadow_cb.use_texture = active_use_texture;
-		shadow_cb.alpha_clip = active_alpha_clip;
-		shadow_cb.fog_enabled = active_fog_enabled;
-		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), shadow_cb);
+		joj::CBPerObject mirror_cb;
+		XMStoreFloat4x4(&mirror_cb.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&mirror_cb.world_inv_transpose, world_inv_transpose);
+		XMStoreFloat4x4(&mirror_cb.wvp, XMMatrixTranspose(wvp));
+		XMStoreFloat4x4(&mirror_cb.tex_transform, I);
+		mirror_cb.material = m_mirror_mat;
+		mirror_cb.use_texture = room_use_texture;
+		mirror_cb.alpha_clip = room_alpha_clip;
+		mirror_cb.fog_enabled = room_fog_enabled;
+		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), mirror_cb);
 
 		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_mirror_map_SRV);
 
 		// Draw Mirror
 		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
 		joj::Engine::s_renderer->get_device_context()->Draw(6, 24);
+
+		// Restore states.
+		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
+		joj::Engine::s_renderer->get_device_context()->RSSetState(nullptr);
+		joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(nullptr, 0);
 	}
 
 	// ---------------------------------------------------
@@ -1145,14 +1118,14 @@ void MirrorDemo::draw()
 	{
 		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_skull_vb.get_buffer(), &stride, &offset);
 		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_skull_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
-		
+
 		using namespace DirectX;
 		joj::JVector4 shadow_plane = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f); // xz plane
 		joj::JVector4 to_main_light = -XMLoadFloat3(&m_dir_lights[0].direction);
 		joj::JMatrix4x4 S = DirectX::XMMatrixShadow(shadow_plane, to_main_light);
 		joj::JMatrix4x4 shadow_offsetY = DirectX::XMMatrixTranslation(0.0f, 0.001f, 0.0f);
 
-		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_skull_world) * S * shadow_offsetY;
+		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_room_world) * S * shadow_offsetY;
 		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
 		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
 		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
@@ -1177,10 +1150,9 @@ void MirrorDemo::draw()
 		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_skull_index_count, 0, 0);
 
 		// Restore default states.
-		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(0, blend_factor, 0xffffffff);
+		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
 		joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(nullptr, 0);
 	}
-	*/
 
 	joj::Engine::s_renderer->swap_buffers();
 }
