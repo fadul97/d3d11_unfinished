@@ -105,12 +105,18 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	{
 		// TODO: Better ErrorCode
 		JERROR(ErrorCode::FAILED, "Failed to check multi sample quality levels.");
+		return ErrorCode::FAILED;
+	}
+	else
+	{
+		JDEBUG("MSAA Quality: %d", m_4xmsaa_quality);
 	}
 
 	if (m_4xmsaa_quality <= 0)
 	{
 		// TODO: Better ErrorCode
 		JERROR(ErrorCode::FAILED, "MSAA Quality is too low.");
+		return ErrorCode::FAILED;
 	}
 
 	// ------------------------------------------------------------------------------------------------------
@@ -126,7 +132,7 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	swap_chain_desc.BufferDesc.Width = static_cast<u32>(window.width);                      // Back buffer width
 	swap_chain_desc.BufferDesc.Height = static_cast<u32>(window.height);                    // Back buffer height
 	swap_chain_desc.BufferDesc.RefreshRate.Numerator = 60;                                  // Refresh rate in hertz 
-	swap_chain_desc.BufferDesc.RefreshRate.Numerator = 1;                                   // Numerator is an int
+	swap_chain_desc.BufferDesc.RefreshRate.Denominator = 1;                                 // Denominator is an int
 	swap_chain_desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;                         // Color format - RGBA 8 bits
 	swap_chain_desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;     // Default value for Flags
 	swap_chain_desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;                     // Default mode for scaling
@@ -154,7 +160,7 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	
 	// Check values
 	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;                             // Discard surface after presenting
-	swap_chain_desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;                         // Use Back buffer size for Fullscreen
+	swap_chain_desc.Flags = 0;                                                              // Use Back buffer size for Fullscreen
 
 	// Create Swap Chain
 	if (m_context->get_factory()->CreateSwapChain(m_device, &swap_chain_desc, &m_swapchain) != S_OK)
