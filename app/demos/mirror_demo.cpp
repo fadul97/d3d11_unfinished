@@ -910,6 +910,10 @@ void MirrorDemo::draw()
 		// Draw Wall
 		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_wall_diffuse_map_SRV);
 		joj::Engine::s_renderer->get_device_context()->Draw(18, 6);
+
+		// Restore defaults states
+		ID3D11ShaderResourceView* null_SRV[1] = { nullptr };
+		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, null_SRV);
 	}
 
 	// ---------------------------------------------------
@@ -963,7 +967,7 @@ void MirrorDemo::draw()
 		XMStoreFloat4x4(&mirror_cb.world_inv_transpose, world_inv_transpose);
 		XMStoreFloat4x4(&mirror_cb.wvp, XMMatrixTranspose(wvp));
 		XMStoreFloat4x4(&mirror_cb.tex_transform, I);
-		mirror_cb.material = m_mirror_mat;
+		// mirror_cb.material = m_mirror_mat;
 		mirror_cb.use_texture = room_use_texture;
 		mirror_cb.alpha_clip = room_alpha_clip;
 		mirror_cb.fog_enabled = room_fog_enabled;
@@ -1107,9 +1111,9 @@ void MirrorDemo::draw()
 		joj::Engine::s_renderer->get_device_context()->Draw(6, 24);
 
 		// Restore states.
+		ID3D11ShaderResourceView* null_SRV[1] = { nullptr };
+		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, null_SRV);
 		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
-		joj::Engine::s_renderer->get_device_context()->RSSetState(nullptr);
-		joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(nullptr, 0);
 	}
 
 	// ---------------------------------------------------
@@ -1125,7 +1129,7 @@ void MirrorDemo::draw()
 		joj::JMatrix4x4 S = DirectX::XMMatrixShadow(shadow_plane, to_main_light);
 		joj::JMatrix4x4 shadow_offsetY = DirectX::XMMatrixTranslation(0.0f, 0.001f, 0.0f);
 
-		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_room_world) * S * shadow_offsetY;
+		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_skull_world) * S * shadow_offsetY;
 		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
 		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
 		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
