@@ -75,6 +75,9 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
+    float FogStart = 15.0;
+    float FogRange = 175.0;
+    
     // Interpolating normal can unnormalize it, so normalize it.
     pin.NormalW = normalize(pin.NormalW);
 
@@ -138,8 +141,12 @@ float4 PS(VertexOut pin) : SV_Target
 
     if (gFogEnabled)
     {
-        float fogLerp = saturate((distToEye - gFogStart) / gFogRange);
+        float fogLerp = saturate((distToEye - FogStart) / FogRange);
 
+        // return float4(distToEye / 200.0, distToEye / 200.0, distToEye / 200.0, 1.0);
+        
+        // return float4(fogLerp, fogLerp, fogLerp, 1.0);
+        
 		// Blend the fog color and the lit color.
         litColor = lerp(litColor, gFogColor, fogLerp);
     }
