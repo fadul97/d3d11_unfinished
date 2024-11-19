@@ -81,7 +81,7 @@ float4 PS(VertexOut pin) : SV_Target
 
 	// The toEye vector is used in lighting.
     float3 toEye = gEyePosW - pin.PosW;
-	 
+
 	// Cache the distance to the eye from this surface point.
     float distToEye = length(toEye);
 
@@ -111,7 +111,7 @@ float4 PS(VertexOut pin) : SV_Target
     float4 litColor = texColor;
     if (gLightCount > 0)
     {
-		// Start with a sum of zero. 
+		// Start with a sum of zero.
         float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
         float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
         float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
@@ -141,10 +141,6 @@ float4 PS(VertexOut pin) : SV_Target
     {
         float fogLerp = saturate((distToEye - gFogStart) / gFogRange);
 
-        // return float4(distToEye / 200.0, distToEye / 200.0, distToEye / 200.0, 1.0);
-        
-        // return float4(fogLerp, fogLerp, fogLerp, 1.0);
-        
 		// Blend the fog color and the lit color.
         litColor = lerp(litColor, gFogColor, fogLerp);
     }
