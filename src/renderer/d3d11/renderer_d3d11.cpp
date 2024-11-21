@@ -12,7 +12,7 @@ joj::D3D11Renderer::D3D11Renderer()
 	m_device = nullptr;
 	m_device_context = nullptr;
 
-	m_4xmsaa_enabled = false;                  // No antialising
+	m_4xmsaa_enabled = true;                   // No antialising
 	m_4xmsaa_quality = 0;                      // Default quality
 	m_buffer_count = 2;                        // 2 buffers: Back and Front
 	m_mip_levels = 1;                          // Number of mip levels
@@ -159,7 +159,9 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	swap_chain_desc.Windowed = (window.window_mode == joj::WindowMode::Windowed);           // Fullscreen or windowed 
 	
 	// Check values
-	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;                             // Discard surface after presenting
+
+	// TODO: swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD?
+	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;                                  // Discard surface after presenting
 	swap_chain_desc.Flags = 0;                                                              // Use Back buffer size for Fullscreen
 
 	// Create Swap Chain
