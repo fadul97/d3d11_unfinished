@@ -34,6 +34,8 @@ namespace joj
 
         alignas(16) joj::JFloat3 eye_posw;    // Aligned to 16 bytes
 
+        joj::JFloat4x4 view_proj;
+
         f32 fog_start;                        // 4 Bytes
         f32 fog_range;                        // 4 Bytes
         alignas(16) joj::JFloat4 fog_color;   // Aligned to 16 bytes
