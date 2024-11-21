@@ -6,12 +6,14 @@ add_executable(
 	main.cpp
 	
 	# Demo App
-	demos/mirror_demo.cpp
+	demos/waves.cpp
+	demos/tree_billboard_demo.cpp
 )
 # => demos folder:
 # box_demo.cpp shapes_demo.cpp hills_demo.cpp skull_demo.cpp
 # waves.cpp waves_demo.cpp lit_waves_demo.cpp lit_skull_demo.cpp
 # crate_demo.cpp textured_hills_waves_demo.cpp blend_demo.cpp
+# mirror_demo.cpp
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET jojApp PROPERTY CXX_STANDARD 20)
