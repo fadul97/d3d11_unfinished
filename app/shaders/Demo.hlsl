@@ -24,6 +24,8 @@ cbuffer cbPerFrame : register(b1)
 {
     DirectionalLight gDirLights[3];    //  3 * (4 x 16 byte elements)
     float3 gEyePosW;                   // 16 Bytes
+    
+    float4x4 gViewProj;                // 16 Bytes
 
     float gFogStart;                   // 4 Bytes
     float gFogRange;                   // 4 Bytes

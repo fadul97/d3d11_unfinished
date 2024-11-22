@@ -25,13 +25,28 @@ cbuffer cbPerFrame : register(b1)
     DirectionalLight gDirLights[3]; //  3 * (4 x 16 byte elements)
     float3 gEyePosW; // 16 Bytes
     
-    float4x4 gViewProj;
+    float4x4 gViewProj; // 16 Bytes
 
     float gFogStart; // 4 Bytes
     float gFogRange; // 4 Bytes
     float4 gFogColor; // 16 Bytes
     
     int gLightCount;
+};
+
+cbuffer cbFixed
+{
+	//
+	// Compute texture coordinates to stretch texture over quad.
+	//
+
+    float2 gTexC[4] =
+    {
+        float2(0.0f, 1.0f),
+		float2(0.0f, 0.0f),
+		float2(1.0f, 1.0f),
+		float2(1.0f, 0.0f)
+    };
 };
 
 // Nonnumeric values cannot be added to a cbuffer.
@@ -41,113 +56,157 @@ SamplerState samAnisotropic : register(s0);
 
 struct VertexIn
 {
-    float3 PosL : POSITION;
-    float3 NormalL : NORMAL;
-    float4 Color : COLOR;
-    float2 Tex : TEXCOORD;
+    float3 PosW : POSITION;
+    float2 SizeW : SIZE;
 };
 
 struct VertexOut
 {
+    float3 CenterW : POSITION;
+    float2 SizeW : SIZE;
+};
+
+struct GeoOut
+{
     float4 PosH : SV_POSITION;
     float3 PosW : POSITION;
     float3 NormalW : NORMAL;
-    float4 Color : COLOR;
     float2 Tex : TEXCOORD;
+    uint PrimID : SV_PrimitiveID;
 };
 
 VertexOut VS(VertexIn vin)
 {
     VertexOut vout;
-	
-    // Transform to world space space.
-    vout.PosW = mul(float4(vin.PosL, 1.0f), gWorld).xyz;
-    vout.NormalW = mul(vin.NormalL, (float3x3) gWorldInvTranspose);
-		
-    // Transform to homogeneous clip space.
-    vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
-	
-    // Output vertex attributes for interpolation across triangle.
-    vout.Tex = mul(float4(vin.Tex, 0.0f, 1.0f), gTexTransform).xy;
 
-    // Set color
-    vout.Color = vin.Color;
+	// Just pass data over to geometry shader.
+    vout.CenterW = vin.PosW;
+    vout.SizeW = vin.SizeW;
 
     return vout;
 }
  
-float4 PS(VertexOut pin) : SV_Target
+ // We expand each point into a quad (4 vertices), so the maximum number of vertices
+ // we output per geometry shader invocation is 4.
+[maxvertexcount(4)]
+void GS(point VertexOut gin[1],
+        uint primID : SV_PrimitiveID,
+        inout TriangleStream<GeoOut> triStream)
 {
-    // Interpolating normal can unnormalize it, so normalize it.
+	//
+	// Compute the local coordinate system of the sprite relative to the world
+	// space such that the billboard is aligned with the y-axis and faces the eye.
+	//
+
+    float3 up = float3(0.0f, 1.0f, 0.0f);
+    float3 look = gEyePosW - gin[0].CenterW;
+    look.y = 0.0f; // y-axis aligned, so project to xz-plane
+    look = normalize(look);
+    float3 right = cross(up, look);
+
+	//
+	// Compute triangle strip vertices (quad) in world space.
+	//
+    float halfWidth = 0.5f * gin[0].SizeW.x;
+    float halfHeight = 0.5f * gin[0].SizeW.y;
+	
+    float4 v[4];
+    v[0] = float4(gin[0].CenterW + halfWidth * right - halfHeight * up, 1.0f);
+    v[1] = float4(gin[0].CenterW + halfWidth * right + halfHeight * up, 1.0f);
+    v[2] = float4(gin[0].CenterW - halfWidth * right - halfHeight * up, 1.0f);
+    v[3] = float4(gin[0].CenterW - halfWidth * right + halfHeight * up, 1.0f);
+
+	//
+	// Transform quad vertices to world space and output 
+	// them as a triangle strip.
+	//
+    GeoOut gout;
+	[unroll]
+    for (int i = 0; i < 4; ++i)
+    {
+        gout.PosH = mul(v[i], gViewProj);
+        gout.PosW = v[i].xyz;
+        gout.NormalW = look;
+        gout.Tex = gTexC[i];
+        gout.PrimID = primID;
+		
+        triStream.Append(gout);
+    }
+}
+
+float4 PS(GeoOut pin) : SV_Target
+{
+	// Interpolating normal can unnormalize it, so normalize it.
     pin.NormalW = normalize(pin.NormalW);
 
-    // The toEye vector is used in lighting.
+	// The toEye vector is used in lighting.
     float3 toEye = gEyePosW - pin.PosW;
 
-    // Cache the distance to the eye from this surface point.
+	// Cache the distance to the eye from this surface point.
     float distToEye = length(toEye);
 
-    // Normalize.
+	// Normalize.
     toEye /= distToEye;
-
+   
     // Default to multiplicative identity.
     float4 texColor = float4(1, 1, 1, 1);
     if (gUseTexure)
     {
-        // Sample texture.
-        texColor = gDiffuseMap.Sample(samAnisotropic, pin.Tex);
+		// Sample texture.
+        float3 uvw = float3(pin.Tex, pin.PrimID % 4);
+        texColor = gDiffuseMap.Sample(samAnisotropic, uvw);
 
         if (gAlphaClip)
         {
-            // Discard pixel if texture alpha < 0.1.  Note that we do this
-            // test as soon as possible so that we can potentially exit the shader 
-            // early, thereby skipping the rest of the shader code.
-            clip(texColor.a - 0.1f);
+			// Discard pixel if texture alpha < 0.05.  Note that we do this
+			// test as soon as possible so that we can potentially exit the shader 
+			// early, thereby skipping the rest of the shader code.
+            clip(texColor.a - 0.05f);
         }
     }
 
-    //
-    // Lighting.
-    //
+	//
+	// Lighting.
+	//
 
     float4 litColor = texColor;
     if (gLightCount > 0)
     {
-        // Start with a sum of zero.
+		// Start with a sum of zero.
         float4 ambient = float4(0.0f, 0.0f, 0.0f, 0.0f);
         float4 diffuse = float4(0.0f, 0.0f, 0.0f, 0.0f);
         float4 spec = float4(0.0f, 0.0f, 0.0f, 0.0f);
 
-        // Sum the light contribution from each light source.  
-        [unroll]
+		// Sum the light contribution from each light source.  
+		[unroll]
         for (int i = 0; i < gLightCount; ++i)
         {
             float4 A, D, S;
             ComputeDirectionalLight(gMaterial, gDirLights[i], pin.NormalW, toEye,
-            A, D, S);
+				A, D, S);
 
             ambient += A;
             diffuse += D;
             spec += S;
         }
 
-        // Modulate with late add.
+		// Modulate with late add.
         litColor = texColor * (ambient + diffuse) + spec;
     }
 
-    //
-    // Fogging
-    //
+	//
+	// Fogging
+	//
 
     if (gFogEnabled)
     {
         float fogLerp = saturate((distToEye - gFogStart) / gFogRange);
 
-        // Blend the fog color and the lit color.
+		// Blend the fog color and the lit color.
         litColor = lerp(litColor, gFogColor, fogLerp);
     }
 
-    // Common to take alpha from diffuse material and texture.
+	// Common to take alpha from diffuse material and texture.
     litColor.a = gMaterial.Diffuse.a * texColor.a;
 
     return litColor;
