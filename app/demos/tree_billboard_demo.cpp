@@ -69,7 +69,7 @@ static T Max(const T& a, const T& b)
 struct TreePointSpriteVertex
 {
 	joj::JFloat3 Pos{ 0.0f, 0.0f, 0.0f };
-	joj::JFloat2 Size{ 1.0f, 1.0f};
+	joj::JFloat2 Size{ 1.0f, 1.0f };
 };
 
 // ---------------------------------------------------------------------------------
@@ -480,7 +480,7 @@ void TreeBillBoarddDemo::build_texture_array()
 		joj::Engine::s_renderer->get_device(),
 		L"../../../../app/textures/tree0.dds",
 		nullptr,
-		&m_tree_texture_map_array_SRV
+		&m_tree_texture_map_array_SRV[0]
 	) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree0.dds'.");
@@ -490,6 +490,47 @@ void TreeBillBoarddDemo::build_texture_array()
 		JINFO("Created DDS Texture from file!");
 	}
 
+	if (DirectX::CreateDDSTextureFromFile(
+		joj::Engine::s_renderer->get_device(),
+		L"../../../../app/textures/tree1.dds",
+		nullptr,
+		&m_tree_texture_map_array_SRV[1]
+	) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree1.dds'.");
+	}
+	else
+	{
+		JINFO("Created DDS Texture from file!");
+	}
+
+	if (DirectX::CreateDDSTextureFromFile(
+		joj::Engine::s_renderer->get_device(),
+		L"../../../../app/textures/tree2.dds",
+		nullptr,
+		&m_tree_texture_map_array_SRV[2]
+	) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree2.dds'.");
+	}
+	else
+	{
+		JINFO("Created DDS Texture from file!");
+	}
+
+	if (DirectX::CreateDDSTextureFromFile(
+		joj::Engine::s_renderer->get_device(),
+		L"../../../../app/textures/tree3.dds",
+		nullptr,
+		&m_tree_texture_map_array_SRV[3]
+	) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree3.dds'.");
+	}
+	else
+	{
+		JINFO("Created DDS Texture from file!");
+	}
 }
 
 // ---------------------------------------------------------------------------------
@@ -1094,59 +1135,11 @@ void TreeBillBoarddDemo::draw()
 	default:
 		break;
 	}
-
-	f32 blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	u32 stride = sizeof(joj::GeometryVertex);
-	u32 offset = 0;
-
-	// ---------------------------------------------------
-	// Draw Box with alpha clipping
-	// ---------------------------------------------------
-	{
-		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_box_vb.get_buffer(), &stride, &offset);
-		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_box_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
-
-		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
-		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-		joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
-		joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-		joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
-
-		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_box_map_SRV);
-
-		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_box_world);
-		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
-		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
-		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
-
-		joj::JMatrix4x4 wvp = world * view * proj;
-
-		joj::JMatrix4x4 I = joj::matrix4x4_identity();
-
-		joj::CBPerObject box_cb;
-		XMStoreFloat4x4(&box_cb.world, XMMatrixTranspose(world));
-		XMStoreFloat4x4(&box_cb.world_inv_transpose, world_inv_transpose);
-		XMStoreFloat4x4(&box_cb.wvp, XMMatrixTranspose(wvp));
-		XMStoreFloat4x4(&box_cb.tex_transform, I);
-		box_cb.material = m_box_mat;
-		box_cb.use_texture = box_use_texture;
-		box_cb.alpha_clip = box_alpha_clip;
-		box_cb.fog_enabled = box_fog_enabled;
-		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), box_cb);
-
-		joj::Engine::s_renderer->get_device_context()->RSSetState(m_no_cull_RS);
-		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, 0, 0);
-		joj::Engine::s_renderer->get_device_context()->RSSetState(nullptr);
-	}
-
+	
 	// --------------------------------------------------------------------------------------------------------------
-	/*
+
 	// Default draw calls for every object
 	{
-
 		joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
 		joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
@@ -1163,72 +1156,11 @@ void TreeBillBoarddDemo::draw()
 		joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 	}
 
-	i32 box_use_texture = 0;
-	i32 hills_use_texture = 0;
-
-	i32 box_alpha_clip = 0;
-	i32 hills_alpha_clip = 0;
-
-	i32 box_fog_enabled = 0;
-	i32 hills_fog_enabled = 0;
-
-	switch (m_render_options)
-	{
-	case RenderOptions::Lighting:
-		box_use_texture = 0;
-		box_alpha_clip = 0;
-		box_fog_enabled = 0;
-		
-		hills_use_texture = 0;
-		hills_alpha_clip = 0;
-		hills_fog_enabled = 0;
-		break;
-	case RenderOptions::Textures:
-		box_use_texture = 1;
-		box_alpha_clip = 1;
-		box_fog_enabled = 0;
-		
-		hills_use_texture = 1;
-		hills_alpha_clip = 0;
-		hills_fog_enabled = 0;
-		break;
-	case RenderOptions::TexturesAndFog:
-		box_use_texture = 1;
-		box_alpha_clip = 1;
-		box_fog_enabled = 1;
-		
-		hills_use_texture = 1;
-		hills_alpha_clip = 0;
-		hills_fog_enabled = 1;
-		break;
-	default:
-		break;
-	}
-
-	// Set constants and Update CBPerFrame
-	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
-	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
-	{
-		// ---------------------------------------------------
-		// Set Per Frame Constants
-		// ---------------------------------------------------
-		joj::CBPerFrame frame_cb;
-		frame_cb.dir_lights[0] = m_dir_lights[0];
-		frame_cb.dir_lights[1] = m_dir_lights[1];
-		frame_cb.dir_lights[2] = m_dir_lights[2];
-		frame_cb.eye_posw = camera.m_position;
-		frame_cb.fog_start = 15.0f;
-		frame_cb.fog_range = 175.0f;
-		frame_cb.fog_color = silver;
-		frame_cb.light_count = m_light_count;
-		m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
-	}
-
 	f32 blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
 	u32 stride = sizeof(joj::GeometryVertex);
 	u32 offset = 0;
-	
+
 	// ---------------------------------------------------
 	// Draw Box with alpha clipping
 	// ---------------------------------------------------
@@ -1307,6 +1239,14 @@ void TreeBillBoarddDemo::draw()
 		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_land_index_count, 0, 0);
 	}
 
+	draw_tree_sprites();
+
+	joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
+	joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	joj::Engine::s_renderer->get_device_context()->VSSetShader(m_basic_shader.get_vertex_shader(), nullptr, 0u);
+	joj::Engine::s_renderer->get_device_context()->GSSetShader(nullptr, nullptr, 0);
+	joj::Engine::s_renderer->get_device_context()->PSSetShader(m_basic_shader.get_pixel_shader(), nullptr, 0u);
+
 	// ---------------------------------------------------
 	// Draw Waves
 	// ---------------------------------------------------
@@ -1341,9 +1281,8 @@ void TreeBillBoarddDemo::draw()
 		joj::Engine::s_renderer->get_device_context()->DrawIndexed(3 * m_waves.get_triangle_count(), 0, 0);
 		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
 	}
-	*/
 
-	draw_tree_sprites();
+	// draw_tree_sprites();
 
 	joj::Engine::s_renderer->swap_buffers();
 }
@@ -1429,7 +1368,7 @@ void TreeBillBoarddDemo::draw_tree_sprites()
 
 	joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 
-	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_tree_texture_map_array_SRV);
+	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 4, m_tree_texture_map_array_SRV);
 
 	joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_box_world);
 	joj::JVector4 world_determinant = XMMatrixDeterminant(world);
@@ -1468,6 +1407,10 @@ void TreeBillBoarddDemo::shutdown()
 	m_grass_map_SRV->Release();
 	m_waves_map_SRV->Release();
 	m_box_map_SRV->Release();
+	
+	for (i32 i = 0; i < 4; ++i)
+		m_tree_texture_map_array_SRV[i]->Release();
+
 	m_sampler_state->Release();
 	m_wireframe_RS->Release();
 	m_no_cull_RS->Release();
