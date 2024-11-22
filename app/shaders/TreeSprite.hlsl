@@ -164,6 +164,7 @@ float4 PS(GeoOut pin) : SV_Target
     {
 		// Sample texture.
         float3 uvw = float3(pin.Tex, pin.PrimID % 4);
+        int i = pin.PrimID % 4;
         texColor = gDiffuseMap[3].Sample(samAnisotropic, uvw);
 
         if (gAlphaClip)
