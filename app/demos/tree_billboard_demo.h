@@ -82,7 +82,8 @@ public:
 	ID3D11ShaderResourceView* m_grass_map_SRV = nullptr;
 	ID3D11ShaderResourceView* m_waves_map_SRV = nullptr;
 	ID3D11ShaderResourceView* m_box_map_SRV = nullptr;
-	ID3D11ShaderResourceView* m_tree_texture_map_array_SRV[4] = { nullptr, nullptr, nullptr, nullptr };
+	ID3D11Texture2D* m_tree_texture_array = nullptr;
+	ID3D11ShaderResourceView* m_tree_texture_map_array_SRV = nullptr;
 	ID3D11SamplerState* m_sampler_state = nullptr;
 	void build_textures();
 	void build_texture_array();

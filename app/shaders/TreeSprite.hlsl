@@ -52,7 +52,7 @@ cbuffer cbFixed
 */
 
 // Nonnumeric values cannot be added to a cbuffer.
-Texture2D gDiffuseMap[4] : register(t0);
+Texture2DArray gDiffuseMap : register(t0);
 
 SamplerState samAnisotropic : register(s0);
 
@@ -163,9 +163,9 @@ float4 PS(GeoOut pin) : SV_Target
     if (gUseTexure)
     {
 		// Sample texture.
-        float3 uvw = float3(pin.Tex, pin.PrimID % 4);
         int i = pin.PrimID % 4;
-        texColor = gDiffuseMap[3].Sample(samAnisotropic, uvw);
+        float3 uvw = float3(pin.Tex, i);
+        texColor = gDiffuseMap.Sample(samAnisotropic, uvw);
 
         if (gAlphaClip)
         {
