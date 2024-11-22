@@ -34,6 +34,7 @@ cbuffer cbPerFrame : register(b1)
     int gLightCount;
 };
 
+/*
 cbuffer cbFixed
 {
 	//
@@ -48,9 +49,10 @@ cbuffer cbFixed
 		float2(1.0f, 0.0f)
     };
 };
+*/
 
 // Nonnumeric values cannot be added to a cbuffer.
-Texture2D gDiffuseMap : register(t0);
+Texture2D gDiffuseMap[4] : register(t0);
 
 SamplerState samAnisotropic : register(s0);
 
@@ -93,6 +95,14 @@ void GS(point VertexOut gin[1],
         uint primID : SV_PrimitiveID,
         inout TriangleStream<GeoOut> triStream)
 {
+    float2 gTexC[4] =
+    {
+        float2(0.0f, 1.0f),
+		float2(0.0f, 0.0f),
+		float2(1.0f, 1.0f),
+		float2(1.0f, 0.0f)
+    };
+
 	//
 	// Compute the local coordinate system of the sprite relative to the world
 	// space such that the billboard is aligned with the y-axis and faces the eye.
@@ -154,7 +164,7 @@ float4 PS(GeoOut pin) : SV_Target
     {
 		// Sample texture.
         float3 uvw = float3(pin.Tex, pin.PrimID % 4);
-        texColor = gDiffuseMap.Sample(samAnisotropic, uvw);
+        texColor = gDiffuseMap[3].Sample(samAnisotropic, uvw);
 
         if (gAlphaClip)
         {
