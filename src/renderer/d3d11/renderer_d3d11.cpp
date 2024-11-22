@@ -12,7 +12,7 @@ joj::D3D11Renderer::D3D11Renderer()
 	m_device = nullptr;
 	m_device_context = nullptr;
 
-	m_4xmsaa_enabled = true;                   // No antialising
+	m_4xmsaa_enabled = true;                   // Yes antialising
 	m_4xmsaa_quality = 0;                      // Default quality
 	m_buffer_count = 2;                        // 2 buffers: Back and Front
 	m_mip_levels = 1;                          // Number of mip levels
