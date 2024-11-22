@@ -462,181 +462,78 @@ void TreeBillBoarddDemo::build_texture_array()
 {
 	constexpr u32 array_size = 4;
 	constexpr u32 mip_levels = 1;
-	std::vector<ID3D11Texture2D*> src_tex(array_size);
-	
+
+	const wchar_t* texture_files[4] = {
+		L"../../../../app/textures/tree0.dds",
+		L"../../../../app/textures/tree1.dds",
+		L"../../../../app/textures/tree2.dds",
+		L"../../../../app/textures/tree3.dds"
+	};
+
+	ID3D11Texture2D* textures[4] = { nullptr, nullptr, nullptr, nullptr };
+
+	for (i32 i = 0; i < 4; ++i)
+	{
+		if (DirectX::CreateDDSTextureFromFile(
+			joj::Engine::s_renderer->get_device(),
+			texture_files[i],
+			(ID3D11Resource**)&textures[i],
+			nullptr
+		) != S_OK)
+		{
+			JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree0.dds'.");
+		}
+		else
+		{
+			JINFO("Created DDS Texture from file!");
+		}
+	}
+
 	D3D11_TEXTURE2D_DESC tex_array_desc = { 0 };
-	tex_array_desc.Width = 512;                          // Largura da textura
-	tex_array_desc.Height = 512;                         // Altura da textura
-	tex_array_desc.MipLevels = mip_levels;               // Número de níveis de mipmap
-	tex_array_desc.ArraySize = array_size;               // Número de texturas no array
-	tex_array_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // Formato dos pixels
-	tex_array_desc.SampleDesc.Count = 1;                 // Sem MSAA
-	tex_array_desc.Usage = D3D11_USAGE_DEFAULT;          // Uso padrão
-	tex_array_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE; // Ligado ao shader
-	tex_array_desc.CPUAccessFlags = 0;                   // Sem acesso pela CPU
+	textures[0]->GetDesc(&tex_array_desc);
+	tex_array_desc.ArraySize = 4;
+	tex_array_desc.Usage = D3D11_USAGE_DEFAULT;
+	tex_array_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+	tex_array_desc.CPUAccessFlags = 0;
 	tex_array_desc.MiscFlags = 0;
 
 	if (joj::Engine::s_renderer->get_device()->CreateTexture2D(
-		&tex_array_desc, nullptr, &m_tree_texture_array) != S_OK)
+		&tex_array_desc, nullptr, &m_texture_array) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create texture array.");
 	}
 
-	// Tree0
-	ID3D11ShaderResourceView* texture = nullptr;
-	if (DirectX::CreateDDSTextureFromFile(
-		joj::Engine::s_renderer->get_device(),
-		L"../../../../app/textures/tree0.dds",
-		nullptr,
-		&texture
-	) != S_OK)
+	for (int i = 0; i < 4; ++i)
 	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree0.dds'.");
+		joj::Engine::s_renderer->get_device_context()->CopySubresourceRegion(
+			m_texture_array,
+			D3D11CalcSubresource(0, i, 1),
+			0, 0, 0,
+			textures[i],
+			0,
+			nullptr
+		);
 	}
-	else
-	{
-		JINFO("Created DDS Texture from file!");
-	}
-
-	// Cast to ID3D11Texture2D
-	ID3D11Texture2D* src_tex2D = nullptr;
-	if (texture->QueryInterface(
-		__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&src_tex2D)) != S_OK)
-	{
-		texture->Release();
-		JERROR(joj::ErrorCode::FAILED, "Failed to cast to ID3D11Texture2D.");
-	}
-	// Copiar os dados da textura carregada para o array
-	joj::Engine::s_renderer->get_device_context()->CopySubresourceRegion(
-		m_tree_texture_array,                 // Destino: array de texturas
-		D3D11CalcSubresource(1, 0, 1),        // Índice do array e MIP
-		0, 0, 0,                              // Coordenadas no destino
-		src_tex2D,                             // Fonte: textura carregada
-		0,                                    // Subrecurso da fonte
-		nullptr);
-
-	src_tex2D->Release();
-	texture->Release();
-
-	// Tree1
-
-	if (DirectX::CreateDDSTextureFromFile(
-		joj::Engine::s_renderer->get_device(),
-		L"../../../../app/textures/tree1.dds",
-		nullptr,
-		&texture
-	) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree1.dds'.");
-	}
-	else
-	{
-		JINFO("Created DDS Texture from file!");
-	}
-
-	// Cast to ID3D11Texture2D
-	src_tex2D = nullptr;
-	if (texture->QueryInterface(
-		__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&src_tex2D)) != S_OK)
-	{
-		texture->Release();
-		JERROR(joj::ErrorCode::FAILED, "Failed to cast to ID3D11Texture2D.");
-	}
-	// Copiar os dados da textura carregada para o array
-	joj::Engine::s_renderer->get_device_context()->CopySubresourceRegion(
-		m_tree_texture_array,                 // Destino: array de texturas
-		D3D11CalcSubresource(1, 1, 1),        // Índice do array e MIP
-		0, 0, 0,                              // Coordenadas no destino
-		src_tex2D,                             // Fonte: textura carregada
-		0,                                    // Subrecurso da fonte
-		nullptr);
-
-	src_tex2D->Release();
-	texture->Release();
-
-	// Tree2
-
-	if (DirectX::CreateDDSTextureFromFile(
-		joj::Engine::s_renderer->get_device(),
-		L"../../../../app/textures/tree2.dds",
-		nullptr,
-		&texture
-	) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree2.dds'.");
-	}
-	else
-	{
-		JINFO("Created DDS Texture from file!");
-	}
-
-	// Cast to ID3D11Texture2D
-	src_tex2D = nullptr;
-	if (texture->QueryInterface(
-		__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&src_tex2D)) != S_OK)
-	{
-		texture->Release();
-		JERROR(joj::ErrorCode::FAILED, "Failed to cast to ID3D11Texture2D.");
-	}
-	// Copiar os dados da textura carregada para o array
-	joj::Engine::s_renderer->get_device_context()->CopySubresourceRegion(
-		m_tree_texture_array,                 // Destino: array de texturas
-		D3D11CalcSubresource(1, 2, 1),        // Índice do array e MIP
-		0, 0, 0,                              // Coordenadas no destino
-		src_tex2D,                             // Fonte: textura carregada
-		0,                                    // Subrecurso da fonte
-		nullptr);
-
-	src_tex2D->Release();
-	texture->Release();
-
-	if (DirectX::CreateDDSTextureFromFile(
-		joj::Engine::s_renderer->get_device(),
-		L"../../../../app/textures/tree3.dds",
-		nullptr,
-		&texture
-	) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree3.dds'.");
-	}
-	else
-	{
-		JINFO("Created DDS Texture from file!");
-	}
-
-	// Cast to ID3D11Texture2D
-	src_tex2D = nullptr;
-	if (texture->QueryInterface(
-		__uuidof(ID3D11Texture2D), reinterpret_cast<void**>(&src_tex2D)) != S_OK)
-	{
-		texture->Release();
-		JERROR(joj::ErrorCode::FAILED, "Failed to cast to ID3D11Texture2D.");
-	}
-	// Copiar os dados da textura carregada para o array
-	joj::Engine::s_renderer->get_device_context()->CopySubresourceRegion(
-		m_tree_texture_array,                 // Destino: array de texturas
-		D3D11CalcSubresource(1, 3, 1),        // Índice do array e MIP
-		0, 0, 0,                              // Coordenadas no destino
-		src_tex2D,                             // Fonte: textura carregada
-		0,                                    // Subrecurso da fonte
-		nullptr);
-
-	src_tex2D->Release();
-	texture->Release();
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
 	srv_desc.Format = tex_array_desc.Format;
 	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 	srv_desc.Texture2DArray.MostDetailedMip = 0;
-	srv_desc.Texture2DArray.MipLevels = 1;
+	srv_desc.Texture2DArray.MipLevels = tex_array_desc.MipLevels;
 	srv_desc.Texture2DArray.FirstArraySlice = 0;
-	srv_desc.Texture2DArray.ArraySize = 4; // Número de texturas no array
+	srv_desc.Texture2DArray.ArraySize = 4;
 
 	if (joj::Engine::s_renderer->get_device()->CreateShaderResourceView(
-		m_tree_texture_array, &srv_desc, &m_tree_texture_map_array_SRV) != S_OK)
+		m_texture_array, &srv_desc, &m_texture_array_view) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Shader Resource View for texture array.");
-		m_tree_texture_array->Release();
+	}
+
+	// Liberar texturas individuais
+	for (i32 i = 0; i < 4; ++i)
+	{
+		if (textures[i])
+			textures[i]->Release();
 	}
 }
 
@@ -1475,7 +1372,7 @@ void TreeBillBoarddDemo::draw_tree_sprites()
 
 	joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 
-	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 4, &m_tree_texture_map_array_SRV);
+	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_texture_array_view);
 
 	joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_box_world);
 	joj::JVector4 world_determinant = XMMatrixDeterminant(world);
@@ -1515,7 +1412,11 @@ void TreeBillBoarddDemo::shutdown()
 	m_waves_map_SRV->Release();
 	m_box_map_SRV->Release();
 	
-	m_tree_texture_array->Release();
+	if (m_texture_array)
+		m_texture_array->Release();
+	
+	if (m_texture_array_view)
+		m_texture_array_view->Release();
 
 	m_sampler_state->Release();
 	m_wireframe_RS->Release();
