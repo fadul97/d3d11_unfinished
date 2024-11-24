@@ -464,10 +464,10 @@ void TreeBillBoarddDemo::build_texture_array()
 	constexpr u32 mip_levels = 1;
 
 	const wchar_t* texture_files[4] = {
-		L"../../../../app/textures/tree0.dds",
-		L"../../../../app/textures/tree1.dds",
-		L"../../../../app/textures/tree2.dds",
-		L"../../../../app/textures/tree3.dds"
+		L"../../../../app/textures/treeArray2.dds",
+		L"../../../../app/textures/treeArray2.dds",
+		L"../../../../app/textures/treeArray2.dds",
+		L"../../../../app/textures/treeArray2.dds"
 	};
 
 	ID3D11Texture2D* textures[4] = { nullptr, nullptr, nullptr, nullptr };
@@ -490,7 +490,7 @@ void TreeBillBoarddDemo::build_texture_array()
 	}
 
 	D3D11_TEXTURE2D_DESC tex_array_desc = { 0 };
-	textures[1]->GetDesc(&tex_array_desc);
+	textures[0]->GetDesc(&tex_array_desc);
 	tex_array_desc.Width = 512;                          // Largura da textura
 	tex_array_desc.Height = 512;                         // Altura da textura
 	tex_array_desc.MipLevels = mip_levels;               // Número de níveis de mipmap
@@ -498,7 +498,7 @@ void TreeBillBoarddDemo::build_texture_array()
 	tex_array_desc.SampleDesc.Count = 1;                 // Sem MSAA
 
 	JDEBUG("tex_array_desc.Format = %d", tex_array_desc.Format); // 71 = DXGI_FORMAT_BC1_UNORM for textures[0], 87 for textures[1, 2, 3]
-	tex_array_desc.Format = DXGI_FORMAT_BC1_UNORM;  // Formato dos pixels
+	tex_array_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // Formato dos pixels
 
 	tex_array_desc.Usage = D3D11_USAGE_DEFAULT;
 	tex_array_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -763,12 +763,12 @@ void TreeBillBoarddDemo::build_tree_sprites_buffers()
 
 	for (u32 i = 0; i < 16; ++i)
 	{
-		f32 x = RandF(-35.0f, 35.0f);
-		f32 z = (-35.0f, 35.0f);
+		f32 x = RandF(-45.0f, 45.0f);
+		f32 z = RandF(-45.0f, 45.0f);
 		f32 y = get_hill_height(x, z);
 
 		// Move tree slightly above land height.
-		y += 10.0f;
+		y += 8.0f;
 
 		v[i].Pos = joj::JFloat3(x, y, z);
 		v[i].Size = joj::JFloat2(24.0f, 24.0f);
