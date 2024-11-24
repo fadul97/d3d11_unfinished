@@ -491,14 +491,12 @@ void TreeBillBoarddDemo::build_texture_array()
 
 	D3D11_TEXTURE2D_DESC tex_array_desc = { 0 };
 	textures[0]->GetDesc(&tex_array_desc);
-	tex_array_desc.Width = 512;                          // Largura da textura
-	tex_array_desc.Height = 512;                         // Altura da textura
-	tex_array_desc.MipLevels = mip_levels;               // Número de níveis de mipmap
-	tex_array_desc.ArraySize = array_size;               // Número de texturas no array
-	tex_array_desc.SampleDesc.Count = 1;                 // Sem MSAA
+	tex_array_desc.MipLevels = mip_levels;
+	tex_array_desc.ArraySize = array_size;
+	tex_array_desc.SampleDesc.Count = 1;
 
-	JDEBUG("tex_array_desc.Format = %d", tex_array_desc.Format); // 71 = DXGI_FORMAT_BC1_UNORM for textures[0], 87 for textures[1, 2, 3]
-	tex_array_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;  // Formato dos pixels
+	JDEBUG("tex_array_desc.Format = %d", tex_array_desc.Format);
+	tex_array_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 
 	tex_array_desc.Usage = D3D11_USAGE_DEFAULT;
 	tex_array_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -514,7 +512,7 @@ void TreeBillBoarddDemo::build_texture_array()
 		JERROR(joj::ErrorCode::FAILED, "Failed to create texture array.");
 	}
 
-	for (int i = 0; i < 4; ++i)
+	for (i32 i = 0; i < 4; ++i)
 	{
 		joj::Engine::s_renderer->get_device_context()->CopySubresourceRegion(
 			m_texture_array,
