@@ -481,7 +481,7 @@ void TreeBillBoarddDemo::build_texture_array()
 			nullptr
 		) != S_OK)
 		{
-			JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree0.dds'.");
+			JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree%d.dds'.", i);
 		}
 		else
 		{
@@ -490,12 +490,23 @@ void TreeBillBoarddDemo::build_texture_array()
 	}
 
 	D3D11_TEXTURE2D_DESC tex_array_desc = { 0 };
-	textures[0]->GetDesc(&tex_array_desc);
-	tex_array_desc.ArraySize = 4;
+	textures[1]->GetDesc(&tex_array_desc);
+	tex_array_desc.Width = 512;                          // Largura da textura
+	tex_array_desc.Height = 512;                         // Altura da textura
+	tex_array_desc.MipLevels = mip_levels;               // Número de níveis de mipmap
+	tex_array_desc.ArraySize = array_size;               // Número de texturas no array
+	tex_array_desc.SampleDesc.Count = 1;                 // Sem MSAA
+
+	JDEBUG("tex_array_desc.Format = %d", tex_array_desc.Format); // 71 = DXGI_FORMAT_BC1_UNORM for textures[0], 87 for textures[1, 2, 3]
+	tex_array_desc.Format = DXGI_FORMAT_BC1_UNORM;  // Formato dos pixels
+
 	tex_array_desc.Usage = D3D11_USAGE_DEFAULT;
 	tex_array_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	tex_array_desc.CPUAccessFlags = 0;
 	tex_array_desc.MiscFlags = 0;
+
+	JDEBUG("tex_array_desc.SampleDesc.Count = %d", tex_array_desc.SampleDesc.Count);
+
 
 	if (joj::Engine::s_renderer->get_device()->CreateTexture2D(
 		&tex_array_desc, nullptr, &m_texture_array) != S_OK)
@@ -507,7 +518,7 @@ void TreeBillBoarddDemo::build_texture_array()
 	{
 		joj::Engine::s_renderer->get_device_context()->CopySubresourceRegion(
 			m_texture_array,
-			D3D11CalcSubresource(0, i, 1),
+			D3D11CalcSubresource(0, i, mip_levels),
 			0, 0, 0,
 			textures[i],
 			0,
