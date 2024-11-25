@@ -29,6 +29,9 @@ namespace joj
         ID3D11Device* get_device() const;
         ID3D11DeviceContext* get_device_context() const;
 
+        ID3D11DepthStencilView* get_depth_stencil_view() const;
+        ID3D11RenderTargetView* get_render_target_view() const;
+
     private:
         D3D11Context* m_context;
         ID3D11Device* m_device;
@@ -59,6 +62,12 @@ namespace joj
 
     inline ID3D11DeviceContext* D3D11Renderer::get_device_context() const
     { return m_device_context; }
+
+    inline ID3D11DepthStencilView* D3D11Renderer::get_depth_stencil_view() const
+    { return m_depth_stencil_view; }
+
+    inline ID3D11RenderTargetView* D3D11Renderer::get_render_target_view() const
+    { return m_render_target_view; }
 }
 
 #endif // JPLATFORM_WINDOWS

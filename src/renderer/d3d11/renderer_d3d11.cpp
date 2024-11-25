@@ -161,7 +161,7 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	// Check values
 
 	// TODO: swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD?
-	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;                                  // Discard surface after presenting
+	swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;                             // Discard surface after presenting
 	swap_chain_desc.Flags = 0;                                                              // Use Back buffer size for Fullscreen
 
 	// Create Swap Chain
