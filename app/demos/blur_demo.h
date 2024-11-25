@@ -1,3 +1,5 @@
+// TODO: Finish Blur Demo App
+
 #ifndef BLUR_DEMO_H
 #define BLUR_DEMO_H
 
