@@ -15,6 +15,7 @@ add_library(
     scene_d3d11.cpp
     DDSTextureLoader11.cpp
     render_state_d3d11.cpp
+    blur_filter_d3d11.cpp
 )
 
 target_link_directories(
