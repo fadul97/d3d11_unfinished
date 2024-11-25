@@ -19,27 +19,32 @@ namespace joj
 
 		// Compile from file
 		void compile_vertex_shader(const WCHAR* vertex_path, LPCSTR entry_point, LPCSTR shader_model);
-
-		void compile_geometry_shader(const WCHAR* geometry_vertex_path, LPCSTR entry_point, LPCSTR shader_model);
-		
 		// Compile from file
 		void compile_pixel_shader(const WCHAR* pixel_path, LPCSTR entry_point, LPCSTR shader_model);
+
+		void compile_geometry_shader(const WCHAR* geometry_path, LPCSTR entry_point, LPCSTR shader_model);
+		void compile_compute_shader(const WCHAR* compute_path, LPCSTR entry_point, LPCSTR shader_model);
 
 		ID3D11VertexShader*& get_vertex_shader();
 		ID3D11PixelShader*& get_pixel_shader();
 		ID3D11GeometryShader*& get_geometry_shader();
+		ID3D11ComputeShader*& get_compute_shader();
 		
 		ID3DBlob* get_vsblob() const;
 		ID3DBlob* get_psblob() const;
 		ID3DBlob* get_gsblob() const;
+		ID3DBlob* get_csblob() const;
 
 	private:
 		ID3D11VertexShader* m_vertex_shader;        // Manages Vertex Shader Program and control Vertex Shader Stage 
 		ID3D11PixelShader* m_pixel_shader;          // Manages Pixel Shader Program and controls Pixel Shader Stage
 		ID3D11GeometryShader* m_geometry_shader;    // Manages Geometry Shader Program and controls Geometry Shader Stage
+		ID3D11ComputeShader* m_compute_shader;      // Manages Compute Shader Program and controls Compute Shader Stage
+
 		ID3DBlob* m_vsblob;                         // Vertex shader
 		ID3DBlob* m_psblob;                         // Pixel shader
 		ID3DBlob* m_gsblob;                         // Geometry shader
+		ID3DBlob* m_csblob;                         // Compute shader
 	};
 
 	inline ID3D11VertexShader*& D3D11Shader::get_vertex_shader()
@@ -51,6 +56,9 @@ namespace joj
 	inline ID3D11GeometryShader*& D3D11Shader::get_geometry_shader()
 	{ return m_geometry_shader; }
 
+	inline ID3D11ComputeShader*& D3D11Shader::get_compute_shader()
+	{ return m_compute_shader; }
+
 	inline ID3DBlob* D3D11Shader::get_vsblob() const
 	{ return m_vsblob; }
 	
@@ -59,6 +67,9 @@ namespace joj
 
 	inline ID3DBlob* D3D11Shader::get_gsblob() const
 	{ return m_gsblob; }
+
+	inline ID3DBlob* D3D11Shader::get_csblob() const
+	{ return m_csblob; }
 }
 
 #endif // JPLATFORM_WINDOWS

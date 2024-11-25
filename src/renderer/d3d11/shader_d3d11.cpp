@@ -119,7 +119,7 @@ void joj::D3D11Shader::compile_pixel_shader(const WCHAR* pixel_path, LPCSTR entr
 	}
 }
 
-void joj::D3D11Shader::compile_geometry_shader(const WCHAR* geometry_vertex_path, LPCSTR entry_point, LPCSTR shader_model)
+void joj::D3D11Shader::compile_geometry_shader(const WCHAR* geometry_path, LPCSTR entry_point, LPCSTR shader_model)
 {
 	DWORD shader_flags = D3DCOMPILE_ENABLE_STRICTNESS;
 #ifdef _DEBUG
@@ -131,16 +131,47 @@ void joj::D3D11Shader::compile_geometry_shader(const WCHAR* geometry_vertex_path
 #endif // !_DEBUG
 
 	// --------------------------------
-	// Vertex Shader
+	// Geometry Shader
 	// --------------------------------
 
 	ID3DBlob* shader_compile_errors_blob;          // To get info about compilation
 
 	// Compile Vertex Shader
-	if (D3DCompileFromFile(geometry_vertex_path, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, shader_model, shader_flags, NULL, &m_gsblob, &shader_compile_errors_blob) != S_OK)
+	if (D3DCompileFromFile(geometry_path, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, shader_model, shader_flags, NULL, &m_gsblob, &shader_compile_errors_blob) != S_OK)
 	{
 		OutputDebugStringA((char*)shader_compile_errors_blob->GetBufferPointer());
-		JERROR(ErrorCode::ERR_SHADER_D3D11_VERTEX_COMPILATION, "%s", (char*)shader_compile_errors_blob->GetBufferPointer());
+		JERROR(ErrorCode::ERR_SHADER_D3D11_GEOMETRY_COMPILATION, "%s", (char*)shader_compile_errors_blob->GetBufferPointer());
+		shader_compile_errors_blob->Release();
+	}
+
+	if (shader_compile_errors_blob != nullptr)
+	{
+		shader_compile_errors_blob->Release();
+	}
+}
+
+void joj::D3D11Shader::compile_compute_shader(const WCHAR* compute_path, LPCSTR entry_point, LPCSTR shader_model)
+{
+	DWORD shader_flags = D3DCOMPILE_ENABLE_STRICTNESS;
+#ifdef _DEBUG
+	// Let compiler insert debug information into the output code
+	shader_flags |= D3DCOMPILE_DEBUG;
+
+	// Disable optimizations
+	shader_flags |= D3DCOMPILE_SKIP_OPTIMIZATION;    // Compiler will not validate the generated code -> Recommended to use only with successfully compiled shaders
+#endif // !_DEBUG
+
+	// --------------------------------
+	// Compute Shader
+	// --------------------------------
+
+	ID3DBlob* shader_compile_errors_blob;          // To get info about compilation
+
+	// Compile Vertex Shader
+	if (D3DCompileFromFile(compute_path, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, shader_model, shader_flags, NULL, &m_csblob, &shader_compile_errors_blob) != S_OK)
+	{
+		OutputDebugStringA((char*)shader_compile_errors_blob->GetBufferPointer());
+		JERROR(ErrorCode::ERR_SHADER_D3D11_COMPUTE_COMPILATION, "%s", (char*)shader_compile_errors_blob->GetBufferPointer());
 		shader_compile_errors_blob->Release();
 	}
 
