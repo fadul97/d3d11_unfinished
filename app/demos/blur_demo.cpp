@@ -13,6 +13,7 @@
 #include <fstream>
 #include <string>
 #include <resources/geometry/grid.h>
+#include <resources/geometry/quad.h>
 #include "joj/renderer/d3d11/scene_d3d11.h" // for ObjectCB
 #include "joj/systems/light/light_debug.h"
 #include <renderer/d3d11/DDSTextureLoader11.h>
@@ -150,10 +151,6 @@ void BlurDemo::init()
 	m_box_mat.diffuse = joj::JFloat4(1.0f, 1.0f, 1.0f, 1.0f);
 	m_box_mat.specular = joj::JFloat4(0.4f, 0.4f, 0.4f, 16.0f);
 
-	m_tree_mat.ambient = joj::JFloat4(0.5f, 0.5f, 0.5f, 1.0f);
-	m_tree_mat.diffuse = joj::JFloat4(1.0f, 1.0f, 1.0f, 1.0f);
-	m_tree_mat.specular = joj::JFloat4(0.2f, 0.2f, 0.2f, 16.0f);
-
 	// ---------------------------------------------------
 	// Build Resources
 	// ---------------------------------------------------
@@ -162,11 +159,11 @@ void BlurDemo::init()
 	build_vertex_layout();
 	build_render_states();
 	build_textures();
-	build_texture_array();
 	build_land_geometry_buffers();
 	build_waves_geometry_buffers();
 	build_crate_geometry_buffers();
-	build_tree_sprites_buffers();
+	build_screen_quad_geometry_buffers();
+	build_offscreen_views();
 	build_constant_buffers();
 }
 
@@ -185,11 +182,6 @@ void BlurDemo::build_render_states()
 	m_render_state.create_rasterizer_state(joj::RasterizerStateOption::NoCull);
 
 	// ---------------------------------------------------
-	// Describe and Create CullClockWise Rasterizer State
-	// ---------------------------------------------------
-	m_render_state.create_rasterizer_state(joj::RasterizerStateOption::CullClockwise);
-
-	// ---------------------------------------------------
 	// Describe and Create AlphaToCoverage Blend State
 	// ---------------------------------------------------
 	m_render_state.create_blend_state(joj::BlendStateOption::AlphaToCoverage);
@@ -198,26 +190,6 @@ void BlurDemo::build_render_states()
 	// Describe and Create Transparent Blend State
 	// ---------------------------------------------------
 	m_render_state.create_blend_state(joj::BlendStateOption::Transparent);
-
-	// ---------------------------------------------------
-	// Describe and Create NoRenderTargetWrite Blend State
-	// ---------------------------------------------------
-	m_render_state.create_blend_state(joj::BlendStateOption::NoRenderTargetWrite);
-
-	// ---------------------------------------------------
-	// Describe and Create MarkMirror Depth Stencil State
-	// ---------------------------------------------------
-	m_render_state.create_depthstencil_state(joj::DepthStencilStateOption::MarkMirror);
-
-	// ---------------------------------------------------
-	// Describe and Create DrawReflection Depth Stencil State
-	// ---------------------------------------------------
-	m_render_state.create_depthstencil_state(joj::DepthStencilStateOption::Reflection);
-
-	// ---------------------------------------------------
-	// Describe and Create NoDoubleBlend Depth Stencil State
-	// ---------------------------------------------------
-	m_render_state.create_depthstencil_state(joj::DepthStencilStateOption::NoDoubleBlend);
 }
 
 // ---------------------------------------------------------------------------------
@@ -297,97 +269,6 @@ void BlurDemo::build_textures()
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Sampler State.");
 		return;
-	}
-}
-
-// ---------------------------------------------------------------------------------
-
-// TODO:
-void BlurDemo::build_texture_array()
-{
-	constexpr u32 array_size = 4;
-	constexpr u32 mip_levels = 1;
-
-	const wchar_t* texture_files[4] = {
-		L"../../../../app/textures/treeArray2.dds",
-		L"../../../../app/textures/treeArray2.dds",
-		L"../../../../app/textures/treeArray2.dds",
-		L"../../../../app/textures/treeArray2.dds"
-	};
-
-	ID3D11Texture2D* textures[4] = { nullptr, nullptr, nullptr, nullptr };
-
-	for (i32 i = 0; i < 4; ++i)
-	{
-		if (DirectX::CreateDDSTextureFromFile(
-			joj::Engine::s_renderer->get_device(),
-			texture_files[i],
-			(ID3D11Resource**)&textures[i],
-			nullptr
-		) != S_OK)
-		{
-			JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'tree%d.dds'.", i);
-		}
-		else
-		{
-			JINFO("Created DDS Texture from file!");
-		}
-	}
-
-	D3D11_TEXTURE2D_DESC tex_array_desc = { 0 };
-	textures[0]->GetDesc(&tex_array_desc);
-	tex_array_desc.MipLevels = mip_levels;
-	tex_array_desc.ArraySize = array_size;
-	tex_array_desc.SampleDesc.Count = 1;
-
-	JDEBUG("tex_array_desc.Format = %d", tex_array_desc.Format);
-	tex_array_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-	tex_array_desc.Usage = D3D11_USAGE_DEFAULT;
-	tex_array_desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-	tex_array_desc.CPUAccessFlags = 0;
-	tex_array_desc.MiscFlags = 0;
-
-	JDEBUG("tex_array_desc.SampleDesc.Count = %d", tex_array_desc.SampleDesc.Count);
-
-
-	if (joj::Engine::s_renderer->get_device()->CreateTexture2D(
-		&tex_array_desc, nullptr, &m_texture_array) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create texture array.");
-	}
-
-	for (i32 i = 0; i < 4; ++i)
-	{
-		joj::Engine::s_renderer->get_device_context()->CopySubresourceRegion(
-			m_texture_array,
-			D3D11CalcSubresource(0, i, mip_levels),
-			0, 0, 0,
-			textures[i],
-			0,
-			nullptr
-		);
-	}
-
-	D3D11_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-	srv_desc.Format = tex_array_desc.Format;
-	srv_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
-	srv_desc.Texture2DArray.MostDetailedMip = 0;
-	srv_desc.Texture2DArray.MipLevels = tex_array_desc.MipLevels;
-	srv_desc.Texture2DArray.FirstArraySlice = 0;
-	srv_desc.Texture2DArray.ArraySize = 4;
-
-	if (joj::Engine::s_renderer->get_device()->CreateShaderResourceView(
-		m_texture_array, &srv_desc, &m_texture_array_view) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create Shader Resource View for texture array.");
-	}
-
-	// Liberar texturas individuais
-	for (i32 i = 0; i < 4; ++i)
-	{
-		if (textures[i])
-			textures[i]->Release();
 	}
 }
 
@@ -594,38 +475,136 @@ void BlurDemo::build_crate_geometry_buffers()
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Index Buffer.");
 	}
-
 }
 
 // ---------------------------------------------------------------------------------
 
-void BlurDemo::build_tree_sprites_buffers()
+void BlurDemo::build_screen_quad_geometry_buffers()
 {
-	// Hard coded size
-	TreePointSpriteVertex v[16];
+	joj::Quad quad;
 
-	for (u32 i = 0; i < 16; ++i)
+	std::vector<joj::GeometryVertex> quad_vertices(4);
+	std::vector<u32> quad_indices(6);
+
+	// Position coordinates specified in NDC space.
+	quad_vertices[0] = joj::GeometryVertex(
+		-1.0f, -1.0f, 0.0f,
+		0.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 0.0f,
+		-100.0f,
+		0.0f, 1.0f);
+
+	quad_vertices[1] = joj::GeometryVertex(
+		-1.0f, +1.0f, 0.0f,
+		0.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 0.0f,
+		-100.0f,
+		0.0f, 0.0f);
+
+	quad_vertices[2] = joj::GeometryVertex(
+		+1.0f, +1.0f, 0.0f,
+		0.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 0.0f,
+		-100.0f,
+		1.0f, 0.0f);
+
+	quad_vertices[3] = joj::GeometryVertex(
+		+1.0f, -1.0f, 0.0f,
+		0.0f, 0.0f, -1.0f,
+		1.0f, 0.0f, 0.0f,
+		-100.0f,
+		1.0f, 1.0f);
+
+	quad_indices[0] = 0;
+	quad_indices[1] = 1;
+	quad_indices[2] = 2;
+
+	quad_indices[3] = 0;
+	quad_indices[4] = 2;
+	quad_indices[5] = 3;
+
+	// ---------------------------------------------------
+	// Setup and Create Vertex Buffer
+	// ---------------------------------------------------
+
+	std::vector<joj::GeometryVertex> vertices(4);
+	for (UINT i = 0; i < quad_vertices.size(); ++i)
 	{
-		f32 x = RandF(-45.0f, 45.0f);
-		f32 z = RandF(-45.0f, 45.0f);
-		f32 y = get_hill_height(x, z);
-
-		// Move tree slightly above land height.
-		y += 8.0f;
-
-		v[i].Pos = joj::JFloat3(x, y, z);
-		v[i].Size = joj::JFloat2(24.0f, 24.0f);
+		vertices[i].pos = quad_vertices[i].pos;
+		vertices[i].normal = quad_vertices[i].normal;
+		vertices[i].tex = quad_vertices[i].tex;
 	}
 
-	m_tree_sprites_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(TreePointSpriteVertex) * 16, v);
+	m_screen_quad_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * 4, vertices.data());
 
 	if (joj::Engine::s_renderer->get_device()->CreateBuffer(
-		m_tree_sprites_vb.get_buffer_desc(),
-		m_tree_sprites_vb.get_subdata(),
-		&m_tree_sprites_vb.get_buffer()) != S_OK)
+		m_screen_quad_vb.get_buffer_desc(),
+		m_screen_quad_vb.get_subdata(),
+		&m_screen_quad_vb.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Vertex Buffer.");
 	}
+
+	// ---------------------------------------------------
+	// Setup and Create Index Buffer
+	// ---------------------------------------------------
+
+	std::vector<u32> indices;
+	indices.insert(indices.end(), std::begin(quad_indices), std::end(quad_indices));
+
+	// Create the index buffer
+	m_screen_quad_ib.setup(sizeof(u32) * 6, indices.data());
+
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(
+		m_screen_quad_ib.get_buffer_desc(),
+		m_screen_quad_ib.get_subdata(),
+		&m_screen_quad_ib.get_buffer()) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create Index Buffer.");
+	}
+}
+
+// ---------------------------------------------------------------------------------
+
+void BlurDemo::build_offscreen_views()
+{
+	D3D11_TEXTURE2D_DESC tex_desc;
+
+	tex_desc.Width = 800;
+	tex_desc.Height = 600;
+	tex_desc.MipLevels = 1;
+	tex_desc.ArraySize = 1;
+	tex_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	tex_desc.SampleDesc.Count = 1;
+	tex_desc.SampleDesc.Quality = 0;
+	tex_desc.Usage = D3D11_USAGE_DEFAULT;
+	tex_desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	tex_desc.CPUAccessFlags = 0;
+	tex_desc.MiscFlags = 0;
+
+	ID3D11Texture2D* offscreen_tex = 0;
+	if (joj::Engine::s_renderer->get_device()->CreateTexture2D(&tex_desc, nullptr, &offscreen_tex) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create Texture2D.");
+	}
+
+	if (joj::Engine::s_renderer->get_device()->CreateShaderResourceView(offscreen_tex, 0, &m_offscreen_SRV) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create ShaderResourceView.");
+	}
+
+	if (joj::Engine::s_renderer->get_device()->CreateRenderTargetView(offscreen_tex, 0, &m_offscreen_RTV) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create RenderTargetView.");
+	}
+
+	if (joj::Engine::s_renderer->get_device()->CreateUnorderedAccessView(offscreen_tex, 0, &m_offscreen_UAV) != S_OK)
+	{
+		JERROR(joj::ErrorCode::FAILED, "Failed to create UnorderedAccessView.");
+	}
+
+	if (offscreen_tex)
+		offscreen_tex->Release();
 }
 
 // ---------------------------------------------------------------------------------
@@ -633,62 +612,73 @@ void BlurDemo::build_tree_sprites_buffers()
 void BlurDemo::build_shaders()
 {
 	// FIXME: Path is wrong
-	m_basic_shader.compile_vertex_shader(L"../../../../app/shaders/Demo.hlsl", "VS", "vs_5_0");
-	m_basic_shader.compile_pixel_shader(L"../../../../app/shaders/Demo.hlsl", "PS", "ps_5_0");
+	m_vert_shader.compile_vertex_shader(L"../../../../app/shaders/Demo.hlsl", "VS", "vs_5_0");
+	m_vert_shader.compile_pixel_shader(L"../../../../app/shaders/Demo.hlsl", "PS", "ps_5_0");
+	m_vert_shader.compile_compute_shader(L"../../../../app/shaders/Blur.hlsl", "VertBlurCS", "cs_5_0");
 
 	joj::Engine::s_renderer->get_device()->CreateVertexShader(
 		// A pointer to the compiled shader
-		m_basic_shader.get_vsblob()->GetBufferPointer(),
+		m_vert_shader.get_vsblob()->GetBufferPointer(),
 		// Size of the compiled vertex shader
-		m_basic_shader.get_vsblob()->GetBufferSize(),
+		m_vert_shader.get_vsblob()->GetBufferSize(),
 		// A pointer to a class linkage interface
 		nullptr,
 		// Address of a pointer to a ID3D11VertexShader interface
-		&m_basic_shader.get_vertex_shader());
+		&m_vert_shader.get_vertex_shader());
 
 	joj::Engine::s_renderer->get_device()->CreatePixelShader(
 		// A pointer to the compiled shader
-		m_basic_shader.get_psblob()->GetBufferPointer(),
+		m_vert_shader.get_psblob()->GetBufferPointer(),
 		// Size of the compiled vertex shader
-		m_basic_shader.get_psblob()->GetBufferSize(),
+		m_vert_shader.get_psblob()->GetBufferSize(),
 		// A pointer to a class linkage interface
 		nullptr,
 		// Address of a pointer to a ID3D11VertexShader interface
-		&m_basic_shader.get_pixel_shader());
+		&m_vert_shader.get_pixel_shader());
 
-	m_tree_sprite_shader.compile_vertex_shader(L"../../../../app/shaders/TreeSprite.hlsl", "VS", "vs_5_0");
-	m_tree_sprite_shader.compile_geometry_shader(L"../../../../app/shaders/TreeSprite.hlsl", "GS", "gs_5_0");
-	m_tree_sprite_shader.compile_pixel_shader(L"../../../../app/shaders/TreeSprite.hlsl", "PS", "ps_5_0");
+	joj::Engine::s_renderer->get_device()->CreateComputeShader(
+		// A pointer to the compiled shader
+		m_vert_shader.get_csblob()->GetBufferPointer(),
+		// Size of the compiled vertex shader
+		m_vert_shader.get_csblob()->GetBufferSize(),
+		// A pointer to a class linkage interface
+		nullptr,
+		// Address of a pointer to a ID3D11VertexShader interface
+		&m_vert_shader.get_compute_shader());
+
+	m_horz_shader.compile_vertex_shader(L"../../../../app/shaders/Demo.hlsl", "VS", "vs_5_0");
+	m_horz_shader.compile_pixel_shader(L"../../../../app/shaders/Demo.hlsl", "PS", "ps_5_0");
+	m_horz_shader.compile_compute_shader(L"../../../../app/shaders/Blur.hlsl", "HorzBlurCS", "cs_5_0");
 
 	joj::Engine::s_renderer->get_device()->CreateVertexShader(
 		// A pointer to the compiled shader
-		m_tree_sprite_shader.get_vsblob()->GetBufferPointer(),
+		m_horz_shader.get_vsblob()->GetBufferPointer(),
 		// Size of the compiled vertex shader
-		m_tree_sprite_shader.get_vsblob()->GetBufferSize(),
+		m_horz_shader.get_vsblob()->GetBufferSize(),
 		// A pointer to a class linkage interface
 		nullptr,
 		// Address of a pointer to a ID3D11VertexShader interface
-		&m_tree_sprite_shader.get_vertex_shader());
-
-	joj::Engine::s_renderer->get_device()->CreateGeometryShader(
-		// A pointer to the compiled shader
-		m_tree_sprite_shader.get_gsblob()->GetBufferPointer(),
-		// Size of the compiled vertex shader
-		m_tree_sprite_shader.get_gsblob()->GetBufferSize(),
-		// A pointer to a class linkage interface
-		nullptr,
-		// Address of a pointer to a ID3D11VertexShader interface
-		&m_tree_sprite_shader.get_geometry_shader());
+		&m_horz_shader.get_vertex_shader());
 
 	joj::Engine::s_renderer->get_device()->CreatePixelShader(
 		// A pointer to the compiled shader
-		m_tree_sprite_shader.get_psblob()->GetBufferPointer(),
+		m_horz_shader.get_psblob()->GetBufferPointer(),
 		// Size of the compiled vertex shader
-		m_tree_sprite_shader.get_psblob()->GetBufferSize(),
+		m_horz_shader.get_psblob()->GetBufferSize(),
 		// A pointer to a class linkage interface
 		nullptr,
 		// Address of a pointer to a ID3D11VertexShader interface
-		&m_tree_sprite_shader.get_pixel_shader());
+		&m_horz_shader.get_pixel_shader());
+
+	joj::Engine::s_renderer->get_device()->CreateComputeShader(
+		// A pointer to the compiled shader
+		m_horz_shader.get_csblob()->GetBufferPointer(),
+		// Size of the compiled vertex shader
+		m_horz_shader.get_csblob()->GetBufferSize(),
+		// A pointer to a class linkage interface
+		nullptr,
+		// Address of a pointer to a ID3D11VertexShader interface
+		&m_horz_shader.get_compute_shader());
 }
 
 // ---------------------------------------------------------------------------------
@@ -707,26 +697,9 @@ void BlurDemo::build_vertex_layout()
 	if (joj::Engine::s_renderer->get_device()->CreateInputLayout(
 		m_input_desc.data(),
 		(u32)m_input_desc.size(),
-		m_basic_shader.get_vsblob()->GetBufferPointer(),
-		m_basic_shader.get_vsblob()->GetBufferSize(),
+		m_vert_shader.get_vsblob()->GetBufferPointer(),
+		m_vert_shader.get_vsblob()->GetBufferSize(),
 		&m_input_layout
-	) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create Input Layout.");
-	}
-
-	const D3D11_INPUT_ELEMENT_DESC tree_point_sprite_input_layout[2] =
-	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"SIZE",     0, DXGI_FORMAT_R32G32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0}
-	};
-
-	if (joj::Engine::s_renderer->get_device()->CreateInputLayout(
-		tree_point_sprite_input_layout,
-		(u32)ARRAYSIZE(tree_point_sprite_input_layout),
-		m_tree_sprite_shader.get_vsblob()->GetBufferPointer(),
-		m_tree_sprite_shader.get_vsblob()->GetBufferSize(),
-		&m_tree_input_layout
 	) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Input Layout.");
@@ -920,37 +893,78 @@ void BlurDemo::update(const f32 dt)
 
 void BlurDemo::draw()
 {
+	/*
+	ID3D11RenderTargetView* render_targets[1] = { m_offscreen_RTV };
+	joj::Engine::s_renderer->get_device_context()->OMSetRenderTargets(
+		1,
+		render_targets,
+		joj::Engine::s_renderer->get_depth_stencil_view()
+	);
+	*/
+
 	// Color fog and clear color should be the same so it can actually look like a fog
 	const joj::JFloat4 silver{ 0.75f, 0.75f, 0.75f, 1.0f };
 	joj::Engine::s_renderer->clear(silver.x, silver.y, silver.z, silver.w);
-	joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
 	
+	// ---------------------------------------------------
+	// Draw the scene to the offscreen texture
+	// ---------------------------------------------------
+	draw_wapper();
+
+	// ---------------------------------------------------
+	// Restore Back Buffer. The offscreen render target will 
+	// serve as an input into the compute shader for blurring,
+	// so we must unbind it from the OM stage before we
+	// can use it as an input into the compute shader.
+	// ---------------------------------------------------
+	/*
+	render_targets[0] = joj::Engine::s_renderer->get_render_target_view();
+	joj::Engine::s_renderer->get_device_context()->OMSetRenderTargets(
+		1,
+		render_targets,
+		joj::Engine::s_renderer->get_depth_stencil_view()
+	);
+	*/
+
+	// ---------------------------------------------------
+	// Draw fullscreen quad with texture of blurred scene on it
+	// ---------------------------------------------------
+	// joj::Engine::s_renderer->clear(silver.x, silver.y, silver.z, silver.w);
+
+	joj::Engine::s_renderer->swap_buffers();
+}
+
+// ---------------------------------------------------------------------------------
+
+void BlurDemo::draw_wapper()
+{
 	joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
 	joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	joj::Engine::s_renderer->get_device_context()->VSSetShader(m_basic_shader.get_vertex_shader(), nullptr, 0u);
-	joj::Engine::s_renderer->get_device_context()->GSSetShader(nullptr, nullptr, 0);
-	joj::Engine::s_renderer->get_device_context()->PSSetShader(m_basic_shader.get_pixel_shader(), nullptr, 0u);
 
-	// Set constants and Update CBPerFrame
+	float blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+	u32 stride = sizeof(joj::GeometryVertex);
+	u32 offset = 0;
+
 	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
 	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
-	{
-		// ---------------------------------------------------
-		// Set Per Frame Constants
-		// ---------------------------------------------------
-		joj::CBPerFrame frame_cb;
-		frame_cb.dir_lights[0] = m_dir_lights[0];
-		frame_cb.dir_lights[1] = m_dir_lights[1];
-		frame_cb.dir_lights[2] = m_dir_lights[2];
-		frame_cb.eye_posw = camera.m_position;
-		frame_cb.fog_start = 15.0f;
-		frame_cb.fog_range = 175.0f;
-		frame_cb.fog_color = silver;
-		frame_cb.light_count = m_light_count;
-		joj::JMatrix4x4 vp = view * proj;
-		XMStoreFloat4x4(&frame_cb.view_proj, XMMatrixTranspose(vp));
-		m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
-	}
+	joj::JMatrix4x4 vp = view * proj;
+
+	// ---------------------------------------------------
+	// Set Per Frame Constants
+	// ---------------------------------------------------
+	joj::CBPerFrame frame_cb;
+	frame_cb.dir_lights[0] = m_dir_lights[0];
+	frame_cb.dir_lights[1] = m_dir_lights[1];
+	frame_cb.dir_lights[2] = m_dir_lights[2];
+	frame_cb.eye_posw = camera.m_position;
+	frame_cb.fog_start = 15.0f;
+	frame_cb.fog_range = 175.0f;
+	const joj::JFloat4 silver{ 0.75f, 0.75f, 0.75f, 1.0f };
+	frame_cb.fog_color = silver;
+	frame_cb.light_count = m_light_count;
+	XMStoreFloat4x4(&frame_cb.view_proj, XMMatrixTranspose(vp));
+	m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
 
 	i32 box_use_texture = 0;
 	i32 hills_use_texture = 0;
@@ -993,31 +1007,6 @@ void BlurDemo::draw()
 	default:
 		break;
 	}
-	
-	// --------------------------------------------------------------------------------------------------------------
-
-	// Default draw calls for every object
-	{
-		joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
-		joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		joj::Engine::s_renderer->get_device_context()->VSSetShader(m_basic_shader.get_vertex_shader(), nullptr, 0u);
-		joj::Engine::s_renderer->get_device_context()->GSSetShader(nullptr, nullptr, 0);
-		joj::Engine::s_renderer->get_device_context()->PSSetShader(m_basic_shader.get_pixel_shader(), nullptr, 0u);
-
-		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
-		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-		joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
-		joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-		joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
-	}
-
-	f32 blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	u32 stride = sizeof(joj::GeometryVertex);
-	u32 offset = 0;
 
 	// ---------------------------------------------------
 	// Draw Box with alpha clipping
@@ -1025,6 +1014,10 @@ void BlurDemo::draw()
 	{
 		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_box_vb.get_buffer(), &stride, &offset);
 		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_box_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+
+		joj::Engine::s_renderer->get_device_context()->VSSetShader(m_vert_shader.get_vertex_shader(), nullptr, 0u);
+		joj::Engine::s_renderer->get_device_context()->PSSetShader(m_vert_shader.get_pixel_shader(), nullptr, 0u);
+		joj::Engine::s_renderer->get_device_context()->CSSetShader(m_vert_shader.get_compute_shader(), nullptr, 0u);
 
 		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
 		joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
@@ -1036,6 +1029,7 @@ void BlurDemo::draw()
 
 		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_crate_map_SRV);
 
+		// -----------------------------------------------------------------------------
 		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_box_world);
 		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
 		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
@@ -1055,207 +1049,122 @@ void BlurDemo::draw()
 		box_cb.alpha_clip = box_alpha_clip;
 		box_cb.fog_enabled = box_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), box_cb);
+		// -----------------------------------------------------------------------------
 
 		m_render_state.set_rasterizer_state(joj::RasterizerStateOption::NoCull);
 		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, 0, 0);
 		m_render_state.set_rasterizer_state(joj::RasterizerStateOption::None);
 	}
 
-	// --------------------------------------------------------------------------
-	// Draw hills and water with texture and fog(no alpha clipping needed)
-	// --------------------------------------------------------------------------
-
 	// ---------------------------------------------------
-	// Draw Land
+	// Draw the hills and water with texture and fog (no alpha clipping needed).
 	// ---------------------------------------------------
 	{
-		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_land_vb.get_buffer(), &stride, &offset);
-		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_land_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+		// ---------------------------------------------------
+		// Draw Land
+		// ---------------------------------------------------
+		{
+			joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_land_vb.get_buffer(), &stride, &offset);
+			joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_land_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
 
-		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_grass_map_SRV);
+			joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_grass_map_SRV);
 
-		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_land_world);
-		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
-		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
-		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
+			// -----------------------------------------------------------------------------
+			joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_land_world);
+			joj::JVector4 world_determinant = XMMatrixDeterminant(world);
+			joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
+			joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
 
-		joj::JMatrix4x4 wvp = world * view * proj;
+			joj::JMatrix4x4 wvp = world * view * proj;
 
-		joj::CBPerObject land_cb;
-		XMStoreFloat4x4(&land_cb.world, XMMatrixTranspose(world));
-		XMStoreFloat4x4(&land_cb.world_inv_transpose, world_inv_transpose);
-		XMStoreFloat4x4(&land_cb.wvp, XMMatrixTranspose(wvp));
-		joj::JMatrix4x4 grass_textransf = XMLoadFloat4x4(&m_grass_tex_transform);
-		joj::JMatrix4x4 grass_textrasnf_transposed = DirectX::XMMatrixTranspose(grass_textransf);
-		XMStoreFloat4x4(&land_cb.tex_transform, grass_textrasnf_transposed);
-		land_cb.material = m_land_mat;
-		land_cb.use_texture = hills_use_texture;
-		land_cb.alpha_clip = hills_alpha_clip;
-		land_cb.fog_enabled = hills_fog_enabled;
-		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), land_cb);
-		
-		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_land_index_count, 0, 0);
+			joj::CBPerObject land_cb;
+			XMStoreFloat4x4(&land_cb.world, XMMatrixTranspose(world));
+			XMStoreFloat4x4(&land_cb.world_inv_transpose, world_inv_transpose);
+			XMStoreFloat4x4(&land_cb.wvp, XMMatrixTranspose(wvp));
+			joj::JMatrix4x4 grass_textransf = XMLoadFloat4x4(&m_grass_tex_transform);
+			joj::JMatrix4x4 grass_textrasnf_transposed = DirectX::XMMatrixTranspose(grass_textransf);
+			XMStoreFloat4x4(&land_cb.tex_transform, grass_textrasnf_transposed);
+			land_cb.material = m_land_mat;
+			land_cb.use_texture = hills_use_texture;
+			land_cb.alpha_clip = hills_alpha_clip;
+			land_cb.fog_enabled = hills_fog_enabled;
+			m_object_cb.update(joj::Engine::s_renderer->get_device_context(), land_cb);
+			// -----------------------------------------------------------------------------
+
+			joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_land_index_count, 0, 0);
+		}
+
+		// ---------------------------------------------------
+		// Draw Waves
+		// ---------------------------------------------------
+		{
+			joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_waves_vb.get_buffer(), &stride, &offset);
+			joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_waves_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+
+			joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_waves_map_SRV);
+
+			joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_waves_world);
+			joj::JVector4 world_determinant = XMMatrixDeterminant(world);
+			joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
+			joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
+
+			joj::JMatrix4x4 wvp = world * view * proj;
+
+			joj::CBPerObject waves_cb;
+			XMStoreFloat4x4(&waves_cb.world, XMMatrixTranspose(world));
+			XMStoreFloat4x4(&waves_cb.world_inv_transpose, world_inv);
+			XMStoreFloat4x4(&waves_cb.wvp, XMMatrixTranspose(wvp));
+
+			joj::JMatrix4x4 waves_textransf = XMLoadFloat4x4(&m_water_tex_transform);
+			joj::JMatrix4x4 waves_textrasnf_transposed = DirectX::XMMatrixTranspose(waves_textransf);
+			XMStoreFloat4x4(&waves_cb.tex_transform, waves_textrasnf_transposed);
+			waves_cb.material = m_waves_mat;
+			waves_cb.use_texture = hills_use_texture;
+			waves_cb.alpha_clip = hills_alpha_clip;
+			waves_cb.fog_enabled = hills_fog_enabled;
+			m_object_cb.update(joj::Engine::s_renderer->get_device_context(), waves_cb);
+
+			m_render_state.set_blend_state(joj::BlendStateOption::Transparent, blend_factor);
+			joj::Engine::s_renderer->get_device_context()->DrawIndexed(3 * m_waves.get_triangle_count(), 0, 0);
+			m_render_state.set_blend_state(joj::BlendStateOption::None, blend_factor);
+		}
 	}
-
-	draw_tree_sprites();
-
-	joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
-	joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	joj::Engine::s_renderer->get_device_context()->VSSetShader(m_basic_shader.get_vertex_shader(), nullptr, 0u);
-	joj::Engine::s_renderer->get_device_context()->GSSetShader(nullptr, nullptr, 0);
-	joj::Engine::s_renderer->get_device_context()->PSSetShader(m_basic_shader.get_pixel_shader(), nullptr, 0u);
-
-	// ---------------------------------------------------
-	// Draw Waves
-	// ---------------------------------------------------
-	{
-		joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_waves_vb.get_buffer(), &stride, &offset);
-		joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_waves_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
-
-		joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_waves_map_SRV);
-
-		joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_waves_world);
-		joj::JVector4 world_determinant = XMMatrixDeterminant(world);
-		joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
-		joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
-
-		joj::JMatrix4x4 wvp = world * view * proj;
-
-		joj::CBPerObject waves_cb;
-		XMStoreFloat4x4(&waves_cb.world, XMMatrixTranspose(world));
-		XMStoreFloat4x4(&waves_cb.world_inv_transpose, world_inv);
-		XMStoreFloat4x4(&waves_cb.wvp, XMMatrixTranspose(wvp));
-
-		joj::JMatrix4x4 waves_textransf = XMLoadFloat4x4(&m_water_tex_transform);
-		joj::JMatrix4x4 waves_textrasnf_transposed = DirectX::XMMatrixTranspose(waves_textransf);
-		XMStoreFloat4x4(&waves_cb.tex_transform, waves_textrasnf_transposed);
-		waves_cb.material = m_waves_mat;
-		waves_cb.use_texture = hills_use_texture;
-		waves_cb.alpha_clip = hills_alpha_clip;
-		waves_cb.fog_enabled = hills_fog_enabled;
-		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), waves_cb);
-
-		m_render_state.set_blend_state(joj::BlendStateOption::Transparent, blend_factor);
-		joj::Engine::s_renderer->get_device_context()->DrawIndexed(3 * m_waves.get_triangle_count(), 0, 0);
-		m_render_state.set_blend_state(joj::BlendStateOption::None, blend_factor);
-	}
-
-	// draw_tree_sprites();
-
-	joj::Engine::s_renderer->swap_buffers();
 }
 
 // ---------------------------------------------------------------------------------
 
-void BlurDemo::draw_tree_sprites()
+void BlurDemo::draw_screen_quad()
 {
-	// Set constants and Update CBPerFrame
-	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
-	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
-	{
-		// ---------------------------------------------------
-		// Set Per Frame Constants
-		// ---------------------------------------------------
-		joj::CBPerFrame frame_cb;
-		frame_cb.dir_lights[0] = m_dir_lights[0];
-		frame_cb.dir_lights[1] = m_dir_lights[1];
-		frame_cb.dir_lights[2] = m_dir_lights[2];
-		frame_cb.eye_posw = camera.m_position;
-		frame_cb.fog_start = 15.0f;
-		frame_cb.fog_range = 175.0f;
-		const joj::JFloat4 silver{ 0.75f, 0.75f, 0.75f, 1.0f };
-		frame_cb.fog_color = silver;
-		frame_cb.light_count = m_light_count;
+	joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
+	joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-		joj::JMatrix4x4 vp = view * proj;
-		XMStoreFloat4x4(&frame_cb.view_proj, XMMatrixTranspose(vp));
-		m_frame_cb.update(joj::Engine::s_renderer->get_device_context(), frame_cb);
-	}
+	auto diffuse_map = m_blur.get_blurred_output();
+	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &diffuse_map);
 
-	joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_tree_input_layout);
-	joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
-	joj::Engine::s_renderer->get_device_context()->VSSetShader(m_tree_sprite_shader.get_vertex_shader(), nullptr, 0u);
-	joj::Engine::s_renderer->get_device_context()->GSSetShader(m_tree_sprite_shader.get_geometry_shader(), nullptr, 0);
-	joj::Engine::s_renderer->get_device_context()->PSSetShader(m_tree_sprite_shader.get_pixel_shader(), nullptr, 0u);
-
-	// ---------------------------------------------------
-	// Draw Tree Sprite
-	// ---------------------------------------------------
-	i32 tree_use_texture = 0;
-	i32 tree_alpha_clip = 0;
-	i32 tree_fog_enabled = 0;
-
-	switch (m_render_options)
-	{
-	case joj::RenderOptions::Lighting:
-		tree_use_texture = 0;
-		tree_alpha_clip = 0;
-		tree_fog_enabled = 0;
-		break;
-
-	case joj::RenderOptions::Textures:
-		tree_use_texture = 1;
-		tree_alpha_clip = 1;
-		tree_fog_enabled = 0;
-		break;
-
-	case joj::RenderOptions::TexturesAndFog:
-		tree_use_texture = 1;
-		tree_alpha_clip = 1;
-		tree_fog_enabled = 1;
-		break;
-
-	default:
-		break;
-	}
-
-	f32 blend_factor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-
-	u32 stride = sizeof(TreePointSpriteVertex);
+	u32 stride = sizeof(joj::GeometryVertex);
 	u32 offset = 0;
 
-	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_tree_sprites_vb.get_buffer(), &stride, &offset);
+	joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &m_screen_quad_vb.get_buffer(), &stride, &offset);
+	joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(m_screen_quad_ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
 
-	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
-	joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-	joj::Engine::s_renderer->get_device_context()->GSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-	joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &m_object_cb.get_buffer());
-	joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(1, 1, &m_frame_cb.get_buffer());
-
-	joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
-
-	joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_texture_array_view);
-
-	joj::JMatrix4x4 world = DirectX::XMLoadFloat4x4(&m_box_world);
-	joj::JVector4 world_determinant = XMMatrixDeterminant(world);
-	joj::JMatrix4x4 world_inv = XMMatrixInverse(&world_determinant, world);
-	joj::JMatrix4x4 world_inv_transpose = XMMatrixTranspose(world_inv);
-
-	joj::JMatrix4x4 wvp = world * view * proj;
+	joj::Engine::s_renderer->get_device_context()->VSSetShader(m_horz_shader.get_vertex_shader(), nullptr, 0u);
+	joj::Engine::s_renderer->get_device_context()->PSSetShader(m_horz_shader.get_pixel_shader(), nullptr, 0u);
+	joj::Engine::s_renderer->get_device_context()->CSSetShader(m_horz_shader.get_compute_shader(), nullptr, 0u);
 
 	joj::JMatrix4x4 I = joj::matrix4x4_identity();
 
-	joj::CBPerObject tree_cb;
-	XMStoreFloat4x4(&tree_cb.world, XMMatrixTranspose(world));
-	XMStoreFloat4x4(&tree_cb.world_inv_transpose, world_inv_transpose);
-	XMStoreFloat4x4(&tree_cb.wvp, XMMatrixTranspose(wvp));
-	XMStoreFloat4x4(&tree_cb.tex_transform, I);
-	tree_cb.material = m_tree_mat;
-	tree_cb.use_texture = tree_use_texture;
-	tree_cb.alpha_clip = tree_alpha_clip;
-	tree_cb.fog_enabled = tree_fog_enabled;
-	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), tree_cb);
+	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&mView);
+	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&mProj);
+	joj::JMatrix4x4 vp = view * proj;
 
-	if (m_alpha_to_converage_on)
-	{
-		m_render_state.set_blend_state(joj::BlendStateOption::AlphaToCoverage, blend_factor);
-	}
+	joj::CBPerObject screenq;
+	XMStoreFloat4x4(&screenq.world, XMMatrixTranspose(I));
+	XMStoreFloat4x4(&screenq.world_inv_transpose, XMMatrixTranspose(I));
+	XMStoreFloat4x4(&screenq.wvp, XMMatrixTranspose(I));
+	XMStoreFloat4x4(&screenq.tex_transform, I);
+	m_object_cb.update(joj::Engine::s_renderer->get_device_context(), screenq);
 
-	joj::Engine::s_renderer->get_device_context()->Draw(m_tree_count, 0);
-
-	m_render_state.set_blend_state(joj::BlendStateOption::None, blend_factor);
+	joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 }
 
 // ---------------------------------------------------------------------------------
@@ -1266,15 +1175,8 @@ void BlurDemo::shutdown()
 	m_waves_map_SRV->Release();
 	m_crate_map_SRV->Release();
 	
-	if (m_texture_array)
-		m_texture_array->Release();
-	
-	if (m_texture_array_view)
-		m_texture_array_view->Release();
-
 	m_sampler_state->Release();
 	m_input_layout->Release();
-	m_tree_input_layout->Release();
 
 	JINFO("Shutting down App...");
 }

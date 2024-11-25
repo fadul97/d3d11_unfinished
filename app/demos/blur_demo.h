@@ -14,6 +14,7 @@
 #include "joj/systems/light/light.h"
 #include "joj/systems/material/material.h"
 #include "joj/renderer/d3d11/render_state_d3d11.h"
+#include "joj/renderer/d3d11/blur_filter_d3d11.h"
 
 // ---------------------------------------------------------------------------------
 
@@ -55,7 +56,6 @@ public:
 	joj::SimpleMaterial m_land_mat;
 	joj::SimpleMaterial m_waves_mat;
 	joj::SimpleMaterial m_box_mat;
-	joj::SimpleMaterial m_tree_mat;
 
 	joj::JFloat4x4 m_grass_tex_transform = joj::float4x4_identity();
 	joj::JFloat4x4 m_water_tex_transform = joj::float4x4_identity();
@@ -63,34 +63,20 @@ public:
 	joj::JFloat4x4 m_waves_world = joj::float4x4_identity();
 	joj::JFloat4x4 m_box_world = joj::float4x4_identity();
 
-	ID3D11RasterizerState* m_wireframe_RS = nullptr;
-	ID3D11RasterizerState* m_no_cull_RS = nullptr;
-	ID3D11RasterizerState* m_cull_clock_wise_RS = nullptr;
-	ID3D11BlendState* m_alpha_to_coverage_BS = nullptr;
-	ID3D11BlendState* m_transparent_BS = nullptr;
-	ID3D11BlendState* m_no_render_target_write_BS = nullptr;
-	ID3D11DepthStencilState* m_mark_mirror_DSS = nullptr;
-	ID3D11DepthStencilState* m_draw_reflection_DSS = nullptr;
-	ID3D11DepthStencilState* m_no_double_blend_DSS = nullptr;
 	void build_render_states();
 
-
-	joj::D3D11VertexBuffer m_tree_sprites_vb;
-	
 	u32 m_land_index_count = 0;
 	void build_land_geometry_buffers();
 	void build_waves_geometry_buffers();
 	void build_crate_geometry_buffers();
-	void build_tree_sprites_buffers();
+	void build_screen_quad_geometry_buffers();
+	void build_offscreen_views();
 
-	ID3D11Texture2D* m_texture_array = nullptr;
-	ID3D11ShaderResourceView* m_texture_array_view = nullptr;
 	ID3D11SamplerState* m_sampler_state = nullptr;
 	void build_textures();
-	void build_texture_array();
 
-	joj::D3D11Shader m_basic_shader;
-	joj::D3D11Shader m_tree_sprite_shader;
+	joj::D3D11Shader m_vert_shader;
+	joj::D3D11Shader m_horz_shader;
 	void build_shaders();
 
 	std::vector<D3D11_INPUT_ELEMENT_DESC> m_input_desc;
@@ -120,10 +106,13 @@ public:
 	joj::RenderOptions m_render_options = joj::RenderOptions::Lighting;
 	i32 m_light_count = 2;
 	joj::D3D11RenderState m_render_state;
+	joj::D3D11BlurFilter m_blur;
 
 	u32 m_tree_count = 16;
 	b8 m_alpha_to_converage_on = false;
-	void draw_tree_sprites();
+
+	void draw_wapper();
+	void draw_screen_quad();
 };
 
 // ---------------------------------------------------------------------------------
