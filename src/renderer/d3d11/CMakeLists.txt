@@ -14,6 +14,7 @@ add_library(
     renderable_object_d3d11.cpp
     scene_d3d11.cpp
     DDSTextureLoader11.cpp
+    render_state_d3d11.cpp
 )
 
 target_link_directories(
