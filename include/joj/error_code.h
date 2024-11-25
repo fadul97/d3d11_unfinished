@@ -104,6 +104,12 @@ namespace joj
         /** @brief D3D11 Shader Error code, should be used when compilation of Pixel Shader fails. */
         ERR_SHADER_D3D11_PIXEL_COMPILATION,
 
+        /** @brief D3D11 Shader Error code, should be used when compilation of Geometry Shader fails. */
+        ERR_SHADER_D3D11_GEOMETRY_COMPILATION,
+
+        /** @brief D3D11 Shader Error code, should be used when compilation of Compute Shader fails. */
+        ERR_SHADER_D3D11_COMPUTE_COMPILATION,
+
         /** @brief D3D11 Renderer code, should be used when D3D11Renderer fails to initialize. */
         ERR_RENDERER_D3D11_INIT,
 
