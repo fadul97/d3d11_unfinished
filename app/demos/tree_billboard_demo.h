@@ -13,15 +13,7 @@
 #include "waves.h"
 #include "joj/systems/light/light.h"
 #include "joj/systems/material/material.h"
-
-// ---------------------------------------------------------------------------------
-
-enum class RenderOptions
-{
-	Lighting,
-	Textures,
-	TexturesAndFog
-};
+#include "joj/renderer/d3d11/render_state_d3d11.h"
 
 // ---------------------------------------------------------------------------------
 
@@ -46,15 +38,6 @@ public:
 	joj::SimpleMaterial m_box_mat;
 	joj::SimpleMaterial m_tree_mat;
 
-	ID3D11RasterizerState* m_wireframe_RS = nullptr;
-	ID3D11RasterizerState* m_no_cull_RS = nullptr;
-	ID3D11RasterizerState* m_cull_clock_wise_RS = nullptr;
-	ID3D11BlendState* m_alpha_to_coverage_BS = nullptr;
-	ID3D11BlendState* m_transparent_BS = nullptr;
-	ID3D11BlendState* m_no_render_target_write_BS = nullptr;
-	ID3D11DepthStencilState* m_mark_mirror_DSS = nullptr;
-	ID3D11DepthStencilState* m_draw_reflection_DSS = nullptr;
-	ID3D11DepthStencilState* m_no_double_blend_DSS = nullptr;
 	void build_render_states();
 
 	Waves m_waves{ 160, 160, 1.0f, 0.03f, 5.0f, 0.3f };
@@ -118,8 +101,9 @@ public:
 	f64 prev = 0.0f;
 	f32 t_base = 0.0f;
 	joj::JFloat2 m_water_tex_offset;
-	RenderOptions m_render_options = RenderOptions::Lighting;
+	joj::RenderOptions m_render_options = joj::RenderOptions::Lighting;
 	i32 m_light_count = 2;
+	joj::D3D11RenderState m_render_state;
 
 	u32 m_tree_count = 16;
 	b8 m_alpha_to_converage_on = false;

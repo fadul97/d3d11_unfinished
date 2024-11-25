@@ -177,202 +177,47 @@ void TreeBillBoarddDemo::build_render_states()
 	// ---------------------------------------------------
 	// Describe and Create Wireframe Rasterizer State
 	// ---------------------------------------------------
-
-	D3D11_RASTERIZER_DESC wireframe_desc;
-	ZeroMemory(&wireframe_desc, sizeof(D3D11_RASTERIZER_DESC));
-	wireframe_desc.FillMode = D3D11_FILL_WIREFRAME;
-	wireframe_desc.CullMode = D3D11_CULL_BACK;
-	wireframe_desc.FrontCounterClockwise = false;
-	wireframe_desc.DepthClipEnable = true;
-
-	// Create rasterizer state
-	if (joj::Engine::s_renderer->get_device()->CreateRasterizerState(&wireframe_desc, &m_wireframe_RS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create RasterizerState.");
-	}
+	m_render_state.create_rasterizer_state(joj::RasterizerStateOption::Wireframe);
 
 	// ---------------------------------------------------
 	// Describe and Create NoCull Rasterizer State
 	// ---------------------------------------------------
-
-	D3D11_RASTERIZER_DESC no_cull_desc;
-	ZeroMemory(&no_cull_desc, sizeof(D3D11_RASTERIZER_DESC));
-	no_cull_desc.FillMode = D3D11_FILL_SOLID;
-	no_cull_desc.CullMode = D3D11_CULL_NONE;
-	no_cull_desc.FrontCounterClockwise = false;
-	no_cull_desc.DepthClipEnable = true;
-
-	// Create rasterizer state
-	if (joj::Engine::s_renderer->get_device()->CreateRasterizerState(&no_cull_desc, &m_no_cull_RS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create RasterizerState.");
-	}
+	m_render_state.create_rasterizer_state(joj::RasterizerStateOption::NoCull);
 
 	// ---------------------------------------------------
 	// Describe and Create CullClockWise Rasterizer State
 	// ---------------------------------------------------
-
-	D3D11_RASTERIZER_DESC cull_clock_wise_desc;
-	ZeroMemory(&cull_clock_wise_desc, sizeof(D3D11_RASTERIZER_DESC));
-	cull_clock_wise_desc.FillMode = D3D11_FILL_SOLID;
-	cull_clock_wise_desc.CullMode = D3D11_CULL_BACK;
-	cull_clock_wise_desc.FrontCounterClockwise = true;
-	cull_clock_wise_desc.DepthClipEnable = true;
-
-	// Create rasterizer state
-	if (joj::Engine::s_renderer->get_device()->CreateRasterizerState(&cull_clock_wise_desc, &m_cull_clock_wise_RS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create RasterizerState.");
-	}
+	m_render_state.create_rasterizer_state(joj::RasterizerStateOption::CullClockwise);
 
 	// ---------------------------------------------------
 	// Describe and Create AlphaToCoverage Blend State
 	// ---------------------------------------------------
-
-	D3D11_BLEND_DESC alpha_to_coverage_desc = { 0 };
-	alpha_to_coverage_desc.AlphaToCoverageEnable = true;
-	alpha_to_coverage_desc.IndependentBlendEnable = false;
-	alpha_to_coverage_desc.RenderTarget[0].BlendEnable = false;
-	alpha_to_coverage_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	// Create rasterizer state
-	if (joj::Engine::s_renderer->get_device()->CreateBlendState(&alpha_to_coverage_desc, &m_alpha_to_coverage_BS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create Blend State.");
-	}
+	m_render_state.create_blend_state(joj::BlendStateOption::AlphaToCoverage);
 
 	// ---------------------------------------------------
 	// Describe and Create Transparent Blend State
 	// ---------------------------------------------------
-
-	D3D11_BLEND_DESC transparent_desc = { 0 };
-	transparent_desc.AlphaToCoverageEnable = false;
-	transparent_desc.IndependentBlendEnable = false;
-
-	transparent_desc.RenderTarget[0].BlendEnable = true;
-	transparent_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	transparent_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-	transparent_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	transparent_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	transparent_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	transparent_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	transparent_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	// Create rasterizer state
-	if (joj::Engine::s_renderer->get_device()->CreateBlendState(&transparent_desc, &m_transparent_BS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create Blend State.");
-	}
+	m_render_state.create_blend_state(joj::BlendStateOption::Transparent);
 
 	// ---------------------------------------------------
 	// Describe and Create NoRenderTargetWrite Blend State
 	// ---------------------------------------------------
-
-	D3D11_BLEND_DESC no_render_target_write_desc = { 0 };
-	no_render_target_write_desc.AlphaToCoverageEnable = false;
-	no_render_target_write_desc.IndependentBlendEnable = false;
-
-	no_render_target_write_desc.RenderTarget[0].BlendEnable = false;
-	no_render_target_write_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-	no_render_target_write_desc.RenderTarget[0].DestBlend = D3D11_BLEND_ZERO;
-	no_render_target_write_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	no_render_target_write_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	no_render_target_write_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	no_render_target_write_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	no_render_target_write_desc.RenderTarget[0].RenderTargetWriteMask = 0;
-
-	// Create blend state
-	if (joj::Engine::s_renderer->get_device()->CreateBlendState(&no_render_target_write_desc, &m_no_render_target_write_BS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create Blend State.");
-	}
+	m_render_state.create_blend_state(joj::BlendStateOption::NoRenderTargetWrite);
 
 	// ---------------------------------------------------
 	// Describe and Create MarkMirror Depth Stencil State
 	// ---------------------------------------------------
-
-	D3D11_DEPTH_STENCIL_DESC mark_mirror_desc = { 0 };
-	mark_mirror_desc.DepthEnable = true;
-	mark_mirror_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-	mark_mirror_desc.DepthFunc = D3D11_COMPARISON_LESS;
-	mark_mirror_desc.StencilEnable = true;
-	mark_mirror_desc.StencilReadMask = 0xff;
-	mark_mirror_desc.StencilWriteMask = 0xff;
-
-	mark_mirror_desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	mark_mirror_desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	mark_mirror_desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
-	mark_mirror_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-	// We are not rendering backfacing polygons, so these settings do not matter.
-	mark_mirror_desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	mark_mirror_desc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	mark_mirror_desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
-	mark_mirror_desc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-
-	// Create depth stencil
-	if (joj::Engine::s_renderer->get_device()->CreateDepthStencilState(&mark_mirror_desc, &m_mark_mirror_DSS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create Depth Stencil State.");
-	}
+	m_render_state.create_depthstencil_state(joj::DepthStencilStateOption::MarkMirror);
 
 	// ---------------------------------------------------
 	// Describe and Create DrawReflection Depth Stencil State
 	// ---------------------------------------------------
-
-	D3D11_DEPTH_STENCIL_DESC draw_reflection_desc = { 0 };
-	draw_reflection_desc.DepthEnable = true;
-	draw_reflection_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	draw_reflection_desc.DepthFunc = D3D11_COMPARISON_LESS;
-	draw_reflection_desc.StencilEnable = true;
-	draw_reflection_desc.StencilReadMask = 0xff;
-	draw_reflection_desc.StencilWriteMask = 0xff;
-
-	draw_reflection_desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	draw_reflection_desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	draw_reflection_desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	draw_reflection_desc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
-
-	// We are not rendering backfacing polygons, so these settings do not matter.
-	draw_reflection_desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	draw_reflection_desc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	draw_reflection_desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-	draw_reflection_desc.BackFace.StencilFunc = D3D11_COMPARISON_EQUAL;
-
-	// Create depth stencil
-	if (joj::Engine::s_renderer->get_device()->CreateDepthStencilState(&draw_reflection_desc, &m_draw_reflection_DSS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create Depth Stencil State.");
-	}
+	m_render_state.create_depthstencil_state(joj::DepthStencilStateOption::Reflection);
 
 	// ---------------------------------------------------
 	// Describe and Create NoDoubleBlend Depth Stencil State
 	// ---------------------------------------------------
-
-	D3D11_DEPTH_STENCIL_DESC no_double_blend_desc = { 0 };
-	no_double_blend_desc.DepthEnable = true;
-	no_double_blend_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	no_double_blend_desc.DepthFunc = D3D11_COMPARISON_LESS;
-	no_double_blend_desc.StencilEnable = true;
-	no_double_blend_desc.StencilReadMask = 0xff;
-	no_double_blend_desc.StencilWriteMask = 0xff;
-
-	no_double_blend_desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	no_double_blend_desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	no_double_blend_desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
-	no_double_blend_desc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
-
-	// We are not rendering backfacing polygons, so these settings do not matter.
-	no_double_blend_desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	no_double_blend_desc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	no_double_blend_desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_INCR;
-	no_double_blend_desc.BackFace.StencilFunc = D3D11_COMPARISON_EQUAL;
-
-	// Create depth stencil
-	if (joj::Engine::s_renderer->get_device()->CreateDepthStencilState(&no_double_blend_desc, &m_no_double_blend_DSS) != S_OK)
-	{
-		JERROR(joj::ErrorCode::FAILED, "Failed to create Depth Stencil State.");
-	}
+	m_render_state.create_depthstencil_state(joj::DepthStencilStateOption::NoDoubleBlend);
 }
 
 // ---------------------------------------------------------------------------------
@@ -1046,19 +891,19 @@ void TreeBillBoarddDemo::update(const f32 dt)
 	{
 		if (joj::Engine::s_input->is_key_pressed('1'))
 		{
-			m_render_options = RenderOptions::Lighting;
+			m_render_options = joj::RenderOptions::Lighting;
 			JDEBUG("Lighting");
 		}
 
 		if (joj::Engine::s_input->is_key_pressed('2'))
 		{
-			m_render_options = RenderOptions::Textures;
+			m_render_options = joj::RenderOptions::Textures;
 			JDEBUG("Textures");
 		}
 
 		if (joj::Engine::s_input->is_key_pressed('3'))
 		{
-			m_render_options = RenderOptions::TexturesAndFog;
+			m_render_options = joj::RenderOptions::TexturesAndFog;
 			JDEBUG("TexturesAndFog");
 		}
 
@@ -1118,7 +963,7 @@ void TreeBillBoarddDemo::draw()
 
 	switch (m_render_options)
 	{
-	case RenderOptions::Lighting:
+	case joj::RenderOptions::Lighting:
 		box_use_texture = 0;
 		box_alpha_clip = 0;
 		box_fog_enabled = 0;
@@ -1127,7 +972,7 @@ void TreeBillBoarddDemo::draw()
 		hills_alpha_clip = 0;
 		hills_fog_enabled = 0;
 		break;
-	case RenderOptions::Textures:
+	case joj::RenderOptions::Textures:
 		box_use_texture = 1;
 		box_alpha_clip = 1;
 		box_fog_enabled = 0;
@@ -1136,7 +981,7 @@ void TreeBillBoarddDemo::draw()
 		hills_alpha_clip = 0;
 		hills_fog_enabled = 0;
 		break;
-	case RenderOptions::TexturesAndFog:
+	case joj::RenderOptions::TexturesAndFog:
 		box_use_texture = 1;
 		box_alpha_clip = 1;
 		box_fog_enabled = 1;
@@ -1211,9 +1056,9 @@ void TreeBillBoarddDemo::draw()
 		box_cb.fog_enabled = box_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), box_cb);
 
-		joj::Engine::s_renderer->get_device_context()->RSSetState(m_no_cull_RS);
+		m_render_state.set_rasterizer_state(joj::RasterizerStateOption::NoCull);
 		joj::Engine::s_renderer->get_device_context()->DrawIndexed(m_box_index_count, 0, 0);
-		joj::Engine::s_renderer->get_device_context()->RSSetState(nullptr);
+		m_render_state.set_rasterizer_state(joj::RasterizerStateOption::None);
 	}
 
 	// --------------------------------------------------------------------------
@@ -1290,9 +1135,9 @@ void TreeBillBoarddDemo::draw()
 		waves_cb.fog_enabled = hills_fog_enabled;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), waves_cb);
 
-		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_transparent_BS, blend_factor, 0xffffffff);
+		m_render_state.set_blend_state(joj::BlendStateOption::Transparent, blend_factor);
 		joj::Engine::s_renderer->get_device_context()->DrawIndexed(3 * m_waves.get_triangle_count(), 0, 0);
-		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
+		m_render_state.set_blend_state(joj::BlendStateOption::None, blend_factor);
 	}
 
 	// draw_tree_sprites();
@@ -1342,19 +1187,19 @@ void TreeBillBoarddDemo::draw_tree_sprites()
 
 	switch (m_render_options)
 	{
-	case RenderOptions::Lighting:
+	case joj::RenderOptions::Lighting:
 		tree_use_texture = 0;
 		tree_alpha_clip = 0;
 		tree_fog_enabled = 0;
 		break;
 
-	case RenderOptions::Textures:
+	case joj::RenderOptions::Textures:
 		tree_use_texture = 1;
 		tree_alpha_clip = 1;
 		tree_fog_enabled = 0;
 		break;
 
-	case RenderOptions::TexturesAndFog:
+	case joj::RenderOptions::TexturesAndFog:
 		tree_use_texture = 1;
 		tree_alpha_clip = 1;
 		tree_fog_enabled = 1;
@@ -1405,12 +1250,12 @@ void TreeBillBoarddDemo::draw_tree_sprites()
 
 	if (m_alpha_to_converage_on)
 	{
-		joj::Engine::s_renderer->get_device_context()->OMSetBlendState(m_alpha_to_coverage_BS, blend_factor, 0xffffffff);
+		m_render_state.set_blend_state(joj::BlendStateOption::AlphaToCoverage, blend_factor);
 	}
 
 	joj::Engine::s_renderer->get_device_context()->Draw(m_tree_count, 0);
 
-	joj::Engine::s_renderer->get_device_context()->OMSetBlendState(nullptr, blend_factor, 0xffffffff);
+	m_render_state.set_blend_state(joj::BlendStateOption::None, blend_factor);
 }
 
 // ---------------------------------------------------------------------------------
@@ -1428,15 +1273,6 @@ void TreeBillBoarddDemo::shutdown()
 		m_texture_array_view->Release();
 
 	m_sampler_state->Release();
-	m_wireframe_RS->Release();
-	m_no_cull_RS->Release();
-	m_cull_clock_wise_RS->Release();
-	m_alpha_to_coverage_BS->Release();
-	m_transparent_BS->Release();
-	m_no_render_target_write_BS->Release();
-	m_mark_mirror_DSS->Release();
-	m_draw_reflection_DSS->Release();
-	m_no_double_blend_DSS->Release();
 	m_input_layout->Release();
 	m_tree_input_layout->Release();
 
