@@ -7,7 +7,7 @@ add_executable(
 	
 	# Demo App
 	demos/waves.cpp
-	demos/tree_billboard_demo.cpp
+	demos/blur_demo.cpp
 )
 # => demos folder:
 # box_demo.cpp shapes_demo.cpp hills_demo.cpp skull_demo.cpp
