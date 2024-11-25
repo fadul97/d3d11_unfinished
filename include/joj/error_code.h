@@ -106,6 +106,10 @@ namespace joj
 
         /** @brief D3D11 Renderer code, should be used when D3D11Renderer fails to initialize. */
         ERR_RENDERER_D3D11_INIT,
+
+        ERR_RENDER_STATE_D3D11_RASTERIZER_STATE_CREATION,
+        ERR_RENDER_STATE_D3D11_BLEND_STATE_CREATION,
+        ERR_RENDER_STATE_D3D11_DEPTHSTENCIL_STATE_CREATION,
     };
 
     /** @brief Get the index of the ErrorCode.
