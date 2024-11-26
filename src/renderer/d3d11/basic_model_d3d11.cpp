@@ -12,8 +12,8 @@ joj::D3D11BasicModel::D3D11BasicModel(ID3D11Device* device,
 	std::vector<M3dMaterial> mats;
 	D3D11ResourceLoader::load_m3d(model_filename, m_vertices, m_indices, m_submeshes, mats);
 
-	m_model_mesh.set_vertices(device, &m_vertices[0], m_vertices.size());
-	m_model_mesh.set_indices(device, &m_indices[0], m_indices.size());
+	m_model_mesh.set_vertices(device, m_vertices.data(), m_vertices.size());
+	m_model_mesh.set_indices(device, m_indices.data(), m_indices.size());
 	m_model_mesh.set_submeshes(m_submeshes);
 
 	m_submesh_count = mats.size();
