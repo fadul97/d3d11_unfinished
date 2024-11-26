@@ -370,8 +370,7 @@ void PickingDemo::update(const f32 dt)
 			ShowCursor(hideCursor);
 		}
 
-		/*
-		if (firstPerson)
+		if (joj::Engine::s_input->is_button_down(joj::BUTTON_LEFT))
 		{
 			// Now read the mouse position
 			POINT cursorPos;
@@ -386,7 +385,6 @@ void PickingDemo::update(const f32 dt)
 			//mouse_callback(JojEngine::Engine::pm->get_xmouse(), JojEngine::Engine::pm->get_ymouse());
 			camera.process_mouse_movement(xoffset, yoffset);
 		}
-		*/
 
 		// Change Rasterizer State
 		if (joj::Engine::s_input->is_key_pressed('C'))
@@ -507,6 +505,9 @@ void PickingDemo::draw()
 	// ---------------------------------------------------
 	if (m_picked_triangle != -1)
 	{
+		// Change depth test from < to <= so that if we draw the same triangle twice, it will still pass
+		// the depth test.  This is because we redraw the picked triangle with a different material
+		// to highlight it.
 		m_render_state.set_depthstencil_state(joj::DepthStencilStateOption::LessEqual);
 		mesh_cb.material = m_picked_triangle_mat;
 		m_object_cb.update(joj::Engine::s_renderer->get_device_context(), mesh_cb);
@@ -591,6 +592,7 @@ void PickingDemo::pick(i32 sx, i32 sy)
 					// This is the new nearest picked triangle.
 					tmin = t;
 					m_picked_triangle = i;
+					JDEBUG("Ray intersects the bounding box.");
 				}
 			}
 		}
