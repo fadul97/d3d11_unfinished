@@ -39,6 +39,7 @@ namespace joj
 		MarkMirror,
 		Reflection,
 		NoDoubleBlend,
+		LessEqual,
 		None
 	};
 
@@ -68,6 +69,7 @@ namespace joj
 		ID3D11DepthStencilState* m_mark_mirror_DSS;
 		ID3D11DepthStencilState* m_draw_reflection_DSS;
 		ID3D11DepthStencilState* m_no_double_blend_DSS;
+		ID3D11DepthStencilState* m_less_equal_DSS;
 	};
 }
 

@@ -16,6 +16,7 @@ joj::D3D11RenderState::D3D11RenderState()
     m_mark_mirror_DSS = nullptr;
     m_draw_reflection_DSS = nullptr;
     m_no_double_blend_DSS = nullptr;
+    m_less_equal_DSS = nullptr;
 }
 
 joj::D3D11RenderState::~D3D11RenderState()
@@ -105,7 +106,7 @@ joj::ErrorCode joj::D3D11RenderState::create_rasterizer_state(RasterizerStateOpt
             return ErrorCode::ERR_RENDER_STATE_D3D11_RASTERIZER_STATE_CREATION;
         }
     }
-        break;
+    break;
     case RasterizerStateOption::NoCull:
     {
         D3D11_RASTERIZER_DESC no_cull_desc;
@@ -124,7 +125,7 @@ joj::ErrorCode joj::D3D11RenderState::create_rasterizer_state(RasterizerStateOpt
             return ErrorCode::ERR_RENDER_STATE_D3D11_RASTERIZER_STATE_CREATION;
         }
     }
-        break;
+    break;
     case RasterizerStateOption::CullClockwise:
     {
         D3D11_RASTERIZER_DESC cull_clock_wise_desc;
@@ -143,7 +144,7 @@ joj::ErrorCode joj::D3D11RenderState::create_rasterizer_state(RasterizerStateOpt
             return ErrorCode::ERR_RENDER_STATE_D3D11_RASTERIZER_STATE_CREATION;
         }
     }
-        break;
+    break;
     default:
         break;
     }
@@ -172,7 +173,7 @@ joj::ErrorCode joj::D3D11RenderState::create_blend_state(BlendStateOption blend_
             return ErrorCode::ERR_RENDER_STATE_D3D11_BLEND_STATE_CREATION;
         }
     }
-        break;
+    break;
     case BlendStateOption::Transparent:
     {
         D3D11_BLEND_DESC transparent_desc = { 0 };
@@ -197,7 +198,7 @@ joj::ErrorCode joj::D3D11RenderState::create_blend_state(BlendStateOption blend_
             return ErrorCode::ERR_RENDER_STATE_D3D11_BLEND_STATE_CREATION;
         }
     }
-        break;
+    break;
     case BlendStateOption::NoRenderTargetWrite:
     {
         D3D11_BLEND_DESC no_render_target_write_desc = { 0 };
@@ -222,7 +223,7 @@ joj::ErrorCode joj::D3D11RenderState::create_blend_state(BlendStateOption blend_
             return ErrorCode::ERR_RENDER_STATE_D3D11_BLEND_STATE_CREATION;
         }
     }
-        break;
+    break;
     default:
         break;
     }
@@ -264,7 +265,7 @@ joj::ErrorCode joj::D3D11RenderState::create_depthstencil_state(DepthStencilStat
             return ErrorCode::ERR_RENDER_STATE_D3D11_DEPTHSTENCIL_STATE_CREATION;
         }
     }
-        break;
+    break;
     case DepthStencilStateOption::Reflection:
     {
         D3D11_DEPTH_STENCIL_DESC draw_reflection_desc = { 0 };
@@ -295,7 +296,7 @@ joj::ErrorCode joj::D3D11RenderState::create_depthstencil_state(DepthStencilStat
             return ErrorCode::ERR_RENDER_STATE_D3D11_DEPTHSTENCIL_STATE_CREATION;
         }
     }
-        break;
+    break;
     case DepthStencilStateOption::NoDoubleBlend:
     {
         D3D11_DEPTH_STENCIL_DESC no_double_blend_desc = { 0 };
@@ -326,7 +327,25 @@ joj::ErrorCode joj::D3D11RenderState::create_depthstencil_state(DepthStencilStat
             return ErrorCode::ERR_RENDER_STATE_D3D11_DEPTHSTENCIL_STATE_CREATION;
         }
     }
-        break;
+    break;
+    case DepthStencilStateOption::LessEqual:
+    {
+        D3D11_DEPTH_STENCIL_DESC less_equal_desc;
+        less_equal_desc.DepthEnable = true;
+        less_equal_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+        less_equal_desc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+        less_equal_desc.StencilEnable = false;
+
+        // Create depth stencil
+        if (Engine::s_renderer->get_device()->CreateDepthStencilState(
+            &less_equal_desc, &m_less_equal_DSS) != S_OK)
+        {
+            JERROR(ErrorCode::ERR_RENDER_STATE_D3D11_DEPTHSTENCIL_STATE_CREATION,
+                "Failed to create Depth Stencil State.");
+            return ErrorCode::ERR_RENDER_STATE_D3D11_DEPTHSTENCIL_STATE_CREATION;
+        }
+    }
+    break;
     default:
         break;
     }
@@ -381,12 +400,16 @@ void joj::D3D11RenderState::set_depthstencil_state(DepthStencilStateOption depth
     switch (depthstencil_state_option)
     {
     case DepthStencilStateOption::MarkMirror:
+        joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(m_mark_mirror_DSS, 0);
         break;
     case DepthStencilStateOption::Reflection:
+        joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(m_draw_reflection_DSS, 0);
         break;
     case DepthStencilStateOption::NoDoubleBlend:
+        joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(m_no_double_blend_DSS, 0);
         break;
     case DepthStencilStateOption::None:
+        joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(nullptr, 0);
         break;
     default:
         break;
