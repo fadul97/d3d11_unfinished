@@ -66,16 +66,32 @@ namespace joj
         m_vertex_stride = sizeof(VertexType);
 
         m_vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(VertexType) * count, vertices);
-
-        if (device->CreateBuffer(
-            m_vb.get_buffer_desc(),
-            m_vb.get_subdata(),
-            &m_vb.get_buffer()) != S_OK)
+        
+        if (vertices != nullptr)
         {
-            JERROR(ErrorCode::ERR_RENDERER_D3D11_VERTEX_BUFFER_CREATION,
-                "Failed to create Vertex Buffer.");
+            if (device->CreateBuffer(
+                m_vb.get_buffer_desc(),
+                m_vb.get_subdata(),
+                &m_vb.get_buffer()) != S_OK)
+            {
+                JERROR(ErrorCode::ERR_RENDERER_D3D11_VERTEX_BUFFER_CREATION,
+                    "Failed to create Vertex Buffer.");
 
-            return ErrorCode::ERR_RENDERER_D3D11_VERTEX_BUFFER_CREATION;
+                return ErrorCode::ERR_RENDERER_D3D11_VERTEX_BUFFER_CREATION;
+            }
+        }
+        else
+        {
+            if (device->CreateBuffer(
+                m_vb.get_buffer_desc(),
+                nullptr,
+                &m_vb.get_buffer()) != S_OK)
+            {
+                JERROR(ErrorCode::ERR_RENDERER_D3D11_VERTEX_BUFFER_CREATION,
+                    "Failed to create Vertex Buffer.");
+
+                return ErrorCode::ERR_RENDERER_D3D11_VERTEX_BUFFER_CREATION;
+            }
         }
 
         return ErrorCode::OK;
