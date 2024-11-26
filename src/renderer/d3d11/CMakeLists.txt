@@ -19,6 +19,7 @@ add_library(
     texture_manager_d3d11.cpp
     mesh_d3d11.cpp
     resource_loader_d3d11.cpp
+    basic_model_d3d11.cpp
 )
 
 target_link_directories(
