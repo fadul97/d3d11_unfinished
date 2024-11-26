@@ -6,7 +6,7 @@
 
 #if JPLATFORM_WINDOWS
 
-#include "systems/material/material.h";
+#include "systems/material/material.h"
 #include <vector>
 #include <string>
 #include "mesh_d3d11.h"
