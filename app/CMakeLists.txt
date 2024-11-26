@@ -6,9 +6,8 @@ add_executable(
 	main.cpp
 	
 	# Demo App
-	demos/waves.cpp
-	demos/blur_demo.cpp
-)
+	demos/istancing_and_culling_demo.cpp
+  )
 # => demos folder:
 # box_demo.cpp shapes_demo.cpp hills_demo.cpp skull_demo.cpp
 # waves.cpp waves_demo.cpp lit_waves_demo.cpp lit_skull_demo.cpp
