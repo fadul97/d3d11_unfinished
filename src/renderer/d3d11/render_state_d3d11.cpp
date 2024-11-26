@@ -408,6 +408,9 @@ void joj::D3D11RenderState::set_depthstencil_state(DepthStencilStateOption depth
     case DepthStencilStateOption::NoDoubleBlend:
         joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(m_no_double_blend_DSS, 0);
         break;
+    case DepthStencilStateOption::LessEqual:
+        joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(m_less_equal_DSS, 0);
+        break;
     case DepthStencilStateOption::None:
         joj::Engine::s_renderer->get_device_context()->OMSetDepthStencilState(nullptr, 0);
         break;
