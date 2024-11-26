@@ -29,6 +29,8 @@ namespace joj
         ErrorCode start();
         i32 run(App* app);
 
+        static void on_resize();
+
         static void close();
 
         static void pause();	// Pause engine
@@ -40,6 +42,11 @@ namespace joj
     private:
         static b8 s_paused;
         static b8 s_running;
+        static b8 s_resizing;
+        static b8 s_minimized;
+        static b8 s_maximized;
+        static u16 s_client_width;
+        static u16 s_client_height;
         f32 get_frametime();
     };
 

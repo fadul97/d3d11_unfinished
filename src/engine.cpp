@@ -13,6 +13,11 @@ joj::D3D11Renderer* joj::Engine::s_renderer = nullptr;
 f32 joj::Engine::s_frametime = 0.0f;
 b8 joj::Engine::s_paused = false;
 b8 joj::Engine::s_running = false;
+b8 joj::Engine::s_resizing = false;
+b8 joj::Engine::s_minimized = false;
+b8 joj::Engine::s_maximized = false;
+u16 joj::Engine::s_client_width = 0;
+u16 joj::Engine::s_client_height = 0;
 joj::App* joj::Engine::s_app = nullptr;
 
 joj::Engine::Engine()
@@ -76,6 +81,8 @@ joj::ErrorCode joj::Engine::start()
 	if (result != joj::ErrorCode::OK) {
 		return result;
 	}
+
+	s_window->get_client_size(s_client_width, s_client_height);
 
 	s_input = new Win32Input();
 	s_input->set_window(s_window->get_window_data().handle);
@@ -160,11 +167,116 @@ i32 joj::Engine::run(App* app)
 	return 0;
 }
 
+void joj::Engine::on_resize()
+{
+	JDEBUG("TODO");
+}
+
 LRESULT CALLBACK joj::Engine::EngineProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
+	switch (msg)
+	{
 	// Window must be repainted
-	if (msg == WM_PAINT)
+	case WM_PAINT:
 		s_app->display();
+		break;
+
+	// Pause when Window is deactivated and unpause when Window is activated
+	case WM_ACTIVATE:
+		if (LOWORD(wParam) == WA_INACTIVE)
+		{
+			s_paused = true;
+			s_timer->stop();
+		}
+		else
+		{
+			s_paused = false;
+			s_timer->start();
+		}
+		break;
+
+	// User resizes window
+	case WM_SIZE:
+		// Save new client area dimensions
+		s_client_width = LOWORD(lParam);
+		s_client_height = HIWORD(lParam);
+
+		if (s_renderer->get_device() != nullptr)
+		{
+			if (wParam == SIZE_MINIMIZED)
+			{
+				s_paused = true;
+				s_minimized = true;
+				s_maximized = false;
+			}
+			else if (wParam == SIZE_MAXIMIZED)
+			{
+				s_paused = false;
+				s_minimized = false;
+				s_maximized = true;
+				on_resize();
+			}
+			else if (wParam == SIZE_RESTORED)
+			{
+
+				// Restoring from minimized state?
+				if (s_minimized)
+				{
+					s_paused = false;
+					s_minimized = false;
+					on_resize();
+				}
+
+				// Restoring from maximized state?
+				else if (s_maximized)
+				{
+					s_paused = false;
+					s_maximized = false;
+					on_resize();
+				}
+				else if (s_resizing)
+				{
+					// If user is dragging the resize bars, we do not resize 
+					// the buffers here because as the user continuously 
+					// drags the resize bars, a stream of WM_SIZE messages are
+					// sent to the window, and it would be pointless (and slow)
+					// to resize for each WM_SIZE message received from dragging
+					// the resize bars.  So instead, we reset after the user is 
+					// done resizing the window and releases the resize bars, which 
+					// sends a WM_EXITSIZEMOVE message.
+				}
+				else // API call such as SetWindowPos or mSwapChain->SetFullscreenState.
+				{
+					on_resize();
+				}
+			}
+		}
+		break;
+
+	// User grabs the resize bars
+	case WM_ENTERSIZEMOVE:
+		s_paused = true;
+		s_resizing = true;
+		s_timer->stop();
+		break;
+
+	// User releases the resize bars
+	case WM_EXITSIZEMOVE:
+		s_paused = false;
+		s_resizing = false;
+		s_timer->start();
+		on_resize();
+		break;
+
+		// Catch this message so to prevent the window from becoming too small.
+	case WM_GETMINMAXINFO:
+		((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
+		((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
+		break;
+
+	default:
+		break;
+	}
 
 	return CallWindowProc(joj::Win32Input::InputProc, hWnd, msg, wParam, lParam);
 }
