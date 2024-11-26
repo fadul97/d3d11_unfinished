@@ -590,7 +590,10 @@ void BlendDemo::build_constant_buffers()
 	m_object_cb.setup(joj::calculate_cb_byte_size(sizeof(joj::CBPerObject)), nullptr);
 
 	// Create constant buffer
-	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_object_cb.get_buffer_desc(), nullptr, &m_object_cb.get_buffer()) != S_OK)
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(
+		m_object_cb.get_buffer_desc(),
+		nullptr,
+		&m_object_cb.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Constant Buffer.");
 	}
@@ -602,7 +605,10 @@ void BlendDemo::build_constant_buffers()
 	m_frame_cb.setup(joj::calculate_cb_byte_size(sizeof(joj::CBPerFrame)), nullptr);
 
 	// Create constant buffer
-	if (joj::Engine::s_renderer->get_device()->CreateBuffer(m_frame_cb.get_buffer_desc(), nullptr, &m_frame_cb.get_buffer()) != S_OK)
+	if (joj::Engine::s_renderer->get_device()->CreateBuffer(
+		m_frame_cb.get_buffer_desc(),
+		nullptr,
+		&m_frame_cb.get_buffer()) != S_OK)
 	{
 		JERROR(joj::ErrorCode::FAILED, "Failed to create Constant Buffer.");
 	}
