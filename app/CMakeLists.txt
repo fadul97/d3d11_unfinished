@@ -6,14 +6,23 @@ add_executable(
 	main.cpp
 	
 	# Demo App
-	demos/picking_demo.cpp
+	demos/mesh_view_demo.cpp
 )
 # => demos folder:
 # box_demo.cpp shapes_demo.cpp hills_demo.cpp skull_demo.cpp
 # waves.cpp waves_demo.cpp lit_waves_demo.cpp lit_skull_demo.cpp
 # crate_demo.cpp textured_hills_waves_demo.cpp blend_demo.cpp
 # mirror_demo.cpp
-# istancing_and_culling_demo.cpp
+# istancing_and_culling_demo.cpp picking_demo.cpp
+
+# Copy shaders
+file(COPY shaders/ DESTINATION ${CMAKE_BINARY_DIR}/app/shaders/)
+
+# Copy textures
+file(COPY textures/ DESTINATION ${CMAKE_BINARY_DIR}/app/textures/)
+
+# Copy models
+file(COPY models/ DESTINATION ${CMAKE_BINARY_DIR}/app/models/)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET jojApp PROPERTY CXX_STANDARD 20)
