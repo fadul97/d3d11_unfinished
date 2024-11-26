@@ -16,6 +16,7 @@ add_library(
     DDSTextureLoader11.cpp
     render_state_d3d11.cpp
     blur_filter_d3d11.cpp
+    texture_manager_d3d11.cpp
 )
 
 target_link_directories(
