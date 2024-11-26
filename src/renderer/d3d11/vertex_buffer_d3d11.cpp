@@ -7,15 +7,19 @@ joj::D3D11VertexBuffer::D3D11VertexBuffer()
     m_vbd = { 0 };
     m_vertex_buffer = nullptr;
     m_init_data = { 0 };
+    m_filled = false;
 }
 
 joj::D3D11VertexBuffer::~D3D11VertexBuffer()
 {
-    // Release Vertex Buffer
-    if (m_vertex_buffer)
+    if (m_filled)
     {
-        m_vertex_buffer->Release();
-        m_vertex_buffer = nullptr;
+        // Release Vertex Buffer
+        if (m_vertex_buffer)
+        {
+            m_vertex_buffer->Release();
+            m_vertex_buffer = nullptr;
+        }
     }
 }
 
@@ -31,6 +35,23 @@ void joj::D3D11VertexBuffer::setup(D3D11_USAGE usage, u32 cpu_access_flags, u32 
 
     if (data != nullptr)
         m_init_data.pSysMem = data;
+
+    m_filled = true;
+}
+
+void joj::D3D11VertexBuffer::cleanup()
+{
+    if (m_filled)
+    {
+        // Release Vertex Buffer
+        if (m_vertex_buffer)
+        {
+            m_vertex_buffer->Release();
+            m_vertex_buffer = nullptr;
+        }
+    }
+
+    m_filled = false;
 }
 
 #endif // JPLATFORM_WINDOWS

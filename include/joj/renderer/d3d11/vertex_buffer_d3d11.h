@@ -22,10 +22,15 @@ namespace joj
         ID3D11Buffer*& get_buffer();
         const D3D11_SUBRESOURCE_DATA* get_subdata() const;
 
+        b8 is_filled() const;
+        void cleanup();
+
     private:
         D3D11_BUFFER_DESC m_vbd;
         ID3D11Buffer* m_vertex_buffer;
         D3D11_SUBRESOURCE_DATA m_init_data;
+
+        b8 m_filled;
     };
 
     inline const D3D11_BUFFER_DESC* D3D11VertexBuffer::get_buffer_desc() const
@@ -36,6 +41,9 @@ namespace joj
 
     inline const D3D11_SUBRESOURCE_DATA* D3D11VertexBuffer::get_subdata() const
     { return &m_init_data; }
+
+    inline b8 D3D11VertexBuffer::is_filled() const
+    { return m_filled; }
 }
 
 #endif // JPLATFORM_WINDOWS
