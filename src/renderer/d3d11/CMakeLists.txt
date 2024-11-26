@@ -17,6 +17,7 @@ add_library(
     render_state_d3d11.cpp
     blur_filter_d3d11.cpp
     texture_manager_d3d11.cpp
+    mesh_d3d11.cpp
 )
 
 target_link_directories(
