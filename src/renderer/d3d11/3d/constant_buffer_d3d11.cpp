@@ -1,4 +1,4 @@
-#include "renderer/d3d11/constant_buffer_d3d11.h"
+#include "renderer/d3d11/3d/constant_buffer_d3d11.h"
 
 joj::D3D11ConstantBuffer::D3D11ConstantBuffer()
 {

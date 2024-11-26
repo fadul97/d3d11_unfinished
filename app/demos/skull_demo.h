@@ -5,13 +5,13 @@
 
 #include "joj/application/app.h"
 #include <DirectXMath.h>
-#include "joj/renderer/d3d11/renderer_d3d11.h"
+#include "joj/renderer/d3d11/3d/renderer_d3d11.h"
 #include <unordered_map>
 #include <string>
-#include "joj/renderer/d3d11/shader_d3d11.h"
-#include "joj/renderer/d3d11/vertex_buffer_d3d11.h"
-#include <renderer/d3d11/index_buffer_d3d11.h>
-#include <renderer/d3d11/constant_buffer_d3d11.h>
+#include "joj/renderer/d3d11/3d/shader_d3d11.h"
+#include "joj/renderer/d3d11/3d/vertex_buffer_d3d11.h"
+#include <renderer/d3d11/3d/index_buffer_d3d11.h>
+#include <renderer/d3d11/3d/constant_buffer_d3d11.h>
 #include "joj/math/jmath.h"
 #include "joj/resources/geometry/cube.h"
 #include <resources/geometry/sphere.h>
@@ -21,8 +21,8 @@
 #include <resources/geometry/quad.h>
 #include "joj/systems/camera/free_camera.h"
 #include <memory>
-#include "joj/renderer/d3d11/renderable_object_d3d11.h"
-#include "joj/renderer/d3d11/scene_d3d11.h"
+#include "joj/renderer/d3d11/3d/renderable_object_d3d11.h"
+#include "joj/renderer/d3d11/3d/scene_d3d11.h"
 
 // ---------------------------------------------------------------------------------
 

@@ -4,11 +4,11 @@
 // ---------------------------------------------------------------------------------
 
 #include "joj/application/app.h"
-#include "joj/renderer/d3d11/basic_model_d3d11.h"
+#include "joj/renderer/d3d11/3d/basic_model_d3d11.h"
 #include "joj/systems/camera/free_camera.h"
 #include "joj/systems/light/light.h"
-#include <renderer/d3d11/shader_d3d11.h>
-#include <renderer/d3d11/constant_buffer_d3d11.h>
+#include <renderer/d3d11/3d/shader_d3d11.h>
+#include <renderer/d3d11/3d/constant_buffer_d3d11.h>
 
 // ---------------------------------------------------------------------------------
 

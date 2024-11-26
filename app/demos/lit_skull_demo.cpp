@@ -13,8 +13,8 @@
 #include <resources/geometry/sphere.h>
 #include <resources/geometry/cylinder.h>
 #include <resources/geometry/grid.h>
-#include "joj/renderer/d3d11/renderable_object_d3d11.h"
-#include "joj/renderer/d3d11/cbuffer_structs_d3d11.h"
+#include "joj/renderer/d3d11/3d/renderable_object_d3d11.h"
+#include "joj/renderer/d3d11/3d/cbuffer_structs_d3d11.h"
 
 // ---------------------------------------------------------------------------------
 

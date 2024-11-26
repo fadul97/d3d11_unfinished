@@ -7,8 +7,8 @@
 #include "logger.h"
 #include "joj/engine.h"
 #include "joj/resources/geometry/cube.h"
-#include <renderer/d3d11/DDSTextureLoader11.h>
-#include "joj/renderer/d3d11/cbuffer_structs_d3d11.h"
+#include <renderer/d3d11/3d/DDSTextureLoader11.h>
+#include "joj/renderer/d3d11/3d/cbuffer_structs_d3d11.h"
 
 // ---------------------------------------------------------------------------------
 

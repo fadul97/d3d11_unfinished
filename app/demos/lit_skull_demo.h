@@ -5,10 +5,10 @@
 
 #include "joj/application/app.h"
 #include "joj/math/jmath.h"
-#include "joj/renderer/d3d11/shader_d3d11.h"
-#include "joj/renderer/d3d11/vertex_buffer_d3d11.h"
-#include <renderer/d3d11/index_buffer_d3d11.h>
-#include <renderer/d3d11/constant_buffer_d3d11.h>
+#include "joj/renderer/d3d11/3d/shader_d3d11.h"
+#include "joj/renderer/d3d11/3d/vertex_buffer_d3d11.h"
+#include <renderer/d3d11/3d/index_buffer_d3d11.h>
+#include <renderer/d3d11/3d/constant_buffer_d3d11.h>
 #include "joj/systems/camera/free_camera.h"
 #include "joj/systems/light/light.h"
 #include "joj/systems/material/material.h"

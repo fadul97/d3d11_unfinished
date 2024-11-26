@@ -14,9 +14,9 @@
 #include <string>
 #include <resources/geometry/grid.h>
 #include <resources/geometry/quad.h>
-#include "joj/renderer/d3d11/scene_d3d11.h" // for ObjectCB
+#include "joj/renderer/d3d11/3d/scene_d3d11.h" // for ObjectCB
 #include "joj/systems/light/light_debug.h"
-#include <renderer/d3d11/DDSTextureLoader11.h>
+#include <renderer/d3d11/3d/DDSTextureLoader11.h>
 #include <resources/geometry/cube.h>
 
 // ---------------------------------------------------------------------------------

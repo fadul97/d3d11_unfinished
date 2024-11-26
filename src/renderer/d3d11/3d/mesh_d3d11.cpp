@@ -1,4 +1,4 @@
-#include "renderer/d3d11/mesh_d3d11.h"
+#include "renderer/d3d11/3d/mesh_d3d11.h"
 
 #if JPLATFORM_WINDOWS
 

@@ -1,4 +1,4 @@
-#include "renderer/d3d11/renderable_object_d3d11.h"
+#include "renderer/d3d11/3d/renderable_object_d3d11.h"
 
 #if JPLATFORM_WINDOWS
 

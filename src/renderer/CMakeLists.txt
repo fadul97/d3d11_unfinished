@@ -21,5 +21,5 @@ if(WIN32)
         ${CMAKE_CURRENT_SOURCE_DIR}/d3d11/
     )
 
-    target_link_libraries(jojRenderer PUBLIC jojPlatform jojD3D11Renderer)
+    target_link_libraries(jojRenderer PUBLIC jojPlatform jojD3D11Renderer3D)
 endif()

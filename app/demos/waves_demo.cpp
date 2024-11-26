@@ -13,7 +13,7 @@
 #include <fstream>
 #include <string>
 #include <resources/geometry/grid.h>
-#include "joj/renderer/d3d11/scene_d3d11.h" // for ObjectCB
+#include "joj/renderer/d3d11/3d/scene_d3d11.h" // for ObjectCB
 
 // ---------------------------------------------------------------------------------
 

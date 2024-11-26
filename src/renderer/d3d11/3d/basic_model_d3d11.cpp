@@ -1,8 +1,8 @@
-#include "renderer/d3d11/basic_model_d3d11.h"
+#include "renderer/d3d11/3d/basic_model_d3d11.h"
 
 #if JPLATFORM_WINDOWS
 
-#include "renderer/d3d11/resources_loader_d3d11.h"
+#include "renderer/d3d11/3d/resources_loader_d3d11.h"
 
 joj::D3D11BasicModel::D3D11BasicModel(ID3D11Device* device,
 	D3D11TextureManager& tex_mgr,

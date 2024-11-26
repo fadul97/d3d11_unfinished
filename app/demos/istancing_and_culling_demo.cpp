@@ -13,7 +13,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include <renderer/d3d11/cbuffer_structs_d3d11.h>
+#include <renderer/d3d11/3d/cbuffer_structs_d3d11.h>
 #include <locale>
 #include <codecvt>
 
