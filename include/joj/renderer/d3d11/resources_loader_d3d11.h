@@ -25,7 +25,7 @@ namespace joj
 
 	namespace D3D11ResourceLoader
 	{
-		bool load_m3d(const std::string& filename,
+		JAPI b8 load_m3d(const std::string& filename,
 			std::vector<Vertex::PosNormalTexTan>& vertices,
 			std::vector<u16>& indices,
 			std::vector<D3D11Submesh>& submeshes,
