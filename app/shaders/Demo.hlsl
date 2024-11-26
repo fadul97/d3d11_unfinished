@@ -25,7 +25,7 @@ cbuffer cbPerFrame : register(b1)
     DirectionalLight gDirLights[3];    //  3 * (4 x 16 byte elements)
     float3 gEyePosW;                   // 16 Bytes
     
-    float4x4 gViewProj;                // 16 Bytes
+    // float4x4 gViewProj;                // 16 Bytes
 
     float gFogStart;                   // 4 Bytes
     float gFogRange;                   // 4 Bytes
@@ -44,18 +44,14 @@ struct VertexIn
     float3 PosL : POSITION;
     float3 NormalL : NORMAL;
     float2 Tex : TEXCOORD;
-    row_major float4x4 World : WORLD;
-    float4 Color : COLOR;
-    uint InstanceId : SV_InstanceID;
 };
 
 struct VertexOut
 {
-    float4 PosH : SV_POSITION;
-    float3 PosW : POSITION;
+	float4 PosH    : SV_POSITION;
+    float3 PosW    : POSITION;
     float3 NormalW : NORMAL;
-    float2 Tex : TEXCOORD;
-    float4 Color : COLOR;
+	float2 Tex     : TEXCOORD;
 };
 
 VertexOut VS(VertexIn vin)
@@ -63,15 +59,14 @@ VertexOut VS(VertexIn vin)
     VertexOut vout;
 	
 	// Transform to world space space.
-    vout.PosW = mul(float4(vin.PosL, 1.0f), vin.World).xyz;
-    vout.NormalW = mul(vin.NormalL, (float3x3) vin.World);
+    vout.PosW = mul(float4(vin.PosL, 1.0f), gWorld).xyz;
+    vout.NormalW = mul(vin.NormalL, (float3x3) gWorldInvTranspose);
 		
 	// Transform to homogeneous clip space.
-    vout.PosH = mul(float4(vout.PosW, 1.0f), gViewProj);
+    vout.PosH = mul(float4(vin.PosL, 1.0f), gWorldViewProj);
 	
 	// Output vertex attributes for interpolation across triangle.
     vout.Tex = mul(float4(vin.Tex, 0.0f, 1.0f), gTexTransform).xy;
-    vout.Color = vin.Color;
 
     return vout;
 }
@@ -92,6 +87,19 @@ float4 PS(VertexOut pin) : SV_Target
 	
     // Default to multiplicative identity.
     float4 texColor = float4(1, 1, 1, 1);
+    if (gUseTexure)
+    {
+		// Sample texture.
+        // texColor = gDiffuseMap.Sample(samAnisotropic, pin.Tex);
+
+        if (gAlphaClip)
+        {
+			// Discard pixel if texture alpha < 0.1.  Note that we do this
+			// test as soon as possible so that we can potentially exit the shader 
+			// early, thereby skipping the rest of the shader code.
+            clip(texColor.a - 0.1f);
+        }
+    }
 	 
 	//
 	// Lighting.
@@ -113,13 +121,25 @@ float4 PS(VertexOut pin) : SV_Target
             ComputeDirectionalLight(gMaterial, gDirLights[i], pin.NormalW, toEye,
 				A, D, S);
 
-            ambient += A * pin.Color;
-            diffuse += D * pin.Color;
+            ambient += A;
+            diffuse += D;
             spec += S;
         }
 
 		// Modulate with late add.
         litColor = texColor * (ambient + diffuse) + spec;
+    }
+
+	//
+	// Fogging
+	//
+
+    if (gFogEnabled)
+    {
+        float fogLerp = saturate((distToEye - gFogStart) / gFogRange);
+
+		// Blend the fog color and the lit color.
+        litColor = lerp(litColor, gFogColor, fogLerp);
     }
 
 	// Common to take alpha from diffuse material and texture.
