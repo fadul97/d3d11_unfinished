@@ -29,7 +29,9 @@ joj::ErrorCode joj::D3D11TextureManager::init(ID3D11Device* device)
 
 ID3D11ShaderResourceView* joj::D3D11TextureManager::create_texture(std::wstring filename)
 {
-	ID3D11ShaderResourceView* srv = 0;
+	ID3D11ShaderResourceView* srv = nullptr;
+
+	const wchar_t* filename_cstr = filename.c_str();
 
 	// Does it already exist?
 	if (m_texture_SRV.find(filename) != m_texture_SRV.end())
@@ -40,13 +42,13 @@ ID3D11ShaderResourceView* joj::D3D11TextureManager::create_texture(std::wstring 
 	{
 		if (DirectX::CreateDDSTextureFromFile(
 			m_device,
-			filename.c_str(),
+			filename_cstr,
 			nullptr,
 			&srv) != S_OK)
 		{
 			JERROR(ErrorCode::ERR_RENDERER_D3D11_SHADER_RESOURCE_VIEW_CREATION,
-				"Failed to create Shader Resource View for '%s'", filename.c_str());
-			
+				"Failed to create Shader Resource View for '%ls'", filename_cstr);
+
 			return nullptr;
 		}
 
