@@ -6,9 +6,9 @@ add_executable(
 	main.cpp
 	
 	# Demo App
-	demos/mesh_view_demo.cpp
+	demos/test2d.cpp
 )
-# => demos folder:
+# => tutorials folder:
 # box_demo.cpp shapes_demo.cpp hills_demo.cpp skull_demo.cpp
 # waves.cpp waves_demo.cpp lit_waves_demo.cpp lit_skull_demo.cpp
 # crate_demo.cpp textured_hills_waves_demo.cpp blend_demo.cpp
