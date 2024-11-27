@@ -6,7 +6,7 @@
 
 #if JPLATFORM_WINDOWS
 
-#include "context_d3d11.h"
+#include "renderer/d3d11/context_d3d11.h"
 
 namespace joj
 {

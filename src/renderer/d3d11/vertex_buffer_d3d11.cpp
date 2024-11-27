@@ -1,4 +1,4 @@
-#include "renderer/d3d11/3d/vertex_buffer_d3d11.h"
+#include "renderer/d3d11/vertex_buffer_d3d11.h"
 
 #if JPLATFORM_WINDOWS
 

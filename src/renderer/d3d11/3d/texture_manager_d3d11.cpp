@@ -2,7 +2,7 @@
 
 #if JPLATFORM_WINDOWS
 
-#include "renderer/d3d11/3d/DDSTextureLoader11.h"
+#include "renderer/d3d11/DDSTextureLoader11.h"
 #include "logger.h"
 
 joj::D3D11TextureManager::D3D11TextureManager()

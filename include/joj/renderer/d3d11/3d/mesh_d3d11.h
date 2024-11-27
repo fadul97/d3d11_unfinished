@@ -8,8 +8,8 @@
 
 #include <d3d11.h>
 #include <vector>
-#include "vertex_buffer_d3d11.h"
-#include "index_buffer_d3d11.h"
+#include "renderer/d3d11/vertex_buffer_d3d11.h"
+#include "renderer/d3d11/index_buffer_d3d11.h"
 #include "logger.h"
 
 namespace joj

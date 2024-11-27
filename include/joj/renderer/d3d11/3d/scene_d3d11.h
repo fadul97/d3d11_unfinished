@@ -10,7 +10,7 @@
 #include <memory>
 #include "renderable_object_d3d11.h"
 #include "systems/camera/free_camera.h"
-#include "constant_buffer_d3d11.h"
+#include "renderer/d3d11/constant_buffer_d3d11.h"
 #include "cbuffer_structs_d3d11.h"
 
 namespace joj
