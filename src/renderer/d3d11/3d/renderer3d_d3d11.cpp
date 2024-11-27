@@ -85,6 +85,8 @@ joj::D3D11Renderer3D::~D3D11Renderer3D()
 
 joj::ErrorCode joj::D3D11Renderer3D::init(WindowData& window)
 {
+	render();
+
 	// Initialize D3D11Context
 	m_context = new D3D11Context();
 	if (m_context->create() != ErrorCode::OK)
@@ -329,7 +331,7 @@ void joj::D3D11Renderer3D::clear(f32 r, f32 g, f32 b, f32 a)
 
 void joj::D3D11Renderer3D::render()
 {
-
+	JTODO();
 }
 
 void joj::D3D11Renderer3D::swap_buffers()

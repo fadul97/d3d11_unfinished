@@ -5,7 +5,7 @@ project(joj)
 add_library(
     jojD3D11Renderer3D
     STATIC 
-    renderer_d3d11.cpp
+    renderer3d_d3d11.cpp
     renderable_object_d3d11.cpp
     scene_d3d11.cpp
     render_state_d3d11.cpp
