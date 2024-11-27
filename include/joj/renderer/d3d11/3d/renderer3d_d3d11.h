@@ -1,5 +1,5 @@
-#ifndef JOJ_D3D11_RENDERER_H
-#define JOJ_D3D11_RENDERER_H
+#ifndef JOJ_D3D11_RENDERER_3D_H
+#define JOJ_D3D11_RENDERER_3D_H
 
 #define JOJ_ENGINE_IMPLEMENTATION
 #include "defines.h"
@@ -72,4 +72,4 @@ namespace joj
 
 #endif // JPLATFORM_WINDOWS
 
-#endif // JOJ_D3D11_RENDERER_H
+#endif // JOJ_D3D11_RENDERER_3D_H
