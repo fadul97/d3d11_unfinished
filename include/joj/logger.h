@@ -25,6 +25,7 @@
 #define LOG_WARN_ENABLED 0
 #define LOG_DEBUG_ENABLED 0
 #define LOG_INFO_ENABLED 0
+#define LOG_TODO 0
 #else
 
 /** @brief Indicates if warning level logging is enabled. */
@@ -35,6 +36,9 @@
 
 /** @brief Indicates if info level logging is enabled. */
 #define LOG_INFO_ENABLED 1
+
+/** @brief Indicates if todo logging is enabled. */
+#define LOG_TODO 1
 
 #endif
 
@@ -86,6 +90,12 @@ namespace joj
         void log(LogLevel level, joj::ErrorCode err, const char* file, i32 line, const char* message, ...);
     }
 }
+
+#if LOG_TODO == 1
+#define JTODO(...) joj::Logger::log(joj::LogLevel::LOG_LEVEL_WARN, joj::ErrorCode::OK,  __FILE__, __LINE__, "TODO() - Function: %s", __FUNCTION__, ##__VA_ARGS__);
+#else
+#define JTODO(...);
+#endif // LOG_TODO
 
 #if LOG_INFO_ENABLED == 1
 /**
