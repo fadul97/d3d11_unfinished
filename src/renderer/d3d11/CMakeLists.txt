@@ -21,14 +21,16 @@ target_include_directories(
 )
 
 if(WIN32)
+    add_subdirectory(2d)
     add_subdirectory(3d)
 
     target_link_directories(
         jojD3D11Renderer 
         PUBLIC 
         ${CMAKE_CURRENT_SOURCE_DIR}/../platform/
+        ${CMAKE_CURRENT_SOURCE_DIR}/2d/
         ${CMAKE_CURRENT_SOURCE_DIR}/3d/
     )
 
-    target_link_libraries(jojD3D11Renderer PUBLIC jojPlatform jojD3D11Renderer3D)
+    target_link_libraries(jojD3D11Renderer PUBLIC jojPlatform jojD3D11Renderer2D jojD3D11Renderer3D)
 endif()
