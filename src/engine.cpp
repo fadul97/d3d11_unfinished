@@ -9,7 +9,7 @@
 joj::Win32Window* joj::Engine::s_window = nullptr;
 joj::Win32Input* joj::Engine::s_input = nullptr;
 joj::Win32Timer* joj::Engine::s_timer = nullptr;
-joj::D3D11Renderer3D* joj::Engine::s_renderer = nullptr;
+joj::D3D11Renderer2D* joj::Engine::s_renderer = nullptr;
 f32 joj::Engine::s_frametime = 0.0f;
 b8 joj::Engine::s_paused = false;
 b8 joj::Engine::s_running = false;
@@ -24,7 +24,7 @@ joj::Engine::Engine()
 {
 	s_window = new Win32Window();
 	s_timer = new Win32Timer();
-	s_renderer = new D3D11Renderer3D();
+	s_renderer = new D3D11Renderer2D();
 }
 
 joj::Engine::~Engine()
