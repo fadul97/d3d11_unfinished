@@ -35,7 +35,7 @@ namespace joj
         IDXGIFactory6* m_factory;
         ID3D11Debug* m_debug;
 
-#ifdef JOJ_DEBUG
+#ifdef JOJ_DEBUG_MODE
         void log_hardware_info();
 #endif
     };

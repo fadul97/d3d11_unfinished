@@ -156,7 +156,7 @@ STATIC_ASSERT(sizeof(b32) == 4, "Expected f64 to be 4 bytes.");
 
 /* Debug mode */
 #ifdef _DEBUG
-#define JOJ_DEBUG
+#define JOJ_DEBUG_MODE
 #endif
 
 #endif // JOJ_DEFINES_H

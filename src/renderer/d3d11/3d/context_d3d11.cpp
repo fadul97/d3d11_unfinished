@@ -54,7 +54,7 @@ joj::ErrorCode joj::D3D11Context::create()
 
     factory_flags = DXGI_CREATE_FACTORY_DEBUG;
 
-#ifdef JOJ_DEBUG
+#ifdef JOJ_DEBUG_MODE
     create_device_flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif // JOJ_DEBUG
 
@@ -91,7 +91,7 @@ joj::ErrorCode joj::D3D11Context::create()
         }
     }
 
-#if defined JOJ_DEBUG
+#if defined JOJ_DEBUG_MODE
     if (m_device->QueryInterface(__uuidof(ID3D11Debug), (void**)&m_debug) != S_OK)
     {
         JERROR(ErrorCode::ERR_CONTEXT_D3D11_QUERY_INTERFACE_ID3D11_DEBUG, "Failed to QueryInterface of ID3D11Debug.");
@@ -121,7 +121,7 @@ joj::ErrorCode joj::D3D11Context::create()
         return ErrorCode::ERR_CONTEXT_D3D11_GET_PARENTOF_IDXGI_FACTORY;
     }
 
-#ifdef JOJ_DEBUG
+#ifdef JOJ_DEBUG_MODE
     log_hardware_info();
 #endif
 
@@ -158,6 +158,7 @@ void joj::D3D11Context::destroy()
     }
 }
 
+#ifdef JOJ_DEBUG_MODE
 void joj::D3D11Context::log_hardware_info()
 {
     const u32 bytes_in_megabyte = 1048576U;
@@ -239,5 +240,6 @@ void joj::D3D11Context::log_hardware_info()
     if (adapter) adapter->Release();
     if (output) output->Release();
 }
+#endif // JOJ_DEBUG_MODE
 
 #endif // JPLATFORM_WINDOWS
