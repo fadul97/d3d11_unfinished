@@ -12,11 +12,11 @@ namespace joj
 {
     enum class RasterizerFillMode { Solid, Wireframe };
 
-    class JAPI D3D11Renderer
+    class JAPI D3D11Renderer3D
     {
     public:
-        D3D11Renderer();
-        ~D3D11Renderer();
+        D3D11Renderer3D();
+        ~D3D11Renderer3D();
 
         ErrorCode init(WindowData& window);
         void clear(f32 r = 0.23f, f32 g = 0.23f, f32 b = 0.23f, f32 a = 1.0f);
@@ -57,16 +57,16 @@ namespace joj
         ID3D11RasterizerState* m_rasterizer_state_wireframe;    // Wireframe Rasterizer state
     };
 
-    inline ID3D11Device* D3D11Renderer::get_device() const
+    inline ID3D11Device* D3D11Renderer3D::get_device() const
     { return m_device; }
 
-    inline ID3D11DeviceContext* D3D11Renderer::get_device_context() const
+    inline ID3D11DeviceContext* D3D11Renderer3D::get_device_context() const
     { return m_device_context; }
 
-    inline ID3D11DepthStencilView* D3D11Renderer::get_depth_stencil_view() const
+    inline ID3D11DepthStencilView* D3D11Renderer3D::get_depth_stencil_view() const
     { return m_depth_stencil_view; }
 
-    inline ID3D11RenderTargetView* D3D11Renderer::get_render_target_view() const
+    inline ID3D11RenderTargetView* D3D11Renderer3D::get_render_target_view() const
     { return m_render_target_view; }
 }
 

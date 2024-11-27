@@ -1,4 +1,4 @@
-#include "renderer/d3d11/3d/renderer_d3d11.h"
+#include "renderer/d3d11/3d/renderer3d_d3d11.h"
 
 #if JPLATFORM_WINDOWS
 
@@ -6,7 +6,7 @@
 #include <DirectXColors.h>
 #include <d3dcompiler.h>
 
-joj::D3D11Renderer::D3D11Renderer()
+joj::D3D11Renderer3D::D3D11Renderer3D()
 {
 	m_context = nullptr;
 	m_device = nullptr;
@@ -27,7 +27,7 @@ joj::D3D11Renderer::D3D11Renderer()
 	m_rasterizer_state_wireframe = nullptr;    // Wireframe Rasterizer state
 }
 
-joj::D3D11Renderer::~D3D11Renderer()
+joj::D3D11Renderer3D::~D3D11Renderer3D()
 {
 	// Release wireframe rasterizer state
 	if (m_rasterizer_state_wireframe)
@@ -83,7 +83,7 @@ joj::D3D11Renderer::~D3D11Renderer()
 	delete m_context;
 }
 
-joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
+joj::ErrorCode joj::D3D11Renderer3D::init(WindowData& window)
 {
 	// Initialize D3D11Context
 	m_context = new D3D11Context();
@@ -319,7 +319,7 @@ joj::ErrorCode joj::D3D11Renderer::init(WindowData& window)
 	return ErrorCode::OK;
 }
 
-void joj::D3D11Renderer::clear(f32 r, f32 g, f32 b, f32 a)
+void joj::D3D11Renderer3D::clear(f32 r, f32 g, f32 b, f32 a)
 {
 	// Background color of the backbuffer = window background color
 	f32 bgcolor[4]{ r, g, b, a };
@@ -327,12 +327,12 @@ void joj::D3D11Renderer::clear(f32 r, f32 g, f32 b, f32 a)
 	m_device_context->ClearDepthStencilView(m_depth_stencil_view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
-void joj::D3D11Renderer::render()
+void joj::D3D11Renderer3D::render()
 {
 
 }
 
-void joj::D3D11Renderer::swap_buffers()
+void joj::D3D11Renderer3D::swap_buffers()
 {
 	if (m_swapchain->Present(m_vsync, NULL) != S_OK)
 	{
@@ -343,12 +343,12 @@ void joj::D3D11Renderer::swap_buffers()
 	m_device_context->OMSetRenderTargets(1, &m_render_target_view, m_depth_stencil_view);
 }
 
-void joj::D3D11Renderer::set_primitive_topology(D3D_PRIMITIVE_TOPOLOGY topology) const
+void joj::D3D11Renderer3D::set_primitive_topology(D3D_PRIMITIVE_TOPOLOGY topology) const
 {
 	m_device_context->IASetPrimitiveTopology(topology);
 }
 
-void joj::D3D11Renderer::set_rasterizer_fill_mode(RasterizerFillMode mode)
+void joj::D3D11Renderer3D::set_rasterizer_fill_mode(RasterizerFillMode mode)
 {
 	switch (mode)
 	{
