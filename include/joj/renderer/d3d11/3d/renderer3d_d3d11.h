@@ -6,12 +6,11 @@
 
 #if JPLATFORM_WINDOWS
 
+#include "renderer/renderer.h"
 #include "renderer/d3d11/context_d3d11.h"
 
 namespace joj
 {
-    enum class RasterizerFillMode { Solid, Wireframe };
-
     class JAPI D3D11Renderer3D
     {
     public:
