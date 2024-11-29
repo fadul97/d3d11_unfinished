@@ -4,6 +4,7 @@
 
 #include "logger.h"
 #include "jmacros.h"
+#include <windowsx.h>
 
 // Static members
 joj::Win32Window* joj::Engine::s_window = nullptr;
@@ -272,6 +273,30 @@ LRESULT CALLBACK joj::Engine::EngineProc(HWND hWnd, UINT msg, WPARAM wParam, LPA
 	case WM_GETMINMAXINFO:
 		((MINMAXINFO*)lParam)->ptMinTrackSize.x = 200;
 		((MINMAXINFO*)lParam)->ptMinTrackSize.y = 200;
+		break;
+
+	case WM_LBUTTONDOWN:
+		s_app->on_mouse_move(BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		break;
+	case WM_MBUTTONDOWN:
+		s_app->on_mouse_move(BUTTON_RIGHT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		break;
+	case WM_RBUTTONDOWN:
+		s_app->on_mouse_move(BUTTON_MIDDLE, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		break;
+
+	case WM_LBUTTONUP:
+		s_app->on_mouse_up(BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		break;
+	case WM_MBUTTONUP:
+		s_app->on_mouse_up(BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		break;
+	case WM_RBUTTONUP:
+		s_app->on_mouse_up(BUTTON_LEFT, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+		break;
+		return 0;
+	case WM_MOUSEMOVE:
+		s_app->on_mouse_move(wParam, GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
 		break;
 
 	default:
