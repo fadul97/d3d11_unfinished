@@ -8,6 +8,7 @@
 #include "joj/renderer/d3d11/constant_buffer_d3d11.h"
 #include <DirectXColors.h>
 #include "joj/systems/objects2d/object2d.h"
+#include "joj/systems/camera/free_camera.h"
 
 class Pong3DGame : public joj::App
 {
@@ -16,6 +17,10 @@ public:
 	void update(const f32 dt);
 	void draw();
 	void shutdown();
+
+	void on_mouse_down(joj::Buttons button, i32 x, i32 y) override;
+	void on_mouse_up(joj::Buttons button, i32 x, i32 y) override;
+	void on_mouse_move(WPARAM button_state, i32 x, i32 y) override;
 
 private:
 	joj::D3D11Shader m_shader;
@@ -37,6 +42,9 @@ private:
 	joj::D3D11VertexBuffer vb;
 	joj::D3D11IndexBuffer ib;
 	joj::D3D11ConstantBuffer cb;
+
+	joj::FreeCamera m_camera;
+	joj::JFloat2 m_last_mouse_pos;
 };
 
 #endif // PONG_3D_GAME_H
