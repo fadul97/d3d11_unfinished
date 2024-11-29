@@ -20,7 +20,8 @@ void joj::D3D11Scene::update(
 	D3D11ConstantBuffer& constant_buffer)
 {
 	// Set constants
-	joj::JMatrix4x4 view = camera->get_view_mat();
+	joj::JFloat4x4 view_mat = camera->get_view();
+	joj::JMatrix4x4 view = DirectX::XMLoadFloat4x4(&view_mat);
 	joj::JMatrix4x4 proj = DirectX::XMLoadFloat4x4(&proj_float4x4);
 
 	for (const auto& obj : m_objects)

@@ -5,6 +5,7 @@ project(joj)
 add_library(
     jojCamera
     STATIC
+    free_camera_old.cpp
     free_camera.cpp
 )
 
