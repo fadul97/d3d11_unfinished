@@ -82,6 +82,27 @@ void Test2D::init()
 
 void Test2D::update(const f32 dt)
 {
+    if (joj::Engine::s_input->is_key_down('W'))
+        p1_pos.y += 400.0f * dt;
+    if (joj::Engine::s_input->is_key_down('S'))
+        p1_pos.y -= 400.0f * dt;
+
+    if (joj::Engine::s_input->is_key_down(joj::KEY_UP))
+        p2_pos.y += 400.0f * dt;
+    if (joj::Engine::s_input->is_key_down(joj::KEY_DOWN))
+        p2_pos.y -= 400.0f * dt;
+
+    if (p1_pos.y + p1_size.y / 2 >= 600.0f)
+        p1_pos.y = 600.0f - p1_size.y / 2;
+
+    if (p1_pos.y - p1_size.y / 2 <= 0.0f)
+        p1_pos.y = 0.0f + p1_size.y / 2;
+
+    if (p2_pos.y + p2_size.y / 2 >= 600.0f)
+        p2_pos.y = 600.0f - p2_size.y / 2;
+
+    if (p2_pos.y - p2_size.y / 2 <= 0.0f)
+        p2_pos.y = 0.0f + p2_size.y / 2;
 }
 
 void Test2D::draw()
@@ -101,19 +122,41 @@ void Test2D::draw()
     joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &cb.get_buffer());
 
     auto I = joj::matrix4x4_identity();
-    auto mat = DirectX::XMMatrixTranslation(0, 0, 0.0f);
+    auto scale_mat = DirectX::XMMatrixScaling(p1_size.x, p1_size.y, 1.0f);
+    auto mat = DirectX::XMMatrixTranslation(p1_pos.x, p1_pos.y, 0.0f);
+    auto W = DirectX::XMMatrixMultiply(scale_mat, mat);
     DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, -3, 1);
     DirectX::XMVECTOR target = DirectX::XMVectorZero();
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0, 1, 0, 0);
     DirectX::XMMATRIX V = DirectX::XMMatrixLookAtLH(pos, target, up);
     constexpr f32 fov_angle = 45;
-    DirectX::XMMATRIX P = DirectX::XMMatrixPerspectiveFovLH(
-        DirectX::XMConvertToRadians(fov_angle), 800.0f / 600.0f, 0.1f, 100.0f
+    DirectX::XMMATRIX P = DirectX::XMMatrixOrthographicOffCenterLH(
+        0.0f, 800.0f, 0.0f, 600.0f, 0.1f, 100.0f
     );
-    auto wvp = mat * V * P;
+    auto wvp = W * V * P;
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
+
+    joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
+
+    scale_mat = DirectX::XMMatrixScaling(p2_size.x, p2_size.y, 1.0f);
+    mat = DirectX::XMMatrixTranslation(p2_pos.x, p2_pos.y, 0.0f);
+    W = DirectX::XMMatrixMultiply(scale_mat, mat);
+    wvp = W * V * P;
+    BasicCB p2_cb;
+    XMStoreFloat4x4(&p2_cb.wvp, XMMatrixTranspose(wvp));
+    cb.update(joj::Engine::s_renderer->get_device_context(), p2_cb);
+
+    joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
+
+    scale_mat = DirectX::XMMatrixScaling(ball_size.x, ball_size.y, 1.0f);
+    mat = DirectX::XMMatrixTranslation(ball_pos.x, ball_pos.y, 0.0f);
+    W = DirectX::XMMatrixMultiply(scale_mat, mat);
+    wvp = W * V * P;
+    BasicCB ball_cb;
+    XMStoreFloat4x4(&ball_cb.wvp, XMMatrixTranspose(wvp));
+    cb.update(joj::Engine::s_renderer->get_device_context(), ball_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
