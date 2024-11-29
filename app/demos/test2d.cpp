@@ -12,8 +12,6 @@ struct BasicCB
 
 void Test2D::init()
 {
-    p1.move_to(0, 0, -10);
-
     // Create Shader
     m_shader.compile_vertex_shader(L"../../../../app/shaders/color.hlsl", "VS", "vs_5_0");
     m_shader.compile_pixel_shader(L"../../../../app/shaders/color.hlsl", "PS", "ps_5_0");
@@ -50,8 +48,10 @@ void Test2D::init()
         JERROR(joj::ErrorCode::FAILED, "Failed to create Input Layout.");
     }
 
+    joj::Quad quad(1.0f, 1.0f);
+
     // Setup and Create Vertex Buffer
-    vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * p1.get_vertex_count(), p1.get_vertex_data());
+    vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * quad.get_vertex_count(), quad.get_vertex_data());
     if (joj::Engine::s_renderer->get_device()->CreateBuffer(
         vb.get_buffer_desc(),
         vb.get_subdata(),
@@ -61,7 +61,7 @@ void Test2D::init()
     }
 
     // Setup and Create Index Buffer
-    ib.setup(sizeof(u32) * p1.get_index_count(), p1.get_index_data());
+    ib.setup(sizeof(u32) * quad.get_index_count(), quad.get_index_data());
     if (joj::Engine::s_renderer->get_device()->CreateBuffer(
         ib.get_buffer_desc(),
         ib.get_subdata(),
@@ -84,79 +84,79 @@ void Test2D::init()
 void Test2D::update(const f32 dt)
 {
     if (joj::Engine::s_input->is_key_down('W'))
-        p1_pos.y += player_velocity * dt;
+        p1.translate_ypos(player_velocity * dt);
     if (joj::Engine::s_input->is_key_down('S'))
-        p1_pos.y -= player_velocity * dt;
+        p1.translate_ypos(-player_velocity * dt);
 
     if (joj::Engine::s_input->is_key_down(joj::KEY_UP))
-        p2_pos.y += player_velocity * dt;
+        p2.translate_ypos(player_velocity * dt);
     if (joj::Engine::s_input->is_key_down(joj::KEY_DOWN))
-        p2_pos.y -= player_velocity * dt;
+        p2.translate_ypos(-player_velocity * dt);
 
-    ball_pos.x += ball_velocity.x * dt;
-    ball_pos.y += ball_velocity.y * dt;
+    ball.translate_xpos(ball_velocity.x * dt);
+    ball.translate_ypos(ball_velocity.y * dt);
 
     // Player 1
-    if (p1_pos.y + p1_size.y / 2 >= 600.0f)
-        p1_pos.y = 600.0f - p1_size.y / 2;
+    if (p1.get_ypos() + p1.get_ysize() / 2 >= 600.0f)
+        p1.move_to(p1.get_xpos(), 600.0f - p1.get_ysize() / 2);
 
-    if (p1_pos.y - p1_size.y / 2 <= 0.0f)
-        p1_pos.y = 0.0f + p1_size.y / 2;
+    if (p1.get_ypos() - p1.get_ysize() / 2 <= 0.0f)
+        p1.move_to(p1.get_xpos(), 0.0f + p1.get_ysize() / 2);
 
     // Player 2
-    if (p2_pos.y + p2_size.y / 2 >= 600.0f)
-        p2_pos.y = 600.0f - p2_size.y / 2;
+    if (p2.get_ypos() + p2.get_ysize() / 2 >= 600.0f)
+        p2.move_to(p2.get_xpos(), 600.0f - p2.get_ysize() / 2);
 
-    if (p2_pos.y - p2_size.y / 2 <= 0.0f)
-        p2_pos.y = 0.0f + p2_size.y / 2;
+    if (p2.get_ypos() - p2.get_ysize() / 2 <= 0.0f)
+        p2.move_to(p2.get_xpos(), 0.0f + p2.get_ysize() / 2);
 
     // Ball Y-axis
-    if (ball_pos.y + ball_size.y / 2 >= 600.0f)
+    if (ball.get_ypos() + ball.get_ysize() / 2 >= 600.0f)
     {
-        ball_pos.y = 600.0f - ball_size.y / 2;
+        ball.move_to(ball.get_xpos(), 600.0f - ball.get_ysize() / 2);
         ball_velocity.y *= -1.0f;
     }
 
-    if (ball_pos.y - ball_size.y / 2 <= 0.0f)
+    if (ball.get_ypos() - ball.get_ysize() / 2 <= 0.0f)
     {
-        ball_pos.y = 0.0f + ball_size.y / 2;
+        ball.move_to(ball.get_xpos(), 0.0f + ball.get_ysize() / 2);
         ball_velocity.y *= -1.0f;
     }
 
     // End Game
-    if (ball_pos.x + ball_size.x / 2 >= 800.0f)
+    if (ball.get_xpos() + ball.get_xsize() / 2 >= 800.0f)
     {
-        ball_pos.x = 800.0f - ball_size.x / 2;
+        ball.move_to(800.0f - ball.get_xsize() / 2, ball.get_ypos());
         ball_velocity.x = 0.0f;
         ball_velocity.y = 0.0f;
         player_velocity = 0.0f;
     }
 
-    if (ball_pos.x - ball_size.x / 2 <= 0.0f)
+    if (ball.get_xpos() - ball.get_xsize() / 2 <= 0.0f)
     {
-        ball_pos.x = 0.0f + ball_size.x / 2;
+        ball.move_to(0.0f + ball.get_xsize() / 2, ball.get_ypos());
         ball_velocity.x = 0.0f;
         ball_velocity.y = 0.0f;
         player_velocity = 0.0f;
     }
 
     // Ball and Player 1 collision
-    if (ball_pos.x + ball_size.x / 2 >= p1_pos.x - p1_size.x / 2 &&
-        ball_pos.x - ball_size.x / 2 <= p1_pos.x + p1_size.x / 2 &&
-        ball_pos.y + ball_size.y / 2 >= p1_pos.y - p1_size.y / 2 &&
-        ball_pos.y - ball_size.y / 2 <= p1_pos.y + p1_size.y / 2)
+    if (ball.get_xpos() + ball.get_xsize() / 2 >= p1.get_xpos() - p1.get_xsize() / 2 &&
+        ball.get_xpos() - ball.get_xsize() / 2 <= p1.get_xpos() + p1.get_xsize() / 2 &&
+        ball.get_ypos() + ball.get_ysize() / 2 >= p1.get_ypos() - p1.get_ysize() / 2 &&
+        ball.get_ypos() - ball.get_ysize() / 2 <= p1.get_ypos() + p1.get_ysize() / 2)
     {
-        ball_pos.x = p1_pos.x + p1_size.x;
+        ball.move_to(p1.get_xpos() + p1.get_xsize(), ball.get_ypos());
         ball_velocity.x *= -1.0f;
     }
 
     // Ball and Player 2 collision
-    if (ball_pos.x - ball_size.x / 2 <= p2_pos.x + p2_size.x / 2 &&
-        ball_pos.x + ball_size.x / 2 >= p2_pos.x - p2_size.x / 2 &&
-        ball_pos.y >= p2_pos.y - p2_size.y / 2 &&
-        ball_pos.y <= p2_pos.y + p2_size.y / 2)
+    if (ball.get_xpos() -  ball.get_xsize() / 2 <= p2.get_xpos() + p2.get_xsize() / 2 &&
+        ball.get_xpos() + ball.get_xsize() / 2 >= p2.get_xpos() - p2.get_xsize() / 2 &&
+        ball.get_ypos() >= p2.get_ypos() - p2.get_ysize() / 2 &&
+        ball.get_ypos() <= p2.get_ypos() + p2.get_ysize() / 2)
     {
-        ball_pos.x = p2_pos.x - p2_size.x;
+        ball.move_to(p2.get_xpos() - p2.get_xsize(), ball.get_ypos());
         ball_velocity.x *= -1.0f;
     }
 }
@@ -178,8 +178,8 @@ void Test2D::draw()
     joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &cb.get_buffer());
 
     auto I = joj::matrix4x4_identity();
-    auto scale_mat = DirectX::XMMatrixScaling(p1_size.x, p1_size.y, 1.0f);
-    auto mat = DirectX::XMMatrixTranslation(p1_pos.x, p1_pos.y, 0.0f);
+    auto scale_mat = DirectX::XMMatrixScaling(p1.get_xsize(), p1.get_ysize(), 1.0f);
+    auto mat = DirectX::XMMatrixTranslation(p1.get_xpos(), p1.get_ypos(), 0.0f);
     auto W = DirectX::XMMatrixMultiply(scale_mat, mat);
     DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, -3, 1);
     DirectX::XMVECTOR target = DirectX::XMVectorZero();
@@ -197,8 +197,8 @@ void Test2D::draw()
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
-    scale_mat = DirectX::XMMatrixScaling(p2_size.x, p2_size.y, 1.0f);
-    mat = DirectX::XMMatrixTranslation(p2_pos.x, p2_pos.y, 0.0f);
+    scale_mat = DirectX::XMMatrixScaling(p2.get_xsize(), p2.get_ysize(), 1.0f);
+    mat = DirectX::XMMatrixTranslation(p2.get_xpos(), p2.get_ypos(), 0.0f);
     W = DirectX::XMMatrixMultiply(scale_mat, mat);
     wvp = W * V * P;
     BasicCB p2_cb;
@@ -208,8 +208,8 @@ void Test2D::draw()
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
-    scale_mat = DirectX::XMMatrixScaling(ball_size.x, ball_size.y, 1.0f);
-    mat = DirectX::XMMatrixTranslation(ball_pos.x, ball_pos.y, 0.0f);
+    scale_mat = DirectX::XMMatrixScaling(ball.get_xsize(), ball.get_ysize(), 1.0f);
+    mat = DirectX::XMMatrixTranslation(ball.get_xpos(), ball.get_ypos(), 0.0f);
     W = DirectX::XMMatrixMultiply(scale_mat, mat);
     wvp = W * V * P;
     BasicCB ball_cb;
