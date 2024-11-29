@@ -31,10 +31,13 @@ private:
 	joj::JFloat2 p2_size{ 20.0f, 100.0f };
 	joj::JFloat4 p2_color{ DirectX::Colors::Aquamarine };
 
+	f32 player_velocity = 400.0f;
+
 	joj::Quad ball{ 1.0f, 1.0f };
 	joj::JFloat2 ball_pos{ 400.0f, 300.0f };
 	joj::JFloat2 ball_size{ 20.0f, 20.0f };
 	joj::JFloat4 ball_color{ DirectX::Colors::PaleVioletRed };
+	joj::JFloat2 ball_velocity{ 400.0f, 400.0f };
 
 	joj::D3D11VertexBuffer vb;
 	joj::D3D11IndexBuffer ib;

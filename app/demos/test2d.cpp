@@ -84,26 +84,76 @@ void Test2D::init()
 void Test2D::update(const f32 dt)
 {
     if (joj::Engine::s_input->is_key_down('W'))
-        p1_pos.y += 400.0f * dt;
+        p1_pos.y += player_velocity * dt;
     if (joj::Engine::s_input->is_key_down('S'))
-        p1_pos.y -= 400.0f * dt;
+        p1_pos.y -= player_velocity * dt;
 
     if (joj::Engine::s_input->is_key_down(joj::KEY_UP))
-        p2_pos.y += 400.0f * dt;
+        p2_pos.y += player_velocity * dt;
     if (joj::Engine::s_input->is_key_down(joj::KEY_DOWN))
-        p2_pos.y -= 400.0f * dt;
+        p2_pos.y -= player_velocity * dt;
 
+    ball_pos.x += ball_velocity.x * dt;
+
+    // Player 1
     if (p1_pos.y + p1_size.y / 2 >= 600.0f)
         p1_pos.y = 600.0f - p1_size.y / 2;
 
     if (p1_pos.y - p1_size.y / 2 <= 0.0f)
         p1_pos.y = 0.0f + p1_size.y / 2;
 
+    // Player 2
     if (p2_pos.y + p2_size.y / 2 >= 600.0f)
         p2_pos.y = 600.0f - p2_size.y / 2;
 
     if (p2_pos.y - p2_size.y / 2 <= 0.0f)
         p2_pos.y = 0.0f + p2_size.y / 2;
+
+    // Ball Y-axis
+    if (ball_pos.y + ball_size.y / 2 >= 600.0f)
+    {
+        ball_pos.y = 600.0f - ball_size.y / 2;
+        ball_velocity.y *= -1.0f;
+    }
+
+    if (ball_pos.y - ball_size.y / 2 <= 0.0f)
+    {
+        ball_pos.y = 0.0f + ball_size.y / 2;
+        ball_velocity.y *= -1.0f;
+    }
+
+    // End Game
+    if (ball_pos.x + ball_size.x / 2 >= 800.0f)
+    {
+        ball_pos.x = 800.0f - ball_size.x / 2;
+        ball_velocity.x = 0.0f;
+        player_velocity = 0.0f;
+    }
+
+    if (ball_pos.x - ball_size.x / 2 <= 0.0f)
+    {
+        ball_pos.x = 0.0f + ball_size.x / 2;
+        ball_velocity.x = 0.0f;
+        player_velocity = 0.0f;
+    }
+
+    if (ball_pos.x + ball_size.x / 2 >= p1_pos.x - p1_size.x / 2 &&
+        ball_pos.x - ball_size.x / 2 <= p1_pos.x + p1_size.x / 2 &&
+        ball_pos.y + ball_size.y / 2 >= p1_pos.y - p1_size.y / 2 &&
+        ball_pos.y - ball_size.y / 2 <= p1_pos.y + p1_size.y / 2)
+    {
+        ball_pos.x = p1_pos.x + p1_size.x;
+        ball_velocity.x *= -1.0f;
+    }
+
+    if (ball_pos.x - ball_size.x / 2 <= p2_pos.x + p2_size.x / 2 &&
+        ball_pos.x + ball_size.x / 2 >= p2_pos.x - p2_size.x / 2 &&
+        ball_pos.y >= p2_pos.y - p2_size.y / 2 &&
+        ball_pos.y <= p2_pos.y + p2_size.y / 2)
+    {
+        ball_pos.x = p2_pos.x - p2_size.x;
+        ball_velocity.x *= -1.0f;
+    }
 }
 
 void Test2D::draw()
