@@ -7,7 +7,7 @@
 #include "platform/win32/window_win32.h"
 #include "platform/win32/input_win32.h"
 #include "platform/win32/timer_win32.h"
-#include "renderer/d3d11/2d/renderer2d_d3d11.h"
+#include "renderer/d3d11/3d/renderer3d_d3d11.h"
 #include "application/app.h"
 
 namespace joj
@@ -22,7 +22,7 @@ namespace joj
         static Win32Window* s_window;
         static Win32Input* s_input;
         static Win32Timer* s_timer;
-        static D3D11Renderer2D* s_renderer;
+        static D3D11Renderer3D* s_renderer;
         static f32 s_frametime;
 
         static App* s_app;
