@@ -7,6 +7,7 @@
 #if JPLATFORM_WINDOWS
 
 #include <Windows.h>
+#include "platform/keys.h"
 
 namespace joj
 {
@@ -19,6 +20,10 @@ namespace joj
         virtual void init() = 0;
         virtual void update(const f32 dt) = 0;
         virtual void shutdown() = 0;
+
+        virtual void on_mouse_down(Buttons button, i32 x, i32 y) {}
+        virtual void on_mouse_up(Buttons button, i32 x, i32 y) {}
+        virtual void on_mouse_move(WPARAM button_state, i32 x, i32 y) {}
 
         /* These methods have an empty implementation by default
          * and only one of them must be overridden in the derived class:
