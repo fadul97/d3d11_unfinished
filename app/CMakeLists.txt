@@ -6,8 +6,10 @@ add_executable(
 	main.cpp
 	
 	# Demo App
-	demos/pong.cpp
+	demos/pong3d.cpp
 )
+# => demos folder:
+# pong.cpp
 
 # => tutorials folder:
 # box_demo.cpp shapes_demo.cpp hills_demo.cpp skull_demo.cpp
