@@ -6,8 +6,9 @@ add_executable(
 	main.cpp
 	
 	# Demo App
-	demos/test2d.cpp
+	demos/pong.cpp
 )
+
 # => tutorials folder:
 # box_demo.cpp shapes_demo.cpp hills_demo.cpp skull_demo.cpp
 # waves.cpp waves_demo.cpp lit_waves_demo.cpp lit_skull_demo.cpp

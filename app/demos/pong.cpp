@@ -1,4 +1,4 @@
-#include "test2d.h"
+#include "pong.h"
 
 #include "joj/engine.h"
 #include "joj/logger.h"
@@ -10,7 +10,7 @@ struct BasicCB
     joj::JFloat4 color;
 };
 
-void Test2D::init()
+void PongGame::init()
 {
     // Create Shader
     m_shader.compile_vertex_shader(L"../../../../app/shaders/color.hlsl", "VS", "vs_5_0");
@@ -81,7 +81,7 @@ void Test2D::init()
     }
 }
 
-void Test2D::update(const f32 dt)
+void PongGame::update(const f32 dt)
 {
     if (joj::Engine::s_input->is_key_down('W'))
         p1.translate_ypos(player_velocity * dt);
@@ -161,7 +161,7 @@ void Test2D::update(const f32 dt)
     }
 }
 
-void Test2D::draw()
+void PongGame::draw()
 {
     joj::Engine::s_renderer->clear();
 
@@ -222,7 +222,7 @@ void Test2D::draw()
     joj::Engine::s_renderer->swap_buffers();
 }
 
-void Test2D::shutdown()
+void PongGame::shutdown()
 {
     m_input_layout->Release();
 }

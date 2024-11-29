@@ -1,5 +1,5 @@
-#ifndef TEST2D_H
-#define TEST2D_H
+#ifndef PONG_GAME_H
+#define PONG_GAME_H
 
 #include "joj/application/app.h"
 #include "joj/resources/geometry/quad.h"
@@ -10,7 +10,7 @@
 #include <DirectXColors.h>
 #include "joj/systems/objects2d/object2d.h"
 
-class Test2D : public joj::App
+class PongGame : public joj::App
 {
 public:
 	void init();
@@ -39,4 +39,4 @@ private:
 	joj::D3D11ConstantBuffer cb;
 };
 
-#endif // TEST2D_H
+#endif // PONG_GAME_H
