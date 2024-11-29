@@ -12,7 +12,7 @@ struct BasicCB
 
 void Pong3DGame::init()
 {
-    m_camera.set_pos(0.0f, 2.0f, -15.0f);
+    m_camera.set_pos(0.0f, 1.0f, -30.0f);
     m_camera.set_lens(0.25f * J_PI, 800.0f / 600.0f, 1.0f, 1000.0f);
 
     // Create Shader
@@ -102,7 +102,7 @@ void Pong3DGame::update(const f32 dt)
 
     m_camera.update_view_matrix();
 
-    i32 top_max = 11;
+    i32 top_max = 13;
     i32 top_min = -11;
     i32 right = 13;
     i32 left = -13;
