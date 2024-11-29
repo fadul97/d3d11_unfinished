@@ -7,6 +7,7 @@
 struct BasicCB
 {
     joj::JFloat4x4 wvp;
+    joj::JFloat4 color;
 };
 
 void Test2D::init()
@@ -136,6 +137,7 @@ void Test2D::draw()
     auto wvp = W * V * P;
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
+    p1_cb.color = p1_color;
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
@@ -146,6 +148,7 @@ void Test2D::draw()
     wvp = W * V * P;
     BasicCB p2_cb;
     XMStoreFloat4x4(&p2_cb.wvp, XMMatrixTranspose(wvp));
+    p2_cb.color = p2_color;
     cb.update(joj::Engine::s_renderer->get_device_context(), p2_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
@@ -156,6 +159,7 @@ void Test2D::draw()
     wvp = W * V * P;
     BasicCB ball_cb;
     XMStoreFloat4x4(&ball_cb.wvp, XMMatrixTranspose(wvp));
+    ball_cb.color = ball_color;
     cb.update(joj::Engine::s_renderer->get_device_context(), ball_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);

@@ -24,14 +24,17 @@ private:
 	joj::Quad p1{ 1.0f, 1.0f };
 	joj::JFloat2 p1_pos{ 30.0f, 300.0f };
 	joj::JFloat2 p1_size{ 20.0f, 100.0f };
+	joj::JFloat4 p1_color{ DirectX::Colors::AliceBlue };
 
 	joj::Quad p2{ 1.0f, 1.0f };
 	joj::JFloat2 p2_pos{ 770.0f, 300.0f };
 	joj::JFloat2 p2_size{ 20.0f, 100.0f };
+	joj::JFloat4 p2_color{ DirectX::Colors::Aquamarine };
 
 	joj::Quad ball{ 1.0f, 1.0f };
 	joj::JFloat2 ball_pos{ 400.0f, 300.0f };
 	joj::JFloat2 ball_size{ 20.0f, 20.0f };
+	joj::JFloat4 ball_color{ DirectX::Colors::PaleVioletRed };
 
 	joj::D3D11VertexBuffer vb;
 	joj::D3D11IndexBuffer ib;
