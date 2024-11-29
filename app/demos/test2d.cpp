@@ -94,6 +94,7 @@ void Test2D::update(const f32 dt)
         p2_pos.y -= player_velocity * dt;
 
     ball_pos.x += ball_velocity.x * dt;
+    ball_pos.y += ball_velocity.y * dt;
 
     // Player 1
     if (p1_pos.y + p1_size.y / 2 >= 600.0f)
@@ -127,6 +128,7 @@ void Test2D::update(const f32 dt)
     {
         ball_pos.x = 800.0f - ball_size.x / 2;
         ball_velocity.x = 0.0f;
+        ball_velocity.y = 0.0f;
         player_velocity = 0.0f;
     }
 
@@ -134,9 +136,11 @@ void Test2D::update(const f32 dt)
     {
         ball_pos.x = 0.0f + ball_size.x / 2;
         ball_velocity.x = 0.0f;
+        ball_velocity.y = 0.0f;
         player_velocity = 0.0f;
     }
 
+    // Ball and Player 1 collision
     if (ball_pos.x + ball_size.x / 2 >= p1_pos.x - p1_size.x / 2 &&
         ball_pos.x - ball_size.x / 2 <= p1_pos.x + p1_size.x / 2 &&
         ball_pos.y + ball_size.y / 2 >= p1_pos.y - p1_size.y / 2 &&
@@ -146,6 +150,7 @@ void Test2D::update(const f32 dt)
         ball_velocity.x *= -1.0f;
     }
 
+    // Ball and Player 2 collision
     if (ball_pos.x - ball_size.x / 2 <= p2_pos.x + p2_size.x / 2 &&
         ball_pos.x + ball_size.x / 2 >= p2_pos.x - p2_size.x / 2 &&
         ball_pos.y >= p2_pos.y - p2_size.y / 2 &&
