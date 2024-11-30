@@ -11,6 +11,7 @@ add_library(
 add_subdirectory(camera)
 add_subdirectory(light)
 add_subdirectory(objects2d)
+add_subdirectory(ecs)
 
 # Specify include directories for jojSystems
 target_include_directories(
@@ -26,6 +27,7 @@ target_link_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/camera/
     ${CMAKE_CURRENT_SOURCE_DIR}/light/
     ${CMAKE_CURRENT_SOURCE_DIR}/objects2d/
+    ${CMAKE_CURRENT_SOURCE_DIR}/ecs/
 )
 
-target_link_libraries(jojSystems PUBLIC jojCamera jojLight jojObjects2D jojMath)
+target_link_libraries(jojSystems PUBLIC jojCamera jojLight jojObjects2D jojECS jojMath)
