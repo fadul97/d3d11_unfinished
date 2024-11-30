@@ -4,6 +4,7 @@
 #include "joj/logger.h"
 #include "joj/resources/geometry/quad.h"
 #include <renderer/d3d11/DDSTextureLoader11.h>
+#include "joj/systems/ecs/entity_manager.h"
 
 struct BasicCB
 {
@@ -168,6 +169,19 @@ void BreakoutGame::init()
             blocks.push_back(block);
         }
     }
+
+    joj::EntityManager em;
+    player = em.create_entity();
+    JDEBUG("player = %d", player);
+
+    ball = em.create_entity();
+    JDEBUG("ball = %d", ball);
+
+    positions.add(player, { 400.0f, 50.0f });
+    positions.add(ball, { 0.0f, 0.0f });
+
+    velocities.add(player, player_velocity);
+    velocities.add(ball, ball_velocity);
 }
 
 void BreakoutGame::update(const f32 dt)
@@ -175,88 +189,86 @@ void BreakoutGame::update(const f32 dt)
     if (!started)
     {
         if (joj::Engine::s_input->is_key_down(joj::KEY_SPACE))
-        {
             started = true;
-            ball.move_to(player.get_xpos(), player.get_ypos() + ball.get_ysize());
-            ball.translate_xpos(ball_velocity.x * dt);
-            ball.translate_ypos(ball_velocity.y * dt);
-        }
+
+        ball_pos.x = player_pos.x;
+        ball_pos.y = player_pos.y + ball_size.y;
 
         if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
-            player.translate_xpos(player_velocity * dt);
+            player_pos.x += player_velocity.x * dt;
         if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
-            player.translate_xpos(-player_velocity * dt);
+            player_pos.x -= player_velocity.x * dt;
 
-        if (player.get_xpos() + player.get_xsize() / 2 >= 800.0f)
-            player.move_to(800.0f - player.get_xsize() / 2, player.get_ypos());
+        if (player_pos.x + player_size.x / 2 >= 800.0f)
+            player_pos.x = 800.0f - player_size.x / 2;
 
-        if (player.get_xpos() - player.get_xsize() / 2 <= 0.0f)
-            player.move_to(0.0f + player.get_xsize() / 2, player.get_ypos());
+        if (player_pos.x - player_size.x / 2 <= 0.0f)
+            player_pos.x = 0.0f + player_size.x / 2;
     }
     else
     {
         if (blocks_active > 0)
         {
             if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
-                player.translate_xpos(player_velocity * dt);
+                player_pos.x += player_velocity.x * dt;
             if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
-                player.translate_xpos(-player_velocity * dt);
+                player_pos.x -= player_velocity.x * dt;
 
-            if (player.get_xpos() + player.get_xsize() / 2 >= 800.0f)
-                player.move_to(800.0f - player.get_xsize() / 2, player.get_ypos());
+            if (player_pos.x + player_size.x / 2 >= 800.0f)
+                player_pos.x = 800.0f - player_size.x / 2;
 
-            if (player.get_xpos() - player.get_xsize() / 2 <= 0.0f)
-                player.move_to(0.0f + player.get_xsize() / 2, player.get_ypos());
+            if (player_pos.x - player_size.x / 2 <= 0.0f)
+                player_pos.x = 0.0f + player_size.x / 2;
 
-            ball.translate_xpos(ball_velocity.x * dt);
-            ball.translate_ypos(ball_velocity.y * dt);
+            ball_pos.x += ball_velocity.x * dt;
+            ball_pos.y += ball_velocity.y * dt;
 
             // Right side
-            if (ball.get_xpos() + ball.get_xsize() / 2 >= 800.0f)
+            if (ball_pos.x + ball_size.x / 2 >= 800.0f)
             {
-                ball.move_to(800.0f - ball.get_xsize() / 2, ball.get_ypos());
+                ball_pos.x = 800.0f - ball_size.x / 2;
                 ball_velocity.x *= -1.0f;
             }
 
             // Left side
-            if (ball.get_xpos() - ball.get_xsize() / 2 <= 0.0f)
+            if (ball_pos.x - ball_size.x / 2 <= 0.0f)
             {
-                ball.move_to(0.0f + ball.get_xsize() / 2, ball.get_ypos());
+                ball_pos.x = 0.0f + ball_size.x / 2;
                 ball_velocity.x *= -1.0f;
             }
 
             // Bottom side
-            if (ball.get_ypos() - ball.get_ysize() / 2 <= 0.0f)
+            if (ball_pos.y - ball_size.y / 2 <= 0.0f)
             {
-                ball.move_to(ball.get_xpos(), 0.0f + ball.get_ysize() / 2);
+                ball_pos.y = 0.0f + ball_size.y / 2;
                 ball_velocity.x = 0.0f;
                 ball_velocity.y = 0.0f;
-                player_velocity = 0.0f;
+                player_velocity.x = 0.0f;
             }
 
             // Top side
-            if (ball.get_ypos() + ball.get_ysize() / 2 >= 600.0f)
+            if (ball_pos.y + ball_size.y / 2 >= 600.0f)
             {
-                ball.move_to(ball.get_xpos(), 600.0f - ball.get_ysize() / 2);
+                ball_pos.y = 600.0f - ball_size.y / 2;
                 ball_velocity.y *= -1.0f;
             }
 
             // Ball and Player collision
-            if (ball.get_xpos() + ball.get_xsize() / 2 >= player.get_xpos() - player.get_xsize() / 2 &&
-                ball.get_xpos() - ball.get_xsize() / 2 <= player.get_xpos() + player.get_xsize() / 2 &&
-                ball.get_ypos() + ball.get_ysize() / 2 >= player.get_ypos() - player.get_ysize() / 2 &&
-                ball.get_ypos() - ball.get_ysize() / 2 <= player.get_ypos() + player.get_ysize() / 2)
+            if (ball_pos.x + ball_size.x / 2 >= player_pos.x - player_size.x / 2 &&
+                ball_pos.x - ball_size.x / 2 <= player_pos.x + player_size.x / 2 &&
+                ball_pos.y + ball_size.y / 2 >= player_pos.y - player_size.y / 2 &&
+                ball_pos.y - ball_size.y / 2 <= player_pos.y + player_size.y / 2)
             {
                 // Ajusta a posição da bola para fora da superfície do jogador
-                ball.move_to(ball.get_xpos(), player.get_ypos() + player.get_ysize() / 2 + ball.get_ysize() / 2);
+                ball_pos.y = player_pos.y + player_size.y / 2 + ball_size.y / 2;
 
                 // Inverte a direção vertical da bola
                 ball_velocity.y *= -1.0f;
 
                 // Ajusta a direção horizontal com base na posição relativa da bola e do jogador
-                float player_center = player.get_xpos();
-                float ball_center = ball.get_xpos();
-                float offset = (ball_center - player_center) / (player.get_xsize() / 2); // Normaliza o desvio (-1.0 a 1.0)
+                float player_center = player_pos.x;
+                float ball_center = ball_pos.x;
+                float offset = (ball_center - player_center) / (player_size.x / 2); // Normaliza o desvio (-1.0 a 1.0)
 
                 ball_velocity.x += offset * 0.5f; // Modifica a velocidade horizontal da bola proporcionalmente
             }
@@ -264,10 +276,10 @@ void BreakoutGame::update(const f32 dt)
             for (Block& block : blocks)
             {
                 if (block.active &&
-                    ball.get_xpos() + ball.get_xsize() / 2 >= block.object.get_xpos() - block.object.get_xsize() / 2 &&
-                    ball.get_xpos() - ball.get_xsize() / 2 <= block.object.get_xpos() + block.object.get_xsize() / 2 &&
-                    ball.get_ypos() + ball.get_ysize() / 2 >= block.object.get_ypos() - block.object.get_ysize() / 2 &&
-                    ball.get_ypos() - ball.get_ysize() / 2 <= block.object.get_ypos() + block.object.get_ysize() / 2)
+                    ball_pos.x + ball_size.x / 2 >= block.object.get_xpos() - block.object.get_xsize() / 2 &&
+                    ball_pos.x - ball_size.x / 2 <= block.object.get_xpos() + block.object.get_xsize() / 2 &&
+                    ball_pos.y + ball_size.y / 2 >= block.object.get_ypos() - block.object.get_ysize() / 2 &&
+                    ball_pos.y - ball_size.y / 2 <= block.object.get_ypos() + block.object.get_ysize() / 2)
                 {
                     // Inverte a direção da bola
                     ball_velocity.y *= -1.0f;
@@ -300,8 +312,8 @@ void BreakoutGame::draw()
     joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &cb.get_buffer());
 
     auto I = joj::matrix4x4_identity();
-    auto scale_mat = DirectX::XMMatrixScaling(player.get_xsize(), player.get_ysize(), 1.0f);
-    auto mat = DirectX::XMMatrixTranslation(player.get_xpos(), player.get_ypos(), 0.0f);
+    auto scale_mat = DirectX::XMMatrixScaling(player_size.x, player_size.y, 1.0f);
+    auto mat = DirectX::XMMatrixTranslation(player_pos.x, player_pos.y, 0.0f);
     auto W = DirectX::XMMatrixMultiply(scale_mat, mat);
     DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, -3, 1);
     DirectX::XMVECTOR target = DirectX::XMVectorZero();
@@ -321,19 +333,19 @@ void BreakoutGame::draw()
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
-    scale_mat = DirectX::XMMatrixScaling(ball.get_xsize(), ball.get_ysize(), 1.0f);
+    scale_mat = DirectX::XMMatrixScaling(ball_size.x, ball_size.y, 1.0f);
     if (!started)
     {
         mat = DirectX::XMMatrixTranslation(
-            player.get_xpos(),
-            player.get_ypos() + ball.get_ysize(),
+            player_pos.x,
+            player_pos.y + ball_size.y,
             0.0f);
     }
     else
     {
         mat = DirectX::XMMatrixTranslation(
-            ball.get_xpos(),
-            ball.get_ypos(),
+            ball_pos.x,
+            ball_pos.y,
             0.0f);
     }
     W = DirectX::XMMatrixMultiply(scale_mat, mat);

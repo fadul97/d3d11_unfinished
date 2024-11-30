@@ -9,6 +9,9 @@
 #include <DirectXColors.h>
 #include "joj/systems/objects2d/object2d.h"
 #include <vector>
+#include "joj/systems/ecs/component_map.h"
+#include "joj/systems/ecs/components.h"
+#include "joj/systems/ecs/movement_system.h"
 
 struct Block
 {
@@ -31,15 +34,22 @@ private:
 	joj::D3D11Shader m_shader;
 	ID3D11InputLayout* m_input_layout = nullptr;
 
-	joj::Object2D player{ 400.0f, 50.0f, 125.0f, 25.0f };
+	joj::Entity player;
+	joj::Entity ball;
+	joj::Entity block;
+	joj::ComponentMap<joj::Position2D> positions;
+	joj::ComponentMap<joj::Velocity2D> velocities;
+	joj::Position2D player_pos{ 400.0f, 50.0f };
+	joj::Size2D player_size{ 125.0f, 25.0f };
+	joj::Position2D ball_pos{ 0.0f, 0.0f };
+	joj::Size2D ball_size{ 20.0f, 20.0f };
 	joj::JFloat4 player_color{ DirectX::Colors::AliceBlue };
 
-	f32 player_velocity = 400.0f;
+	joj::JFloat2 player_velocity{ 400.0f, 0.0f };
+	joj::JFloat2 ball_velocity{ 400.0f, 400.0f };
 
 	b8 started = false;
-	joj::Object2D ball{ 0.0f, 0.0f, 20.0f, 20.0f};
 	joj::JFloat4 ball_color{ DirectX::Colors::PaleVioletRed };
-	joj::JFloat2 ball_velocity{ 400.0f, 400.0f };
 
 	std::vector<Block> blocks;
 	i32 blocks_active = 0;
