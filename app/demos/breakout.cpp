@@ -3,6 +3,7 @@
 #include "joj/engine.h"
 #include "joj/logger.h"
 #include "joj/resources/geometry/quad.h"
+#include <renderer/d3d11/DDSTextureLoader11.h>
 
 struct BasicCB
 {
@@ -80,6 +81,67 @@ void BreakoutGame::init()
         JERROR(joj::ErrorCode::FAILED, "Failed to create constant buffer.");
     }
 
+    if (DirectX::CreateDDSTextureFromFile(
+        joj::Engine::s_renderer->get_device(),
+        L"../../../../app/textures/brick01.dds",
+        nullptr,
+        &m_brick
+    ) != S_OK)
+    {
+        JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'WoodCrate01.dds'.");
+    }
+    else
+    {
+        JINFO("Created DDS Texture from file!");
+    }
+
+    if (DirectX::CreateDDSTextureFromFile(
+        joj::Engine::s_renderer->get_device(),
+        L"../../../../app/textures/checkboard.dds",
+        nullptr,
+        &m_checkboard
+    ) != S_OK)
+    {
+        JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'checkboard.dds'.");
+    }
+    else
+    {
+        JINFO("Created DDS Texture from file!");
+    }
+
+    if (DirectX::CreateDDSTextureFromFile(
+        joj::Engine::s_renderer->get_device(),
+        L"../../../../app/textures/flare.dds",
+        nullptr,
+        &m_ball_tex
+    ) != S_OK)
+    {
+        JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'flare.dds'.");
+    }
+    else
+    {
+        JINFO("Created DDS Texture from file!");
+    }
+
+    // Describe Sampler State
+    D3D11_SAMPLER_DESC sampler_desc = {};
+    sampler_desc.Filter = D3D11_FILTER_ANISOTROPIC;
+    sampler_desc.MaxAnisotropy = 4;
+    sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+    sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+    sampler_desc.MinLOD = 0;
+    sampler_desc.MaxLOD = D3D11_FLOAT32_MAX;
+
+    if (joj::Engine::s_renderer->get_device()->CreateSamplerState(&sampler_desc, &m_sampler_state) != S_OK)
+    {
+        JERROR(joj::ErrorCode::FAILED, "Failed to create Sampler State.");
+        return;
+    }
+
+    joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
+
     // Criação dos blocos
     constexpr f32 block_width = 60.0f;
     constexpr f32 block_height = 20.0f;
@@ -119,6 +181,17 @@ void BreakoutGame::update(const f32 dt)
             ball.translate_xpos(ball_velocity.x * dt);
             ball.translate_ypos(ball_velocity.y * dt);
         }
+
+        if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
+            player.translate_xpos(player_velocity * dt);
+        if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
+            player.translate_xpos(-player_velocity * dt);
+
+        if (player.get_xpos() + player.get_xsize() / 2 >= 800.0f)
+            player.move_to(800.0f - player.get_xsize() / 2, player.get_ypos());
+
+        if (player.get_xpos() - player.get_xsize() / 2 <= 0.0f)
+            player.move_to(0.0f + player.get_xsize() / 2, player.get_ypos());
     }
     else
     {
@@ -243,6 +316,8 @@ void BreakoutGame::draw()
     p1_cb.color = player_color;
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
+    joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_checkboard);
+
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
     scale_mat = DirectX::XMMatrixScaling(ball.get_xsize(), ball.get_ysize(), 1.0f);
@@ -267,6 +342,8 @@ void BreakoutGame::draw()
     ball_cb.color = ball_color;
     cb.update(joj::Engine::s_renderer->get_device_context(), ball_cb);
 
+    joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_ball_tex);
+
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
     draw_blocks();
@@ -277,10 +354,15 @@ void BreakoutGame::draw()
 void BreakoutGame::shutdown()
 {
     m_input_layout->Release();
+    m_brick->Release();
+    m_ball_tex->Release();
+    m_sampler_state->Release();
 }
 
 void BreakoutGame::draw_blocks()
 {
+    joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_brick);
+
     for (const Block& block : blocks)
     {
         if (!block.active)

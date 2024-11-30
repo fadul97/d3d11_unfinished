@@ -47,6 +47,11 @@ private:
 	joj::D3D11VertexBuffer vb;
 	joj::D3D11IndexBuffer ib;
 	joj::D3D11ConstantBuffer cb;
+
+	ID3D11ShaderResourceView* m_brick = nullptr;
+	ID3D11ShaderResourceView* m_checkboard = nullptr;
+	ID3D11ShaderResourceView* m_ball_tex = nullptr;
+	ID3D11SamplerState* m_sampler_state = nullptr;
 };
 
 #endif // BREAKOUT_H

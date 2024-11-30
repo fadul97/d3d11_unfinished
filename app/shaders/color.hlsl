@@ -4,6 +4,10 @@ cbuffer cbPerObject
     float4 gColor;
 };
 
+Texture2D gDiffuseMap : register(t0);
+
+SamplerState samAnisotropic : register(s0);
+
 struct VertexIn
 {
     float3 PosL : POSITION;
@@ -16,6 +20,7 @@ struct VertexOut
 {
     float4 PosH : SV_POSITION;
     float4 Color : COLOR;
+    float2 TexC : TEXCOORD;
 };
 
 VertexOut VS(VertexIn vin)
@@ -28,11 +33,14 @@ VertexOut VS(VertexIn vin)
 	// Just pass vertex color into the pixel shader.
     vout.Color = gColor;
     
+    vout.TexC = vin.TexC;
+    
     return vout;
 }
 
 float4 PS(VertexOut pin) : SV_Target
 {
-    return pin.Color;
+    return gDiffuseMap.Sample(samAnisotropic, pin.TexC);
+    // return pin.Color;
 }
 
