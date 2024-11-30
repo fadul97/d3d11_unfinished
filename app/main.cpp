@@ -8,7 +8,7 @@
 #include <sstream>
 #include <math/jmath.h>
 #include "joj/engine.h"
-#include "demos/pong3d.h"
+#include "demos/breakout.h"
 
 /* TODO: Add comments for new files and refactor Demo App. */
 
@@ -17,6 +17,6 @@ int main()
     joj::Engine engine;
     JOJ_RETURN_INT_IF_FAIL(engine.start());
 
-    Pong3DGame app;
+    BreakoutGame app;
     return engine.run(&app);
 }
