@@ -177,8 +177,8 @@ void BreakoutGame::init()
     ball = em.create_entity();
     JDEBUG("ball = %d", ball);
 
-    positions.add(player, { 400.0f, 50.0f });
-    positions.add(ball, { 0.0f, 0.0f });
+    positions.add(player, player_pos);
+    positions.add(ball, ball_pos);
 
     velocities.add(player, player_velocity);
     velocities.add(ball, ball_velocity);
