@@ -8,7 +8,7 @@
 struct BasicCB
 {
     joj::JFloat4x4 wvp;
-    joj::JFloat4 color;
+    i32 use_texture;
 };
 
 void BreakoutGame::init()
@@ -297,6 +297,7 @@ void BreakoutGame::draw()
     joj::Engine::s_renderer->get_device_context()->VSSetShader(m_shader.get_vertex_shader(), nullptr, 0u);
     joj::Engine::s_renderer->get_device_context()->PSSetShader(m_shader.get_pixel_shader(), nullptr, 0u);
     joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &cb.get_buffer());
+    joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &cb.get_buffer());
 
     auto I = joj::matrix4x4_identity();
     auto scale_mat = DirectX::XMMatrixScaling(player.get_xsize(), player.get_ysize(), 1.0f);
@@ -313,7 +314,7 @@ void BreakoutGame::draw()
     auto wvp = W * V * P;
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
-    p1_cb.color = player_color;
+    p1_cb.use_texture = 1;
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_checkboard);
@@ -339,7 +340,7 @@ void BreakoutGame::draw()
     wvp = W * V * P;
     BasicCB ball_cb;
     XMStoreFloat4x4(&ball_cb.wvp, XMMatrixTranspose(wvp));
-    ball_cb.color = ball_color;
+    ball_cb.use_texture = 1;
     cb.update(joj::Engine::s_renderer->get_device_context(), ball_cb);
 
     joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_ball_tex);
@@ -382,7 +383,7 @@ void BreakoutGame::draw_blocks()
 
         BasicCB block_cb;
         XMStoreFloat4x4(&block_cb.wvp, XMMatrixTranspose(wvp));
-        block_cb.color = block.color;
+        block_cb.use_texture = 1;
         cb.update(joj::Engine::s_renderer->get_device_context(), block_cb);
 
         joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);

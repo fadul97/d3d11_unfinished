@@ -12,9 +12,9 @@
 
 struct Block
 {
-	joj::Object2D object; // Representa a posição e tamanho do bloco
-	b8 active = true;   // Determina se o bloco está ativo ou foi removido
-	joj::JFloat4 color;   // Cor do bloco
+	joj::Object2D object;
+	b8 active = true;
+	joj::JFloat4 color;
 };
 
 class BreakoutGame : public joj::App
