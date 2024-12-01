@@ -6,10 +6,10 @@ add_executable(
 	main.cpp
 	
 	# Demo App
-	demos/breakout.cpp
+	demos/endless_runner.cpp
 )
 # => demos folder:
-# pong.cpp
+# pong.cpp breakout.cpp
 # pong3d
 
 # => tutorials folder:
