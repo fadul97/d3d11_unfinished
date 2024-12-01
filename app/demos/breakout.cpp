@@ -30,16 +30,8 @@ void BreakoutGame::init()
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0 }
     };
 
-    if (joj::Engine::s_renderer->get_device()->CreateInputLayout(
-        input_desc.data(),
-        (u32)input_desc.size(),
-        m_shader.get_vsblob()->GetBufferPointer(),
-        m_shader.get_vsblob()->GetBufferSize(),
-        &m_input_layout
-    ) != S_OK)
-    {
-        JERROR(joj::ErrorCode::FAILED, "Failed to create Input Layout.");
-    }
+    m_input_layout.describe_default_geometry_layout();
+    JOJ_LOG_IF_FAIL(m_input_layout.create(joj::Engine::s_renderer->get_device(), m_shader));
 
     joj::Quad quad(1.0f, 1.0f);
 
@@ -211,7 +203,8 @@ void BreakoutGame::draw()
 {
     joj::Engine::s_renderer->clear();
 
-    joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
+    //joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
+    m_input_layout.bind(joj::Engine::s_renderer->get_device_context());
     joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     UINT stride = sizeof(joj::GeometryVertex);
@@ -280,7 +273,6 @@ void BreakoutGame::draw()
 
 void BreakoutGame::shutdown()
 {
-    m_input_layout->Release();
 }
 
 void BreakoutGame::draw_blocks()

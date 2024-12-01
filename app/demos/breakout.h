@@ -14,6 +14,7 @@
 #include "joj/systems/ecs/entity_manager.h"
 #include "joj/renderer/d3d11/texture_d3d11.h"
 #include "joj/renderer/d3d11/sampler_state_d3d11.h"
+#include <renderer/d3d11/input_layout_d3d11.h>
 
 struct Block
 {
@@ -34,7 +35,7 @@ public:
 
 private:
 	joj::D3D11Shader m_shader;
-	ID3D11InputLayout* m_input_layout = nullptr;
+	joj::D3D11InputLayout m_input_layout;
 
 	joj::EntityManager em;
 	joj::Entity player;
