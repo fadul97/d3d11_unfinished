@@ -4,6 +4,7 @@
 #include "joj/logger.h"
 #include "joj/resources/geometry/quad.h"
 #include <renderer/d3d11/DDSTextureLoader11.h>
+#include "joj/jmacros.h"
 
 struct BasicCB
 {
@@ -81,47 +82,9 @@ void BreakoutGame::init()
         JERROR(joj::ErrorCode::FAILED, "Failed to create constant buffer.");
     }
 
-    if (DirectX::CreateDDSTextureFromFile(
-        joj::Engine::s_renderer->get_device(),
-        L"../../../../app/textures/brick01.dds",
-        nullptr,
-        &m_brick
-    ) != S_OK)
-    {
-        JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'WoodCrate01.dds'.");
-    }
-    else
-    {
-        JINFO("Created DDS Texture from file!");
-    }
-
-    if (DirectX::CreateDDSTextureFromFile(
-        joj::Engine::s_renderer->get_device(),
-        L"../../../../app/textures/checkboard.dds",
-        nullptr,
-        &m_checkboard
-    ) != S_OK)
-    {
-        JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'checkboard.dds'.");
-    }
-    else
-    {
-        JINFO("Created DDS Texture from file!");
-    }
-
-    if (DirectX::CreateDDSTextureFromFile(
-        joj::Engine::s_renderer->get_device(),
-        L"../../../../app/textures/flare.dds",
-        nullptr,
-        &m_ball_tex
-    ) != S_OK)
-    {
-        JERROR(joj::ErrorCode::FAILED, "Failed to create DDS Texture from file 'flare.dds'.");
-    }
-    else
-    {
-        JINFO("Created DDS Texture from file!");
-    }
+    JOJ_LOG_IF_FAIL(m_player_tex.create(L"../../../../app/textures/checkboard.dds"));
+    JOJ_LOG_IF_FAIL(m_ball_tex.create(L"../../../../app/textures/flare.dds"));
+    JOJ_LOG_IF_FAIL(m_block_tex.create(L"../../../../app/textures/brick01.dds"));
 
     // Describe Sampler State
     D3D11_SAMPLER_DESC sampler_desc = {};
@@ -324,7 +287,7 @@ void BreakoutGame::draw()
     p1_cb.use_texture = 1;
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
-    joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_checkboard);
+    m_player_tex.bind(0, 1);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
@@ -350,7 +313,7 @@ void BreakoutGame::draw()
     ball_cb.use_texture = 1;
     cb.update(joj::Engine::s_renderer->get_device_context(), ball_cb);
 
-    joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_ball_tex);
+    m_ball_tex.bind(0, 1);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
@@ -362,14 +325,12 @@ void BreakoutGame::draw()
 void BreakoutGame::shutdown()
 {
     m_input_layout->Release();
-    m_brick->Release();
-    m_ball_tex->Release();
     m_sampler_state->Release();
 }
 
 void BreakoutGame::draw_blocks()
 {
-    joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_brick);
+    m_block_tex.bind(0, 1);
 
     for (const Block& block : blocks)
     {

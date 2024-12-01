@@ -11,6 +11,7 @@ add_library(
     constant_buffer_d3d11.cpp
     shader_d3d11.cpp
     DDSTextureLoader11.cpp
+    texture_d3d11.cpp
 )
 
 # Specify include directories for jojRenderer
