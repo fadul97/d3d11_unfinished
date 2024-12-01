@@ -257,18 +257,15 @@ void BreakoutGame::update(const f32 dt)
                 ball_pos.y + ball_size.y / 2 >= player_pos.y - player_size.y / 2 &&
                 ball_pos.y - ball_size.y / 2 <= player_pos.y + player_size.y / 2)
             {
-                // Ajusta a posição da bola para fora da superfície do jogador
                 ball_pos.y = player_pos.y + player_size.y / 2 + ball_size.y / 2;
 
-                // Inverte a direção vertical da bola
                 ball_velocity.y *= -1.0f;
 
-                // Ajusta a direção horizontal com base na posição relativa da bola e do jogador
-                float player_center = player_pos.x;
-                float ball_center = ball_pos.x;
-                float offset = (ball_center - player_center) / (player_size.x / 2); // Normaliza o desvio (-1.0 a 1.0)
+                f32 player_center = player_pos.x;
+                f32 ball_center = ball_pos.x;
+                f32 offset = (ball_center - player_center) / (player_size.x / 2);
 
-                ball_velocity.x += offset * 0.5f; // Modifica a velocidade horizontal da bola proporcionalmente
+                ball_velocity.x += offset * 0.5f;
             }
 
             for (Block& block : blocks)
