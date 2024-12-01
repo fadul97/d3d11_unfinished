@@ -15,13 +15,13 @@ namespace joj
     {
     public:
         D3D11Texture();
-        D3D11Texture(const wchar_t* filepath);
+        D3D11Texture(ID3D11Device* device, const wchar_t* filepath);
         ~D3D11Texture();
 
-        void bind(u32 start_slot, u32 num_views);
-        void unbind();
+        void bind(ID3D11DeviceContext* device_context, u32 start_slot, u32 num_views);
+        void unbind(ID3D11DeviceContext* device_context);
 
-        ErrorCode create(const wchar_t* filepath);
+        ErrorCode create(ID3D11Device* device, const wchar_t* filepath);
         void destroy();
 
     private:
