@@ -126,6 +126,7 @@ namespace joj
         ERR_SHADER_D3D11_VERTEX_CREATION,
         ERR_SHADER_D3D11_PIXEL_CREATION,
         ERR_SAMPLER_STATE_D3D11_CREATION,
+        ERR_D3D11_INPUT_LAYOUT_CREATION,
     };
 
     /** @brief Get the index of the ErrorCode.
