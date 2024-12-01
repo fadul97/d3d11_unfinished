@@ -77,26 +77,10 @@ void BreakoutGame::init()
     JOJ_LOG_IF_FAIL(m_ball_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/flare.dds"));
     JOJ_LOG_IF_FAIL(m_block_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/brick01.dds"));
 
-    // Describe Sampler State
-    D3D11_SAMPLER_DESC sampler_desc = {};
-    sampler_desc.Filter = D3D11_FILTER_ANISOTROPIC;
-    sampler_desc.MaxAnisotropy = 4;
-    sampler_desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampler_desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampler_desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampler_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-    sampler_desc.MinLOD = 0;
-    sampler_desc.MaxLOD = D3D11_FLOAT32_MAX;
+    JOJ_LOG_IF_FAIL(m_sampler_state.create_anisotropic_state(joj::Engine::s_renderer->get_device()));
+    m_sampler_state.bind_anisotropic_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    if (joj::Engine::s_renderer->get_device()->CreateSamplerState(&sampler_desc, &m_sampler_state) != S_OK)
-    {
-        JERROR(joj::ErrorCode::FAILED, "Failed to create Sampler State.");
-        return;
-    }
-
-    joj::Engine::s_renderer->get_device_context()->PSSetSamplers(0, 1, &m_sampler_state);
-
-    // Criação dos blocos
+    // Block creation
     constexpr f32 block_width = 60.0f;
     constexpr f32 block_height = 20.0f;
     constexpr f32 spacing = 10.0f;
@@ -230,13 +214,11 @@ void BreakoutGame::update(const f32 dt)
                     ball_pos.y + ball_size.y / 2 >= block.object.get_ypos() - block.object.get_ysize() / 2 &&
                     ball_pos.y - ball_size.y / 2 <= block.object.get_ypos() + block.object.get_ysize() / 2)
                 {
-                    // Inverte a direção da bola
                     ball_velocity.y *= -1.0f;
 
-                    // Marca o bloco como removido
                     block.active = false;
                     --blocks_active;
-                    break; // Apenas uma colisão por frame
+                    break; // 1 collision per frame
                 }
             }
         }
@@ -316,7 +298,6 @@ void BreakoutGame::draw()
 void BreakoutGame::shutdown()
 {
     m_input_layout->Release();
-    m_sampler_state->Release();
 }
 
 void BreakoutGame::draw_blocks()

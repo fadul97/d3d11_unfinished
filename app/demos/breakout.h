@@ -13,6 +13,7 @@
 #include "joj/systems/ecs/components.h"
 #include "joj/systems/ecs/entity_manager.h"
 #include "joj/renderer/d3d11/texture_d3d11.h"
+#include "joj/renderer/d3d11/sampler_state_d3d11.h"
 
 struct Block
 {
@@ -63,7 +64,7 @@ private:
 	joj::D3D11Texture m_player_tex;
 	joj::D3D11Texture m_ball_tex;
 	joj::D3D11Texture m_block_tex;
-	ID3D11SamplerState* m_sampler_state = nullptr;
+	joj::D3D11SamplerState m_sampler_state;
 };
 
 #endif // BREAKOUT_H

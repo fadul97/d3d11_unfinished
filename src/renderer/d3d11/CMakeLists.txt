@@ -12,6 +12,7 @@ add_library(
     shader_d3d11.cpp
     DDSTextureLoader11.cpp
     texture_d3d11.cpp
+    sampler_state_d3d11.cpp
 )
 
 # Specify include directories for jojRenderer
