@@ -4,7 +4,6 @@
 #include "joj/logger.h"
 #include "joj/resources/geometry/quad.h"
 #include <renderer/d3d11/DDSTextureLoader11.h>
-#include "joj/systems/ecs/entity_manager.h"
 
 struct BasicCB
 {
@@ -170,7 +169,6 @@ void BreakoutGame::init()
         }
     }
 
-    joj::EntityManager em;
     player = em.create_entity();
     JDEBUG("player = %d", player);
 

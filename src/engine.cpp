@@ -60,7 +60,7 @@ f32 joj::Engine::get_frametime()
 		text << std::fixed;			// Always show the fractional part
 		text.precision(3);			// three numbers after comma
 
-		text << "Joj Engine" << "    "
+		text << "Joj Engine v0.0.2" << "    "
 			<< "FPS: " << frame_count << "    "
 			<< "Frametime: " << s_frametime * 1000 << " (ms)";
 

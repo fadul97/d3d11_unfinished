@@ -11,7 +11,7 @@
 #include <vector>
 #include "joj/systems/ecs/component_map.h"
 #include "joj/systems/ecs/components.h"
-#include "joj/systems/ecs/movement_system.h"
+#include "joj/systems/ecs/entity_manager.h"
 
 struct Block
 {
@@ -34,6 +34,7 @@ private:
 	joj::D3D11Shader m_shader;
 	ID3D11InputLayout* m_input_layout = nullptr;
 
+	joj::EntityManager em;
 	joj::Entity player;
 	joj::Entity ball;
 	joj::Entity block;
@@ -43,13 +44,13 @@ private:
 	joj::Size2D player_size{ 125.0f, 25.0f };
 	joj::Position2D ball_pos{ 0.0f, 0.0f };
 	joj::Size2D ball_size{ 20.0f, 20.0f };
-	joj::JFloat4 player_color{ DirectX::Colors::AliceBlue };
+	joj::Color player_color{ DirectX::Colors::AliceBlue };
 
 	joj::JFloat2 player_velocity{ 400.0f, 0.0f };
 	joj::JFloat2 ball_velocity{ 400.0f, 400.0f };
 
 	b8 started = false;
-	joj::JFloat4 ball_color{ DirectX::Colors::PaleVioletRed };
+	joj::Color ball_color{ DirectX::Colors::PaleVioletRed };
 
 	std::vector<Block> blocks;
 	i32 blocks_active = 0;

@@ -11,6 +11,7 @@ namespace joj
     using Position2D = JFloat2;
     using Size2D = JFloat2;
     using Velocity2D = JFloat2;
+    using Color = JFloat4;
 }
 
 #endif // JOJ_COMPONENTS_H
