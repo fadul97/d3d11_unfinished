@@ -45,33 +45,15 @@ void BreakoutGame::init()
 
     // Setup and Create Vertex Buffer
     vb.setup(D3D11_USAGE_IMMUTABLE, 0, sizeof(joj::GeometryVertex) * quad.get_vertex_count(), quad.get_vertex_data());
-    if (joj::Engine::s_renderer->get_device()->CreateBuffer(
-        vb.get_buffer_desc(),
-        vb.get_subdata(),
-        &vb.get_buffer()) != S_OK)
-    {
-        JERROR(joj::ErrorCode::FAILED, "Failed to create vertex buffer.");
-    }
+    JOJ_LOG_IF_FAIL(vb.create(joj::Engine::s_renderer->get_device()));
 
     // Setup and Create Index Buffer
     ib.setup(sizeof(u32) * quad.get_index_count(), quad.get_index_data());
-    if (joj::Engine::s_renderer->get_device()->CreateBuffer(
-        ib.get_buffer_desc(),
-        ib.get_subdata(),
-        &ib.get_buffer()) != S_OK)
-    {
-        JERROR(joj::ErrorCode::FAILED, "Failed to create index buffer.");
-    }
+    JOJ_LOG_IF_FAIL(ib.create(joj::Engine::s_renderer->get_device()));
 
     // Setup and Create Constant Buffer
     cb.setup(joj::calculate_cb_byte_size(sizeof(BasicCB)), nullptr);
-    if (joj::Engine::s_renderer->get_device()->CreateBuffer(
-        cb.get_buffer_desc(),
-        nullptr,
-        &cb.get_buffer()) != S_OK)
-    {
-        JERROR(joj::ErrorCode::FAILED, "Failed to create constant buffer.");
-    }
+    JOJ_LOG_IF_FAIL(cb.create(joj::Engine::s_renderer->get_device()));
 
     JOJ_LOG_IF_FAIL(m_player_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/checkboard.dds"));
     JOJ_LOG_IF_FAIL(m_ball_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/flare.dds"));
@@ -234,13 +216,14 @@ void BreakoutGame::draw()
 
     UINT stride = sizeof(joj::GeometryVertex);
     UINT offset = 0;
-    joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &vb.get_buffer(), &stride, &offset);
-    joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
+    vb.bind(joj::Engine::s_renderer->get_device_context(), 0, 1, &stride, &offset);
+    ib.bind(joj::Engine::s_renderer->get_device_context(), DXGI_FORMAT_R32_UINT, offset);
 
     m_shader.bind_vertex_shader(joj::Engine::s_renderer->get_device_context());
     m_shader.bind_pixel_shader(joj::Engine::s_renderer->get_device_context());
-    joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &cb.get_buffer());
-    joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &cb.get_buffer());
+
+    cb.bind_to_vertex_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
+    cb.bind_to_pixel_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
     auto I = joj::matrix4x4_identity();
     auto scale_mat = DirectX::XMMatrixScaling(player_size.x, player_size.y, 1.0f);
