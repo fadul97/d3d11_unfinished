@@ -46,8 +46,8 @@ private:
 	joj::Size2D ball_size{ 20.0f, 20.0f };
 	joj::Color player_color{ DirectX::Colors::AliceBlue };
 
-	joj::JFloat2 player_velocity{ 400.0f, 0.0f };
-	joj::JFloat2 ball_velocity{ 400.0f, 400.0f };
+	joj::Velocity2D player_velocity{ 400.0f, 0.0f };
+	joj::Velocity2D ball_velocity{ 400.0f, 400.0f };
 
 	b8 started = false;
 	joj::Color ball_color{ DirectX::Colors::PaleVioletRed };
