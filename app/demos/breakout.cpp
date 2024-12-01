@@ -17,19 +17,10 @@ void BreakoutGame::init()
     // Create Shader
     m_shader.compile_vertex_shader(L"../../../../app/shaders/color.hlsl", "VS", "vs_5_0");
     m_shader.compile_pixel_shader(L"../../../../app/shaders/color.hlsl", "PS", "ps_5_0");
-
     JOJ_LOG_IF_FAIL(m_shader.create_vertex_shader(joj::Engine::s_renderer->get_device()));
     JOJ_LOG_IF_FAIL(m_shader.create_pixel_shader(joj::Engine::s_renderer->get_device()));
 
-    // Create the vertex input layout.
-    std::vector<D3D11_INPUT_ELEMENT_DESC> input_desc =
-    {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0,  0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "NORMAL",   0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 24, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,       0, 40, D3D11_INPUT_PER_VERTEX_DATA, 0 }
-    };
-
+    // Setup and Create Input Layout
     m_input_layout.describe_default_geometry_layout();
     JOJ_LOG_IF_FAIL(m_input_layout.create(joj::Engine::s_renderer->get_device(), m_shader));
 
@@ -47,39 +38,16 @@ void BreakoutGame::init()
     cb.setup(joj::calculate_cb_byte_size(sizeof(BasicCB)), nullptr);
     JOJ_LOG_IF_FAIL(cb.create(joj::Engine::s_renderer->get_device()));
 
+    // Create Textures
     JOJ_LOG_IF_FAIL(m_player_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/checkboard.dds"));
     JOJ_LOG_IF_FAIL(m_ball_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/flare.dds"));
     JOJ_LOG_IF_FAIL(m_block_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/brick01.dds"));
 
+    // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_anisotropic_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_anisotropic_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    // Block creation
-    constexpr f32 block_width = 60.0f;
-    constexpr f32 block_height = 20.0f;
-    constexpr f32 spacing = 10.0f;
-    constexpr i32 rows = 2;
-    constexpr i32 cols = 10;
-
-    f32 start_x = 800.0f / 2 - (cols * (block_width + spacing) - spacing) / 2;
-    f32 start_y = 500.0f;
-
-    for (i32 row = 0; row < rows; ++row)
-    {
-        for (i32 col = 0; col < cols; ++col)
-        {
-            Block block;
-            block.object = joj::Object2D(
-                start_x + col * (block_width + spacing),
-                start_y - row * (block_height + spacing),
-                block_width,
-                block_height
-            );
-            block.color = joj::JFloat4{ DirectX::Colors::DarkOrange };
-            ++blocks_active;
-            blocks.push_back(block);
-        }
-    }
+    create_blocks();
 
     player = em.create_entity();
     JDEBUG("player = %d", player);
@@ -104,97 +72,18 @@ void BreakoutGame::update(const f32 dt)
         ball_pos.x = player_pos.x;
         ball_pos.y = player_pos.y + ball_size.y;
 
-        if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
-            player_pos.x += player_velocity.x * dt;
-        if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
-            player_pos.x -= player_velocity.x * dt;
-
-        if (player_pos.x + player_size.x / 2 >= 800.0f)
-            player_pos.x = 800.0f - player_size.x / 2;
-
-        if (player_pos.x - player_size.x / 2 <= 0.0f)
-            player_pos.x = 0.0f + player_size.x / 2;
+        handle_player_input(dt);
     }
     else
     {
         if (blocks_active > 0)
         {
-            if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
-                player_pos.x += player_velocity.x * dt;
-            if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
-                player_pos.x -= player_velocity.x * dt;
-
-            if (player_pos.x + player_size.x / 2 >= 800.0f)
-                player_pos.x = 800.0f - player_size.x / 2;
-
-            if (player_pos.x - player_size.x / 2 <= 0.0f)
-                player_pos.x = 0.0f + player_size.x / 2;
+            handle_player_input(dt);
 
             ball_pos.x += ball_velocity.x * dt;
             ball_pos.y += ball_velocity.y * dt;
 
-            // Right side
-            if (ball_pos.x + ball_size.x / 2 >= 800.0f)
-            {
-                ball_pos.x = 800.0f - ball_size.x / 2;
-                ball_velocity.x *= -1.0f;
-            }
-
-            // Left side
-            if (ball_pos.x - ball_size.x / 2 <= 0.0f)
-            {
-                ball_pos.x = 0.0f + ball_size.x / 2;
-                ball_velocity.x *= -1.0f;
-            }
-
-            // Bottom side
-            if (ball_pos.y - ball_size.y / 2 <= 0.0f)
-            {
-                ball_pos.y = 0.0f + ball_size.y / 2;
-                ball_velocity.x = 0.0f;
-                ball_velocity.y = 0.0f;
-                player_velocity.x = 0.0f;
-            }
-
-            // Top side
-            if (ball_pos.y + ball_size.y / 2 >= 600.0f)
-            {
-                ball_pos.y = 600.0f - ball_size.y / 2;
-                ball_velocity.y *= -1.0f;
-            }
-
-            // Ball and Player collision
-            if (ball_pos.x + ball_size.x / 2 >= player_pos.x - player_size.x / 2 &&
-                ball_pos.x - ball_size.x / 2 <= player_pos.x + player_size.x / 2 &&
-                ball_pos.y + ball_size.y / 2 >= player_pos.y - player_size.y / 2 &&
-                ball_pos.y - ball_size.y / 2 <= player_pos.y + player_size.y / 2)
-            {
-                ball_pos.y = player_pos.y + player_size.y / 2 + ball_size.y / 2;
-
-                ball_velocity.y *= -1.0f;
-
-                f32 player_center = player_pos.x;
-                f32 ball_center = ball_pos.x;
-                f32 offset = (ball_center - player_center) / (player_size.x / 2);
-
-                ball_velocity.x += offset * 0.5f;
-            }
-
-            for (Block& block : blocks)
-            {
-                if (block.active &&
-                    ball_pos.x + ball_size.x / 2 >= block.object.get_xpos() - block.object.get_xsize() / 2 &&
-                    ball_pos.x - ball_size.x / 2 <= block.object.get_xpos() + block.object.get_xsize() / 2 &&
-                    ball_pos.y + ball_size.y / 2 >= block.object.get_ypos() - block.object.get_ysize() / 2 &&
-                    ball_pos.y - ball_size.y / 2 <= block.object.get_ypos() + block.object.get_ysize() / 2)
-                {
-                    ball_velocity.y *= -1.0f;
-
-                    block.active = false;
-                    --blocks_active;
-                    break; // 1 collision per frame
-                }
-            }
+            handle_collisions();
         }
     }
 }
@@ -203,9 +92,8 @@ void BreakoutGame::draw()
 {
     joj::Engine::s_renderer->clear();
 
-    //joj::Engine::s_renderer->get_device_context()->IASetInputLayout(m_input_layout);
     m_input_layout.bind(joj::Engine::s_renderer->get_device_context());
-    joj::Engine::s_renderer->get_device_context()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    joj::Engine::s_renderer->set_primitive_topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     UINT stride = sizeof(joj::GeometryVertex);
     UINT offset = 0;
@@ -275,6 +163,35 @@ void BreakoutGame::shutdown()
 {
 }
 
+void BreakoutGame::create_blocks()
+{
+    constexpr f32 block_width = 60.0f;
+    constexpr f32 block_height = 20.0f;
+    constexpr f32 spacing = 10.0f;
+    constexpr i32 rows = 2;
+    constexpr i32 cols = 10;
+
+    f32 start_x = 800.0f / 2 - (cols * (block_width + spacing) - spacing) / 2;
+    f32 start_y = 500.0f;
+
+    for (i32 row = 0; row < rows; ++row)
+    {
+        for (i32 col = 0; col < cols; ++col)
+        {
+            Block block;
+            block.object = joj::Object2D(
+                start_x + col * (block_width + spacing),
+                start_y - row * (block_height + spacing),
+                block_width,
+                block_height
+            );
+            block.color = joj::JFloat4{ DirectX::Colors::DarkOrange };
+            ++blocks_active;
+            blocks.push_back(block);
+        }
+    }
+}
+
 void BreakoutGame::draw_blocks()
 {
     m_block_tex.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
@@ -302,5 +219,85 @@ void BreakoutGame::draw_blocks()
         cb.update(joj::Engine::s_renderer->get_device_context(), block_cb);
 
         joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
+    }
+}
+
+void BreakoutGame::handle_player_input(const f32 dt)
+{
+    if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
+        player_pos.x += player_velocity.x * dt;
+    if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
+        player_pos.x -= player_velocity.x * dt;
+
+    if (player_pos.x + player_size.x / 2 >= 800.0f)
+        player_pos.x = 800.0f - player_size.x / 2;
+
+    if (player_pos.x - player_size.x / 2 <= 0.0f)
+        player_pos.x = 0.0f + player_size.x / 2;
+}
+
+void BreakoutGame::handle_collisions()
+{
+    // Right side
+    if (ball_pos.x + ball_size.x / 2 >= 800.0f)
+    {
+        ball_pos.x = 800.0f - ball_size.x / 2;
+        ball_velocity.x *= -1.0f;
+    }
+
+    // Left side
+    if (ball_pos.x - ball_size.x / 2 <= 0.0f)
+    {
+        ball_pos.x = 0.0f + ball_size.x / 2;
+        ball_velocity.x *= -1.0f;
+    }
+
+    // Bottom side
+    if (ball_pos.y - ball_size.y / 2 <= 0.0f)
+    {
+        ball_pos.y = 0.0f + ball_size.y / 2;
+        ball_velocity.x = 0.0f;
+        ball_velocity.y = 0.0f;
+        player_velocity.x = 0.0f;
+    }
+
+    // Top side
+    if (ball_pos.y + ball_size.y / 2 >= 600.0f)
+    {
+        ball_pos.y = 600.0f - ball_size.y / 2;
+        ball_velocity.y *= -1.0f;
+    }
+
+    // Ball and Player collision
+    if (ball_pos.x + ball_size.x / 2 >= player_pos.x - player_size.x / 2 &&
+        ball_pos.x - ball_size.x / 2 <= player_pos.x + player_size.x / 2 &&
+        ball_pos.y + ball_size.y / 2 >= player_pos.y - player_size.y / 2 &&
+        ball_pos.y - ball_size.y / 2 <= player_pos.y + player_size.y / 2)
+    {
+        ball_pos.y = player_pos.y + player_size.y / 2 + ball_size.y / 2;
+
+        ball_velocity.y *= -1.0f;
+
+        f32 player_center = player_pos.x;
+        f32 ball_center = ball_pos.x;
+        f32 offset = (ball_center - player_center) / (player_size.x / 2);
+
+        ball_velocity.x += offset * 0.5f;
+    }
+
+    for (Block& block : blocks)
+    {
+        if (block.active &&
+            ball_pos.x + ball_size.x / 2 >= block.object.get_xpos() - block.object.get_xsize() / 2 &&
+            ball_pos.x - ball_size.x / 2 <= block.object.get_xpos() + block.object.get_xsize() / 2 &&
+            ball_pos.y + ball_size.y / 2 >= block.object.get_ypos() - block.object.get_ysize() / 2 &&
+            ball_pos.y - ball_size.y / 2 <= block.object.get_ypos() + block.object.get_ysize() / 2)
+        {
+            ball_velocity.y *= -1.0f;
+
+            block.active = false;
+            --blocks_active;
+            break; // 1 collision per frame
+        }
     }
 }

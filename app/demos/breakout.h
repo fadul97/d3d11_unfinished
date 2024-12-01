@@ -31,7 +31,11 @@ public:
 	void draw();
 	void shutdown();
 
+	void create_blocks();
 	void draw_blocks();
+
+	void handle_player_input(const f32 dt);
+	void handle_collisions();
 
 private:
 	joj::D3D11Shader m_shader;
