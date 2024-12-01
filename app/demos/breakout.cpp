@@ -18,17 +18,8 @@ void BreakoutGame::init()
     m_shader.compile_vertex_shader(L"../../../../app/shaders/color.hlsl", "VS", "vs_5_0");
     m_shader.compile_pixel_shader(L"../../../../app/shaders/color.hlsl", "PS", "ps_5_0");
 
-    joj::Engine::s_renderer->get_device()->CreateVertexShader(
-        m_shader.get_vsblob()->GetBufferPointer(),
-        m_shader.get_vsblob()->GetBufferSize(),
-        nullptr,
-        &m_shader.get_vertex_shader());
-
-    joj::Engine::s_renderer->get_device()->CreatePixelShader(
-        m_shader.get_psblob()->GetBufferPointer(),
-        m_shader.get_psblob()->GetBufferSize(),
-        nullptr,
-        &m_shader.get_pixel_shader());
+    JOJ_LOG_IF_FAIL(m_shader.create_vertex_shader(joj::Engine::s_renderer->get_device()));
+    JOJ_LOG_IF_FAIL(m_shader.create_pixel_shader(joj::Engine::s_renderer->get_device()));
 
     // Create the vertex input layout.
     std::vector<D3D11_INPUT_ELEMENT_DESC> input_desc =
@@ -82,9 +73,9 @@ void BreakoutGame::init()
         JERROR(joj::ErrorCode::FAILED, "Failed to create constant buffer.");
     }
 
-    JOJ_LOG_IF_FAIL(m_player_tex.create(L"../../../../app/textures/checkboard.dds"));
-    JOJ_LOG_IF_FAIL(m_ball_tex.create(L"../../../../app/textures/flare.dds"));
-    JOJ_LOG_IF_FAIL(m_block_tex.create(L"../../../../app/textures/brick01.dds"));
+    JOJ_LOG_IF_FAIL(m_player_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/checkboard.dds"));
+    JOJ_LOG_IF_FAIL(m_ball_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/flare.dds"));
+    JOJ_LOG_IF_FAIL(m_block_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/brick01.dds"));
 
     // Describe Sampler State
     D3D11_SAMPLER_DESC sampler_desc = {};
@@ -264,8 +255,8 @@ void BreakoutGame::draw()
     joj::Engine::s_renderer->get_device_context()->IASetVertexBuffers(0, 1, &vb.get_buffer(), &stride, &offset);
     joj::Engine::s_renderer->get_device_context()->IASetIndexBuffer(ib.get_buffer(), DXGI_FORMAT_R32_UINT, 0);
 
-    joj::Engine::s_renderer->get_device_context()->VSSetShader(m_shader.get_vertex_shader(), nullptr, 0u);
-    joj::Engine::s_renderer->get_device_context()->PSSetShader(m_shader.get_pixel_shader(), nullptr, 0u);
+    m_shader.bind_vertex_shader(joj::Engine::s_renderer->get_device_context());
+    m_shader.bind_pixel_shader(joj::Engine::s_renderer->get_device_context());
     joj::Engine::s_renderer->get_device_context()->VSSetConstantBuffers(0, 1, &cb.get_buffer());
     joj::Engine::s_renderer->get_device_context()->PSSetConstantBuffers(0, 1, &cb.get_buffer());
 
@@ -287,7 +278,7 @@ void BreakoutGame::draw()
     p1_cb.use_texture = 1;
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
-    m_player_tex.bind(0, 1);
+    m_player_tex.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
@@ -313,7 +304,7 @@ void BreakoutGame::draw()
     ball_cb.use_texture = 1;
     cb.update(joj::Engine::s_renderer->get_device_context(), ball_cb);
 
-    m_ball_tex.bind(0, 1);
+    m_ball_tex.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
@@ -330,7 +321,7 @@ void BreakoutGame::shutdown()
 
 void BreakoutGame::draw_blocks()
 {
-    m_block_tex.bind(0, 1);
+    m_block_tex.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
     for (const Block& block : blocks)
     {
