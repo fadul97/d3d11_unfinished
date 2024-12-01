@@ -7,6 +7,7 @@
 #if JPLATFORM_WINDOWS
 
 #include <d3d11.h>
+#include "error_code.h"
 
 namespace joj
 {
@@ -17,6 +18,11 @@ namespace joj
         ~D3D11IndexBuffer();
 
         void setup(u32 byte_width, const void* data);
+
+        ErrorCode create(ID3D11Device* device);
+
+        void bind(ID3D11DeviceContext* device_context,
+            DXGI_FORMAT format, u32 offset);
 
         const D3D11_BUFFER_DESC* get_buffer_desc() const;
         ID3D11Buffer*& get_buffer();

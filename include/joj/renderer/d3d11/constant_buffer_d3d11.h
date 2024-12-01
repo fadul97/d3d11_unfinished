@@ -7,6 +7,7 @@
 #if JPLATFORM_WINDOWS
 
 #include <d3d11.h>
+#include "error_code.h"
 
 namespace joj
 {
@@ -33,6 +34,13 @@ namespace joj
         ~D3D11ConstantBuffer();
 
         void setup(const u32 byte_width, const void* data);
+
+        ErrorCode create(ID3D11Device* device);
+
+        void bind_to_vertex_shader(ID3D11DeviceContext* device_context,
+            u32 start_slot, u32 num_buffers);
+        void bind_to_pixel_shader(ID3D11DeviceContext* device_context,
+            u32 start_slot, u32 num_buffers);
         
         template<typename T>
         void update(ID3D11DeviceContext* device_context, T& data);

@@ -21,6 +21,9 @@ joj::D3D11SamplerState::~D3D11SamplerState()
 
 joj::ErrorCode joj::D3D11SamplerState::create_anisotropic_state(ID3D11Device* device)
 {
+    if (m_anisotropic != nullptr)
+        return ErrorCode::OK;
+
     D3D11_SAMPLER_DESC anisotropic_desc = {};
     anisotropic_desc.Filter = D3D11_FILTER_ANISOTROPIC;
     anisotropic_desc.MaxAnisotropy = 4;
