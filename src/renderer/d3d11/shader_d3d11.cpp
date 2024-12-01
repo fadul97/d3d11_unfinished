@@ -10,9 +10,11 @@ joj::D3D11Shader::D3D11Shader()
 	m_vertex_shader = nullptr;
 	m_pixel_shader = nullptr;
 	m_geometry_shader = nullptr;
+	m_compute_shader = nullptr;
 	m_vsblob = nullptr;
 	m_psblob = nullptr;
 	m_gsblob = nullptr;
+	m_csblob = nullptr;
 }
 
 joj::D3D11Shader::~D3D11Shader()
@@ -179,6 +181,48 @@ void joj::D3D11Shader::compile_compute_shader(const WCHAR* compute_path, LPCSTR 
 	{
 		shader_compile_errors_blob->Release();
 	}
+}
+
+joj::ErrorCode joj::D3D11Shader::create_vertex_shader(ID3D11Device* device)
+{
+	if (device->CreateVertexShader(
+		m_vsblob->GetBufferPointer(),
+		m_vsblob->GetBufferSize(),
+		nullptr,
+		&m_vertex_shader) != S_OK)
+	{
+		JERROR(ErrorCode::ERR_SHADER_D3D11_VERTEX_CREATION,
+			"Failed to create Vertex Shader.");
+		return ErrorCode::ERR_SHADER_D3D11_VERTEX_CREATION;
+	}
+
+	return ErrorCode::OK;
+}
+
+joj::ErrorCode joj::D3D11Shader::create_pixel_shader(ID3D11Device* device)
+{
+	if (device->CreatePixelShader(
+		m_psblob->GetBufferPointer(),
+		m_psblob->GetBufferSize(),
+		nullptr,
+		&m_pixel_shader) != S_OK)
+	{
+		JERROR(ErrorCode::ERR_SHADER_D3D11_PIXEL_CREATION,
+			"Failed to create Pixel Shader.");
+		return ErrorCode::ERR_SHADER_D3D11_PIXEL_CREATION;
+	}
+
+	return ErrorCode::OK;
+}
+
+void joj::D3D11Shader::bind_vertex_shader(ID3D11DeviceContext* device_context)
+{
+	device_context->VSSetShader(m_vertex_shader, nullptr, 0);
+}
+
+void joj::D3D11Shader::bind_pixel_shader(ID3D11DeviceContext* device_context)
+{
+	device_context->PSSetShader(m_pixel_shader, nullptr, 0);
 }
 
 #endif // JPLATFORM_WINDOWS

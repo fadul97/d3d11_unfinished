@@ -7,6 +7,7 @@
 #if JPLATFORM_WINDOWS
 
 #include <d3d11.h>
+#include "error_code.h"
 
 namespace joj
 {
@@ -24,6 +25,12 @@ namespace joj
 
 		void compile_geometry_shader(const WCHAR* geometry_path, LPCSTR entry_point, LPCSTR shader_model);
 		void compile_compute_shader(const WCHAR* compute_path, LPCSTR entry_point, LPCSTR shader_model);
+
+		ErrorCode create_vertex_shader(ID3D11Device* device);
+		ErrorCode create_pixel_shader(ID3D11Device* device);
+
+		void bind_vertex_shader(ID3D11DeviceContext* device_context);
+		void bind_pixel_shader(ID3D11DeviceContext* device_context);
 
 		ID3D11VertexShader*& get_vertex_shader();
 		ID3D11PixelShader*& get_pixel_shader();
