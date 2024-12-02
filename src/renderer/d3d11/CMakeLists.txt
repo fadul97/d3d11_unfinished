@@ -11,9 +11,11 @@ add_library(
     constant_buffer_d3d11.cpp
     shader_d3d11.cpp
     DDSTextureLoader11.cpp
+    WICTextureLoader.cpp
     texture_d3d11.cpp
     sampler_state_d3d11.cpp
     input_layout_d3d11.cpp
+    tileset_d3d11.cpp
 )
 
 # Specify include directories for jojRenderer
