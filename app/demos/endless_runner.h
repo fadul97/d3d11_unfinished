@@ -11,6 +11,8 @@
 #include <renderer/d3d11/texture_d3d11.h>
 #include "joj/math/jmath.h"
 #include "joj/systems/objects2d/sprite_animation.h"
+#include <renderer/d3d11/tileset_d3d11.h>
+#include <renderer/d3d11/sprite_animation_d3d11.h>
 
 class EndlessRunner : public joj::App
 {
@@ -28,9 +30,9 @@ private:
 	joj::D3D11IndexBuffer ib;
 	joj::D3D11ConstantBuffer cb;
 	joj::D3D11Texture m_player_tex;
-	joj::SpriteAnimation m_running;
-	joj::SpriteAnimation m_inverted;
-	b8 inverted = false;
+	joj::D3D11SpriteAnimation m_anim;
+	joj::D3D11Tileset m_tileset;
+	u32 m_anim_state;
 };
 
 #endif // ENDLESS_RUNNER_H
