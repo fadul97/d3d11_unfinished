@@ -6,6 +6,7 @@ add_library(
     jojObjects2D
     STATIC
     object2d.cpp
+    sprite_animation.cpp
 )
 
 # Specify include directories for jojObjects2D
