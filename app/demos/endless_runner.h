@@ -28,7 +28,9 @@ private:
 	joj::D3D11IndexBuffer ib;
 	joj::D3D11ConstantBuffer cb;
 	joj::D3D11Texture m_player_tex;
-	joj::SpriteAnimation m_fire_animation;
+	joj::SpriteAnimation m_running;
+	joj::SpriteAnimation m_inverted;
+	b8 inverted = false;
 };
 
 #endif // ENDLESS_RUNNER_H

@@ -7,7 +7,7 @@
 struct BasicCB
 {
     joj::JFloat4x4 wvp;
-    joj::JFloat2 uv_offset;
+    joj::JFloat2 tex_coord;
     joj::JFloat2 cell_size;
     i32 use_texture;
 };
@@ -39,18 +39,28 @@ void EndlessRunner::init()
     JOJ_LOG_IF_FAIL(cb.create(joj::Engine::s_renderer->get_device()));
 
     // Create Textures
-    JOJ_LOG_IF_FAIL(m_player_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/fire_animation_atlas.dds"));
+    JOJ_LOG_IF_FAIL(m_player_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/GravityGuy.dds"));
 
     // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_anisotropic_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_anisotropic_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_fire_animation = joj::SpriteAnimation(120, 10, 12, 1.0f / 30.0f); // 30 FPS
+    m_running = joj::SpriteAnimation(2, 5, 0, 4, 1.0f / 5.0f, true);
+    m_inverted = joj::SpriteAnimation(2, 5, 5, 9, 1.0f / 5.0f, true);
 }
 
 void EndlessRunner::update(const f32 dt)
 {
-    m_fire_animation.update(dt);
+    if (joj::Engine::s_input->is_key_down('D'))
+    {
+        m_running.update(dt);
+        inverted = false;
+    }
+    if (joj::Engine::s_input->is_key_down('A'))
+    {
+        m_inverted.update(dt);
+        inverted = true;
+    }
 }
 
 
@@ -89,8 +99,16 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.uv_offset = m_fire_animation.get_uv_offset(); // Offset calculado no método update
-    p1_cb.cell_size = m_fire_animation.get_cell_size(); // Escala já definida
+    if (inverted)
+    {
+        p1_cb.tex_coord = m_inverted.get_tex_coord(); // Offset calculado no método update
+        p1_cb.cell_size = m_inverted.get_tex_size(); // Escala já definida
+    }
+    else
+    {
+        p1_cb.tex_coord = m_running.get_tex_coord(); // Offset calculado no método update
+        p1_cb.cell_size = m_running.get_tex_size(); // Escala já definida
+    }
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
