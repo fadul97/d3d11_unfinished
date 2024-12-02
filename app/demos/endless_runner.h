@@ -8,6 +8,7 @@
 #include "joj/renderer/d3d11/vertex_buffer_d3d11.h"
 #include "joj/renderer/d3d11/index_buffer_d3d11.h"
 #include "joj/renderer/d3d11/constant_buffer_d3d11.h"
+#include <renderer/d3d11/texture_d3d11.h>
 
 class EndlessRunner : public joj::App
 {
@@ -24,6 +25,12 @@ private:
 	joj::D3D11VertexBuffer vb;
 	joj::D3D11IndexBuffer ib;
 	joj::D3D11ConstantBuffer cb;
+	joj::D3D11Texture m_player_tex;
+	u32 m_current_frame = 0;
+	u32 m_total_frames = 120;
+	f32 time_elapsed = 0.0f;
+	f32 m_cell_width = 1.0f / 10.0f;
+	f32 m_cell_height = 1.0f / 12.0f;
 };
 
 #endif // ENDLESS_RUNNER_H
