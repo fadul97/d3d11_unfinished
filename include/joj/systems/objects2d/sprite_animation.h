@@ -12,30 +12,34 @@ namespace joj
     {
     public:
         SpriteAnimation();
-        SpriteAnimation(i32 total_frames, i32 columns, i32 rows, f32 frame_duration);
+        SpriteAnimation(i32 rows, i32 columns, i32 start_frame, i32 end_frame, f32 delay, b8 loop);
         ~SpriteAnimation();
 
         void update(const f32 dt);
+        void next_frame();
+        void calculate_tex_coord();
 
-        const JFloat2& get_uv_offset() const;
-        const JFloat2& get_cell_size() const;
+        const JFloat2& get_tex_coord() const;
+        const JFloat2& get_tex_size() const;
 
     private:
-        i32 m_total_frames;
         i32 m_columns;
         i32 m_rows;
-        f32 m_frame_duration;
-        f32 m_time_elapsed;
+        f32 m_delay;
+        b8 m_loop;
         i32 m_current_frame;
-        JFloat2 m_uv_offset;
-        JFloat2 m_cell_size;
+        i32 m_start_frame;
+        i32 m_end_frame;
+        f32 m_time_elapsed;
+        JFloat2 m_tex_coord;
+        JFloat2 m_tex_size;
     };
 
-    inline const JFloat2& SpriteAnimation::get_uv_offset() const
-    { return m_uv_offset; }
+    inline const JFloat2& SpriteAnimation::get_tex_coord() const
+    { return m_tex_coord; }
 
-    inline const JFloat2& SpriteAnimation::get_cell_size() const
-    { return m_cell_size; }
+    inline const JFloat2& SpriteAnimation::get_tex_size() const
+    { return m_tex_size; }
 }
 
 #endif // JOJ_SPRITE_ANIMATION_H
