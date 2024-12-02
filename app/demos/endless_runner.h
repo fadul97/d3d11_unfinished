@@ -30,9 +30,7 @@ private:
 	joj::D3D11IndexBuffer ib;
 	joj::D3D11ConstantBuffer cb;
 	joj::D3D11Texture m_player_tex;
-	joj::D3D11SpriteAnimation m_anim;
-	joj::D3D11Tileset m_tileset;
-	u32 m_anim_state;
+	joj::SpriteAnimation m_fire_animation;
 };
 
 #endif // ENDLESS_RUNNER_H

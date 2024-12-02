@@ -44,8 +44,8 @@ VertexOut VS(VertexIn vin)
 float4 PS(VertexOut pin) : SV_Target
 {
     // Adjusting coordenates for first frame
-    // float2 adjustedTexCoord = gUVOffset + pin.TexC * gCellSize;
+    float2 adjustedTexCoord = gUVOffset + pin.TexC * gCellSize;
 
     // Sampling texture using adjusted coorenates
-    return gDiffuseMap.Sample(samAnisotropic, pin.TexC);
+    return gDiffuseMap.Sample(samAnisotropic, adjustedTexCoord);
 }

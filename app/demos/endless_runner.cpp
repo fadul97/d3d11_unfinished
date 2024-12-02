@@ -7,12 +7,10 @@
 struct BasicCB
 {
     joj::JFloat4x4 wvp;
-    joj::JFloat2 tex_coord;
+    joj::JFloat2 uv_offset;
     joj::JFloat2 cell_size;
     i32 use_texture;
 };
-
-enum AnimState { STILL, WALKUP, WALKDOWN, WALKLEFT, WALKRIGHT };
 
 void EndlessRunner::init()
 {
@@ -41,57 +39,18 @@ void EndlessRunner::init()
     JOJ_LOG_IF_FAIL(cb.create(joj::Engine::s_renderer->get_device()));
 
     // Create Textures
-    JOJ_LOG_IF_FAIL(m_player_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/Explosion.dds"));
-
-    // Create Tileset
-    JOJ_LOG_IF_FAIL(m_tileset.create(
-        joj::Engine::s_renderer->get_device(),
-        joj::Engine::s_renderer->get_device_context(),
-        L"../../../../app/textures/Walking.png", joj::ImageType::PNG,
-        55, 95, 8, 40));
+    JOJ_LOG_IF_FAIL(m_player_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/fire_animation_atlas.dds"));
 
     // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_anisotropic_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_anisotropic_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_anim = joj::D3D11SpriteAnimation(&m_tileset, 0.06f, true);
-
-    u32 SeqUp[8] = { 16, 17, 18, 19, 20, 21, 22, 23 };
-    u32 SeqDown[8] = { 24, 25, 26, 27, 28, 29, 30, 31 };
-    u32 SeqLeft[8] = { 0, 1, 2, 3, 4, 5, 6, 7 };
-    u32 SeqRight[8] = { 15, 14, 13, 12, 11, 10, 9, 8 };
-    u32 SeqStill[1] = { 32 };
-
-    m_anim.add(WALKUP, SeqUp, 8);
-    m_anim.add(WALKDOWN, SeqDown, 8);
-    m_anim.add(WALKLEFT, SeqLeft, 8);
-    m_anim.add(WALKRIGHT, SeqRight, 8);
-    m_anim.add(STILL, SeqStill, 1);
-
-    m_anim_state = STILL;
+    m_fire_animation = joj::SpriteAnimation(120, 10, 12, 1.0f / 30.0f); // 30 FPS
 }
 
 void EndlessRunner::update(const f32 dt)
 {
-    if (joj::Engine::s_input->is_key_down('D'))
-        m_anim_state = WALKRIGHT;
-    if (joj::Engine::s_input->is_key_down('A'))
-        m_anim_state = WALKLEFT;
-    if (joj::Engine::s_input->is_key_down('W'))
-        m_anim_state = WALKUP;
-    if (joj::Engine::s_input->is_key_down('S'))
-        m_anim_state = WALKDOWN;
-
-    if (joj::Engine::s_input->is_key_up('W') &&
-        joj::Engine::s_input->is_key_up('A') &&
-        joj::Engine::s_input->is_key_up('S') &&
-        joj::Engine::s_input->is_key_up('D'))
-    {
-        m_anim_state = STILL;
-    }
-    
-    m_anim.select(m_anim_state);
-    m_anim.update(dt);
+    m_fire_animation.update(dt);
 }
 
 
@@ -113,8 +72,7 @@ void EndlessRunner::draw()
     cb.bind_to_vertex_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
     cb.bind_to_pixel_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    // m_player_tex.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
-    joj::Engine::s_renderer->get_device_context()->PSSetShaderResources(0, 1, &m_tileset.m_srv);
+    m_player_tex.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
     auto scale_mat = DirectX::XMMatrixScaling(100.0f, 100.0f, 1.0f);
     auto mat = DirectX::XMMatrixTranslation(400.0f, 300.0f, 0.0f);
@@ -131,8 +89,8 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.tex_coord = m_anim.get_tex_coord(); // Offset calculado no método update
-    p1_cb.cell_size = m_anim.get_tex_size(); // Escala já definida
+    p1_cb.uv_offset = m_fire_animation.get_uv_offset(); // Offset calculado no método update
+    p1_cb.cell_size = m_fire_animation.get_cell_size(); // Escala já definida
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
