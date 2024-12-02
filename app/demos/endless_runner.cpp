@@ -1,6 +1,5 @@
 #include "endless_runner.h"
 
-#include "joj/math/jmath.h"
 #include "joj/jmacros.h"
 #include "joj/engine.h"
 #include "joj/resources/geometry/quad.h"
@@ -8,9 +7,8 @@
 struct BasicCB
 {
     joj::JFloat4x4 wvp;
-    alignas(16) joj::JFloat2 cell_size;
-    i32 current_frame;
-    f32 num_columns;
+    joj::JFloat2 uv_offset;
+    joj::JFloat2 cell_size;
     i32 use_texture;
 };
 
@@ -46,29 +44,15 @@ void EndlessRunner::init()
     // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_anisotropic_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_anisotropic_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
+
+    m_fire_animation = joj::SpriteAnimation(120, 10, 12, 1.0f / 30.0f); // 30 FPS
 }
 
 void EndlessRunner::update(const f32 dt)
 {
-    if (joj::Engine::s_input->is_key_down(joj::KEY_RIGHT))
-    {
-        time_elapsed += dt;                    // Time between frames
-        if (time_elapsed >= (1.0f / 30.0f))    // Every 1/30 seconds
-        {
-            m_current_frame = (m_current_frame + 1) % m_total_frames; // Increment frame
-            time_elapsed = 0.0f;
-        }
-    }
-    else if (joj::Engine::s_input->is_key_down(joj::KEY_LEFT))
-    {
-        time_elapsed += dt;                    // Time between frames
-        if (time_elapsed >= (1.0f / 30.0f))    // Every 1/30 seconds
-        {
-            m_current_frame = (m_current_frame - 1 + m_total_frames) % m_total_frames; // Decrement frame
-            time_elapsed = 0.0f;
-        }
-    }
+    m_fire_animation.update(dt);
 }
+
 
 void EndlessRunner::draw()
 {
@@ -105,9 +89,8 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.cell_size = joj::JFloat2(m_cell_width, m_cell_height);
-    p1_cb.current_frame = m_current_frame;
-    p1_cb.num_columns = 10.0f;
+    p1_cb.uv_offset = m_fire_animation.get_uv_offset(); // Offset calculado no método update
+    p1_cb.cell_size = m_fire_animation.get_cell_size(); // Escala já definida
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);

@@ -1,9 +1,8 @@
 cbuffer cbPerObject : register(b0)
 {
     float4x4 gWorldViewProj;
-    float2 gCellSize; // Each cell size (e.g., {1.0f / 10, 1.0f / 12})
-    int gCurrentFrame; // Current frame index
-    float gNumColumns; // Number of atlas columns
+    float2 gUVOffset; // Each cell size (e.g., {1.0f / 10, 1.0f / 12})
+    float2 gCellSize;
     bool gUseTexure;
 }; 
 
@@ -44,17 +43,9 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
-    // Calcula linha e coluna do frame atual.
-    int column = gCurrentFrame % int(gNumColumns);
-    int row = gCurrentFrame / int(gNumColumns);
+    // Adjusting coordenates for first frame
+    float2 adjustedTexCoord = gUVOffset + pin.TexC * gCellSize;
 
-    // Offset da textura para o frame atual.
-    float2 texOffset = float2(column * gCellSize.x, row * gCellSize.y);
-    // return float4(column, column, column, 1.0f);
-
-    // Coordenadas ajustadas para o frame atual.
-    float2 adjustedTexCoord = texOffset + pin.TexC * gCellSize;
-
-    // Amostra a textura.
+    // Sampling texture using adjusted coorenates
     return gDiffuseMap.Sample(samAnisotropic, adjustedTexCoord);
 }

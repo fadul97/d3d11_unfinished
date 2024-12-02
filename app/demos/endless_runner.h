@@ -9,6 +9,8 @@
 #include "joj/renderer/d3d11/index_buffer_d3d11.h"
 #include "joj/renderer/d3d11/constant_buffer_d3d11.h"
 #include <renderer/d3d11/texture_d3d11.h>
+#include "joj/math/jmath.h"
+#include "joj/systems/objects2d/sprite_animation.h"
 
 class EndlessRunner : public joj::App
 {
@@ -26,11 +28,7 @@ private:
 	joj::D3D11IndexBuffer ib;
 	joj::D3D11ConstantBuffer cb;
 	joj::D3D11Texture m_player_tex;
-	u32 m_current_frame = 0;
-	u32 m_total_frames = 120;
-	f32 time_elapsed = 0.0f;
-	f32 m_cell_width = 1.0f / 10.0f;
-	f32 m_cell_height = 1.0f / 12.0f;
+	joj::SpriteAnimation m_fire_animation;
 };
 
 #endif // ENDLESS_RUNNER_H
