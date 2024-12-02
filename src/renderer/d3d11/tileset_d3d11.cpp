@@ -9,7 +9,9 @@
 #include <codecvt>
 
 joj::D3D11Tileset::D3D11Tileset()
-    : m_width(0), m_height(0), m_srv(nullptr)
+    : m_width(0), m_height(0), m_srv(nullptr),
+    m_tile_width(0), m_tile_height(0),
+    m_columns(0), m_size(0)
 {
 }
 
@@ -24,7 +26,9 @@ joj::D3D11Tileset::~D3D11Tileset()
 
 joj::ErrorCode joj::D3D11Tileset::create(ID3D11Device* device,
     ID3D11DeviceContext* device_context,
-    const std::wstring& filepath, ImageType type)
+    const std::wstring& filepath, ImageType type,
+    u32 tile_width, u32 tile_height,
+    u32 columns, u32 num_tiles)
 {
     if (type == ImageType::PNG)
     {
@@ -60,6 +64,11 @@ joj::ErrorCode joj::D3D11Tileset::create(ID3D11Device* device,
             return ErrorCode::ERR_RENDERER_D3D11_SHADER_RESOURCE_VIEW_CREATION;
         }
     }
+
+    m_tile_width = tile_width;
+    m_tile_height = tile_height;
+    m_columns = columns;
+    m_size = num_tiles;
 
     return ErrorCode::OK;
 }
