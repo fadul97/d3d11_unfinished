@@ -10,6 +10,7 @@ struct BasicCB
     joj::JFloat2 uv_offset;
     joj::JFloat2 cell_size;
     i32 use_texture;
+    i32 use_uv_offset;
 };
 
 void EndlessRunner::init()
@@ -53,6 +54,12 @@ void EndlessRunner::init()
         joj::Engine::s_renderer->get_device(),
         L"../../../../app/textures/GravityGuy.dds",
         160, 96, 2, 5));
+
+    JOJ_LOG_IF_FAIL(m_background.create(
+        joj::Engine::s_renderer->get_device(),
+        joj::Engine::s_renderer->get_device_context(),
+        L"../../../../app/textures/Background.jpg",
+        joj::ImageType::JPG));
 
     // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_pixel_state(joj::Engine::s_renderer->get_device()));
@@ -158,10 +165,10 @@ void EndlessRunner::draw()
     cb.bind_to_vertex_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
     cb.bind_to_pixel_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_fire_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
+    m_background.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    auto scale_mat = DirectX::XMMatrixScaling(250.0f, 250.0f, 1.0f);
-    auto mat = DirectX::XMMatrixTranslation(250.0f, 300.0f, 0.0f);
+    auto scale_mat = DirectX::XMMatrixScaling(400.0f, 400.0f, 1.0f);
+    auto mat = DirectX::XMMatrixTranslation(400.0f, 300.0f, 0.0f);
     auto W = DirectX::XMMatrixMultiply(scale_mat, mat);
     DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, -3, 1);
     DirectX::XMVECTOR target = DirectX::XMVectorZero();
@@ -175,14 +182,27 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.uv_offset = m_fire_animation.get_tex_coord();
-    p1_cb.cell_size = m_fire_animation.get_cell_size();
+    p1_cb.use_uv_offset = 0;
+    p1_cb.uv_offset = m_background.get_tex_coord();
+    p1_cb.cell_size = m_background.get_cell_size();
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
-    m_ship_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
+    m_fire_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
+    scale_mat = DirectX::XMMatrixScaling(250.0f, 250.0f, 1.0f);
+    mat = DirectX::XMMatrixTranslation(250.0f, 300.0f, 0.0f);
+    W = DirectX::XMMatrixMultiply(scale_mat, mat);
+    wvp = W * V * P;
+    XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
+    p1_cb.use_texture = 1;
+    p1_cb.use_uv_offset = 1;
+    p1_cb.uv_offset = m_fire_animation.get_tex_coord();
+    p1_cb.cell_size = m_fire_animation.get_cell_size();
+    cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
+    joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
+    m_ship_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
     scale_mat = DirectX::XMMatrixScaling(250.0f, 250.0f, 1.0f);
     mat = DirectX::XMMatrixTranslation(600.0f, 400.0f, 0.0f);
     W = DirectX::XMMatrixMultiply(scale_mat, mat);
@@ -192,11 +212,9 @@ void EndlessRunner::draw()
     p1_cb.uv_offset = m_ship_animation.get_tex_coord();
     p1_cb.cell_size = m_ship_animation.get_cell_size();
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
-
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
     m_guy_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
-
     scale_mat = DirectX::XMMatrixScaling(250.0f, 250.0f, 1.0f);
     mat = DirectX::XMMatrixTranslation(600.0f, 100.0f, 0.0f);
     W = DirectX::XMMatrixMultiply(scale_mat, mat);
@@ -206,7 +224,6 @@ void EndlessRunner::draw()
     p1_cb.uv_offset = m_guy.get_tex_coord();
     p1_cb.cell_size = m_guy.get_cell_size();
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
-
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
 
     joj::Engine::s_renderer->swap_buffers();

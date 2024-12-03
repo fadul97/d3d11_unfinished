@@ -19,6 +19,7 @@ add_library(
     sprite_animation_d3d11.cpp
     sprite_sheet_d3d11.cpp
     animation_frame_d3d11.cpp
+    sprite_d3d11.cpp
 )
 
 # Specify include directories for jojRenderer

@@ -4,6 +4,7 @@ cbuffer cbPerObject : register(b0)
     float2 gTexCoord;
     float2 gCellSize;
     bool gUseTexure;
+    bool gUseTexCoord;
 }; 
 
 // Nonnumeric values cannot be added to a cbuffer.
@@ -44,6 +45,11 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
+    if (gUseTexCoord == 0)
+    {
+        return gDiffuseMap.Sample(samplerS, pin.TexC);
+    }
+    
     // Adjusting coordenates for frame
     float2 adjustedTexCoord = gTexCoord.xy + pin.TexC * gCellSize;
 

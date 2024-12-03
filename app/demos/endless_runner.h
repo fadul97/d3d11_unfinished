@@ -14,6 +14,7 @@
 #include <renderer/d3d11/sprite_animation_d3d11.h>
 #include <renderer/d3d11/sprite_sheet_d3d11.h>
 #include <renderer/d3d11/animation_frame_d3d11.h>
+#include "renderer/d3d11/sprite_d3d11.h"
 
 enum GuyState { STILL, WALKRIGHT, UPSIDE, WALKUPSIDE };
 
@@ -42,6 +43,8 @@ private:
 
 	GuyState m_state = STILL;
 	b8 m_guy_inverted = false;
+
+	joj::D3D11Sprite m_background;
 };
 
 #endif // ENDLESS_RUNNER_H
