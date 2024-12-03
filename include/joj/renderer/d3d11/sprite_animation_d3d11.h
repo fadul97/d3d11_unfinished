@@ -6,11 +6,14 @@
 
 #if JPLATFORM_WINDOWS
 
-#include <vector>
+#include <unordered_map>
 #include "animation_frame_d3d11.h"
 
 namespace joj
 {
+    // Vector and size
+    using AnimationSequence = std::pair<D3D11AnimationFrame*, u32>;
+
     class JAPI D3D11SpriteAnimation
     {
     public:
@@ -18,7 +21,7 @@ namespace joj
         D3D11SpriteAnimation(u32 frames_per_second, b8 loop);
         ~D3D11SpriteAnimation();
 
-        void add_frame(D3D11AnimationFrame frame);
+        void add_frame(u32 id, D3D11AnimationFrame* frames, u32 size);
 
         void update(const f32 dt);
 
@@ -26,7 +29,8 @@ namespace joj
         const JFloat2 get_cell_size() const;
 
     private:
-        std::vector<D3D11AnimationFrame> m_frames;
+        // key = id
+        std::unordered_map<u32, AnimationSequence> m_frames;
         u32 m_current_frame;
         u32 m_total_frames;
         f32 m_delay;
@@ -35,10 +39,10 @@ namespace joj
     };
 
     inline const JFloat2 D3D11SpriteAnimation::get_tex_coord() const
-    { return m_frames[m_current_frame].get_tex_coord(); }
+    { return m_frames.at(0).first[m_current_frame].get_tex_coord(); }
 
     inline const JFloat2 D3D11SpriteAnimation::get_cell_size() const
-    { return m_frames[m_current_frame].get_cell_size(); }
+    { return m_frames.at(0).first[m_current_frame].get_cell_size(); }
 }
 
 #endif // JPLATFORM_WINDOWS

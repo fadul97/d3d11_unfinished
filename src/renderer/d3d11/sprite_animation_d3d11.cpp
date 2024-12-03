@@ -18,10 +18,15 @@ joj::D3D11SpriteAnimation::~D3D11SpriteAnimation()
 {
 }
 
-void joj::D3D11SpriteAnimation::add_frame(D3D11AnimationFrame frame)
+void joj::D3D11SpriteAnimation::add_frame(u32 id, D3D11AnimationFrame* frames, u32 size)
 {
-    m_frames.push_back(frame);
-    ++m_total_frames;
+    AnimationSequence new_seq(new D3D11AnimationFrame[size], size);
+
+    memcpy(new_seq.first, frames, sizeof(D3D11AnimationFrame) * size);
+
+    m_frames[id] = new_seq;
+
+    m_total_frames = size;
 }
 
 void joj::D3D11SpriteAnimation::update(const f32 dt)

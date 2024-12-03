@@ -61,27 +61,37 @@ void EndlessRunner::init()
     m_fire_animation = joj::D3D11SpriteAnimation{ 120, true };
     m_ship_animation = joj::D3D11SpriteAnimation{ 4, true };
     m_guy = joj::D3D11SpriteAnimation{ 8, true };
+
+    std::vector<joj::D3D11AnimationFrame> frames;
     
     for (i32 i = 0; i < 4; ++i)
     {
         joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_ship_ss, i, 0);
-        m_ship_animation.add_frame(frame);
+        frames.push_back(frame);
     }
+
+    m_ship_animation.add_frame(0, frames.data(), 4);
+    frames.clear();
 
     for (i32 i = 0; i < 12; ++i)
     {
         for (i32 j = 0; j < 10; ++j)
         {
             joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_fire_ss, j, i);
-            m_fire_animation.add_frame(frame);
+            frames.push_back(frame);
         }
     }
+
+    m_fire_animation.add_frame(0, frames.data(), 120);
+    frames.clear();
 
     for (i32 i = 1; i < 5; ++i)
     {
         joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_guy_ss, i, 0);
-        m_guy.add_frame(frame);
+        frames.push_back(frame);
     }
+
+    m_guy.add_frame(0, frames.data(), 4);
 }
 
 void EndlessRunner::update(const f32 dt)
