@@ -18,9 +18,13 @@ namespace joj
         ~D3D11SamplerState();
 
         ErrorCode create_anisotropic_state(ID3D11Device* device);
+        ErrorCode create_pixel_state(ID3D11Device* device);
+
         void bind_anisotropic_state(ID3D11DeviceContext* device_context, u32 start_slot, u32 num_samplers);
+        void bind_pixel_state(ID3D11DeviceContext* device_context, u32 start_slot, u32 num_samplers);
     private:
         ID3D11SamplerState* m_anisotropic;
+        ID3D11SamplerState* m_pixel_art;
     };
 }
 
