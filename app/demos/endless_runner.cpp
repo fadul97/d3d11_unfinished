@@ -107,7 +107,7 @@ void EndlessRunner::draw()
     p1_cb.uv_offset = m_animation.get_tex_coord(); // Offset calculado no método update
     float cell_width = 1.0f / 10.0f;
     float cell_height = 1.0f / 12.0f;
-    p1_cb.cell_size = { cell_width, cell_height };
+    p1_cb.cell_size = m_animation.get_cell_size();
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
