@@ -34,6 +34,9 @@ private:
 	joj::D3D11SpriteAnimation m_fire_animation;
 	joj::D3D11SpriteSheet m_ship_ss;
 	joj::D3D11SpriteAnimation m_ship_animation;
+
+	joj::D3D11SpriteSheet m_guy_ss;
+	joj::D3D11SpriteAnimation m_guy;
 };
 
 #endif // ENDLESS_RUNNER_H

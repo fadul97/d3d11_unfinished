@@ -38,7 +38,6 @@ void EndlessRunner::init()
     cb.setup(joj::calculate_cb_byte_size(sizeof(BasicCB)), nullptr);
     JOJ_LOG_IF_FAIL(cb.create(joj::Engine::s_renderer->get_device()));
 
-    // FIXME:
     // Create Textures
     JOJ_LOG_IF_FAIL(m_fire_ss.create(
         joj::Engine::s_renderer->get_device(),
@@ -50,12 +49,18 @@ void EndlessRunner::init()
         L"../../../../app/textures/shipanimated.dds",
         256, 64, 1, 4));
 
+    JOJ_LOG_IF_FAIL(m_guy_ss.create(
+        joj::Engine::s_renderer->get_device(),
+        L"../../../../app/textures/GravityGuy.dds",
+        160, 96, 2, 5));
+
     // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_pixel_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_pixel_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
     m_fire_animation = joj::D3D11SpriteAnimation{ 120, true };
     m_ship_animation = joj::D3D11SpriteAnimation{ 4, true };
+    m_guy = joj::D3D11SpriteAnimation{ 8, true };
     
     for (i32 i = 0; i < 4; ++i)
     {
@@ -71,12 +76,21 @@ void EndlessRunner::init()
             m_fire_animation.add_frame(frame);
         }
     }
+
+    for (i32 i = 1; i < 5; ++i)
+    {
+        joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_guy_ss, i, 0);
+        m_guy.add_frame(frame);
+    }
 }
 
 void EndlessRunner::update(const f32 dt)
 {
     m_fire_animation.update(dt);
     m_ship_animation.update(dt);
+
+    if (joj::Engine::s_input->is_key_down('D'))
+        m_guy.update(dt);
 }
 
 void EndlessRunner::draw()
@@ -123,13 +137,27 @@ void EndlessRunner::draw()
     m_ship_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
     scale_mat = DirectX::XMMatrixScaling(250.0f, 250.0f, 1.0f);
-    mat = DirectX::XMMatrixTranslation(600.0f, 300.0f, 0.0f);
+    mat = DirectX::XMMatrixTranslation(600.0f, 400.0f, 0.0f);
     W = DirectX::XMMatrixMultiply(scale_mat, mat);
     wvp = W * V * P;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
     p1_cb.uv_offset = m_ship_animation.get_tex_coord();
     p1_cb.cell_size = m_ship_animation.get_cell_size();
+    cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
+
+    joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
+
+    m_guy_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
+
+    scale_mat = DirectX::XMMatrixScaling(250.0f, 250.0f, 1.0f);
+    mat = DirectX::XMMatrixTranslation(600.0f, 100.0f, 0.0f);
+    W = DirectX::XMMatrixMultiply(scale_mat, mat);
+    wvp = W * V * P;
+    XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
+    p1_cb.use_texture = 1;
+    p1_cb.uv_offset = m_guy.get_tex_coord();
+    p1_cb.cell_size = m_guy.get_cell_size();
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
