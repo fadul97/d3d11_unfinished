@@ -31,6 +31,7 @@ private:
 	joj::D3D11IndexBuffer ib;
 	joj::D3D11ConstantBuffer cb;
 	joj::D3D11SpriteSheet m_sprite_sheet;
+	joj::D3D11SpriteAnimation m_animation;
 	joj::D3D11AnimationFrame m_first_frame;
 };
 

@@ -49,10 +49,20 @@ void EndlessRunner::init()
     m_sampler_state.bind_pixel_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
     m_first_frame = joj::D3D11AnimationFrame(m_sprite_sheet, 0, 0);
+    joj::D3D11AnimationFrame sec(m_sprite_sheet, 1, 0);
+    joj::D3D11AnimationFrame third(m_sprite_sheet, 2, 0);
+    joj::D3D11AnimationFrame fourth(m_sprite_sheet, 3, 0);
+
+    m_animation = joj::D3D11SpriteAnimation{ 4, true };
+    m_animation.add_frame(m_first_frame);
+    m_animation.add_frame(sec);
+    m_animation.add_frame(third);
+    m_animation.add_frame(fourth);
 }
 
 void EndlessRunner::update(const f32 dt)
 {
+    m_animation.update(dt);
 }
 
 void EndlessRunner::draw()
@@ -90,7 +100,7 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.uv_offset = m_first_frame.get_tex_coord(); // Offset calculado no método update
+    p1_cb.uv_offset = m_animation.get_tex_coord(); // Offset calculado no método update
     float cell_width = 1.0f / 4;
     float cell_height = 1.0f / 1;
     p1_cb.cell_size = { cell_width, cell_height };
