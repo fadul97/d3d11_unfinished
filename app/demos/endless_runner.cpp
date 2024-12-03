@@ -7,9 +7,9 @@
 struct BasicCB
 {
     joj::JFloat4x4 wvp;
-    joj::JFloat2 uv_offset;
-    joj::JFloat2 cell_size;
+    joj::JFloat4 uv_offset;
     i32 use_texture;
+    joj::JFloat2 cell_size;
 };
 
 void EndlessRunner::init()
@@ -39,20 +39,21 @@ void EndlessRunner::init()
     JOJ_LOG_IF_FAIL(cb.create(joj::Engine::s_renderer->get_device()));
 
     // Create Textures
-    JOJ_LOG_IF_FAIL(m_player_tex.create(joj::Engine::s_renderer->get_device(), L"../../../../app/textures/fire_animation_atlas.dds"));
+    JOJ_LOG_IF_FAIL(m_sprite_sheet.create(
+        joj::Engine::s_renderer->get_device(),
+        L"../../../../app/textures/shipanimated.dds",
+        256, 64, 1, 4));
 
     // Setup and Create Sampler States
-    JOJ_LOG_IF_FAIL(m_sampler_state.create_anisotropic_state(joj::Engine::s_renderer->get_device()));
-    m_sampler_state.bind_anisotropic_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
+    JOJ_LOG_IF_FAIL(m_sampler_state.create_pixel_state(joj::Engine::s_renderer->get_device()));
+    m_sampler_state.bind_pixel_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_fire_animation = joj::D3D11SpriteAnimation(120, 10, 12, 1.0f / 30.0f); // 30 FPS
+    m_first_frame = joj::D3D11AnimationFrame(m_sprite_sheet, 0, 0);
 }
 
 void EndlessRunner::update(const f32 dt)
 {
-    m_fire_animation.update(dt);
 }
-
 
 void EndlessRunner::draw()
 {
@@ -72,9 +73,9 @@ void EndlessRunner::draw()
     cb.bind_to_vertex_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
     cb.bind_to_pixel_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_player_tex.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
+    m_sprite_sheet.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    auto scale_mat = DirectX::XMMatrixScaling(100.0f, 100.0f, 1.0f);
+    auto scale_mat = DirectX::XMMatrixScaling(500.0f, 500.0f, 1.0f);
     auto mat = DirectX::XMMatrixTranslation(400.0f, 300.0f, 0.0f);
     auto W = DirectX::XMMatrixMultiply(scale_mat, mat);
     DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, -3, 1);
@@ -89,8 +90,10 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.uv_offset = m_fire_animation.get_uv_offset(); // Offset calculado no método update
-    p1_cb.cell_size = m_fire_animation.get_cell_size(); // Escala já definida
+    p1_cb.uv_offset = m_first_frame.get_tex_coord(); // Offset calculado no método update
+    float cell_width = 1.0f / 4;
+    float cell_height = 1.0f / 1;
+    p1_cb.cell_size = { cell_width, cell_height };
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
