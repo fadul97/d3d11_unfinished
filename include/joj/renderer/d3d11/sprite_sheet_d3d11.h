@@ -29,6 +29,9 @@ namespace joj
 
         u32 get_cell_width() const;
         u32 get_cell_height() const;
+
+        u32 get_rows() const;
+        u32 get_columns() const;
         
     private:
         ID3D11ShaderResourceView* m_srv;
@@ -51,6 +54,12 @@ namespace joj
 
     inline u32 D3D11SpriteSheet::get_cell_height() const
     { return m_cell_height; }
+
+    inline u32 D3D11SpriteSheet::get_rows() const
+    { return m_rows; }
+
+    inline u32 D3D11SpriteSheet::get_columns() const
+    { return m_columns; }
 }
 
 #endif // JPLATFORM_WINDOWS
