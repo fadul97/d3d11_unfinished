@@ -23,6 +23,7 @@ namespace joj
         void update(const f32 dt);
 
         const JFloat2 get_tex_coord() const;
+        const JFloat2 get_cell_size() const;
 
     private:
         std::vector<D3D11AnimationFrame> m_frames;
@@ -35,6 +36,9 @@ namespace joj
 
     inline const JFloat2 D3D11SpriteAnimation::get_tex_coord() const
     { return m_frames[m_current_frame].get_tex_coord(); }
+
+    inline const JFloat2 D3D11SpriteAnimation::get_cell_size() const
+    { return m_frames[m_current_frame].get_cell_size(); }
 }
 
 #endif // JPLATFORM_WINDOWS
