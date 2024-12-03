@@ -6,7 +6,8 @@
 
 #if JPLATFORM_WINDOWS
 
-#include "math/jmath.h"
+#include <vector>
+#include "animation_frame_d3d11.h"
 
 namespace joj
 {
@@ -14,30 +15,26 @@ namespace joj
     {
     public:
         D3D11SpriteAnimation();
-        D3D11SpriteAnimation(i32 total_frames, i32 columns, i32 rows, f32 frame_duration);
+        D3D11SpriteAnimation(u32 frames_per_second, b8 loop);
         ~D3D11SpriteAnimation();
+
+        void add_frame(D3D11AnimationFrame frame);
 
         void update(const f32 dt);
 
-        const JFloat2& get_uv_offset() const;
-        const JFloat2& get_cell_size() const;
+        const JFloat4 get_tex_coord() const;
 
     private:
-        i32 m_total_frames;
-        i32 m_columns;
-        i32 m_rows;
-        f32 m_frame_duration;
+        std::vector<D3D11AnimationFrame> m_frames;
+        u32 m_current_frame;
+        u32 m_total_frames;
+        f32 m_delay;
         f32 m_time_elapsed;
-        i32 m_current_frame;
-        JFloat2 m_uv_offset;
-        JFloat2 m_cell_size;
+        b8 m_loop;
     };
 
-    inline const JFloat2& D3D11SpriteAnimation::get_uv_offset() const
-    { return m_uv_offset; }
-
-    inline const JFloat2& D3D11SpriteAnimation::get_cell_size() const
-    { return m_cell_size; }
+    inline const JFloat4 D3D11SpriteAnimation::get_tex_coord() const
+    { return m_frames[m_current_frame].get_tex_coord(); }
 }
 
 #endif // JPLATFORM_WINDOWS
