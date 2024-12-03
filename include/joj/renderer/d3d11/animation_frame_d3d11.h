@@ -18,7 +18,7 @@ namespace joj
         D3D11AnimationFrame(D3D11SpriteSheet& sprite_sheet, u32 x, u32 y);
         ~D3D11AnimationFrame();
 
-        const JFloat4 get_tex_coord() const;
+        const JFloat2 get_tex_coord() const;
 
     private:
         D3D11SpriteSheet* m_sprite_sheet;
@@ -28,8 +28,8 @@ namespace joj
         f32 m_y1;
     };
 
-    inline const JFloat4 D3D11AnimationFrame::get_tex_coord() const
-    { return JFloat4{ m_x0, m_y0, m_x1, m_y1 }; }
+    inline const JFloat2 D3D11AnimationFrame::get_tex_coord() const
+    { return JFloat2{ m_x0, m_y0 }; }
 }
 
 #endif // JPLATFORM_WINDOWS

@@ -49,21 +49,19 @@ void EndlessRunner::init()
     JOJ_LOG_IF_FAIL(m_sampler_state.create_pixel_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_pixel_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_animation = joj::D3D11SpriteAnimation(120, 10, 12, 60);
+    m_animation = joj::D3D11SpriteAnimation{ 120, true };
     
     // joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, 0, 1);
     // m_animation.add_frame(frame);
 
-    /*
     for (i32 i = 0; i < 12; ++i)
     {
         for (i32 j = 0; j < 10; ++j)
         {
-            joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, i, j);
+            joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, j, i);
             m_animation.add_frame(frame);
         }
     }
-    */
 }
 
 void EndlessRunner::update(const f32 dt)
@@ -106,8 +104,10 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.uv_offset = m_animation.get_uv_offset(); // Offset calculado no método update
-    p1_cb.cell_size = m_animation.get_cell_size();
+    p1_cb.uv_offset = m_animation.get_tex_coord(); // Offset calculado no método update
+    float cell_width = 1.0f / 10.0f;
+    float cell_height = 1.0f / 12.0f;
+    p1_cb.cell_size = { cell_width, cell_height };
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
