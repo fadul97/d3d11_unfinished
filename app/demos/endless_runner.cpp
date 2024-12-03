@@ -60,7 +60,7 @@ void EndlessRunner::init()
 
     m_fire_animation = joj::D3D11SpriteAnimation{ 120, true };
     m_ship_animation = joj::D3D11SpriteAnimation{ 4, true };
-    m_guy = joj::D3D11SpriteAnimation{ 8, true };
+    m_guy = joj::D3D11SpriteAnimation{ 4, true };
 
     std::vector<joj::D3D11AnimationFrame> frames;
     
@@ -91,7 +91,23 @@ void EndlessRunner::init()
         frames.push_back(frame);
     }
 
-    m_guy.add_frame(0, frames.data(), 4);
+    m_guy.add_frame(WALKRIGHT, frames.data(), 4);
+    frames.clear();
+
+    for (i32 i = 1; i < 5; ++i)
+    {
+        joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_guy_ss, i, 1);
+        frames.push_back(frame);
+    }
+
+    m_guy.add_frame(WALKUPSIDE, frames.data(), 4);
+    frames.clear();
+
+    joj::D3D11AnimationFrame frame1 = joj::D3D11AnimationFrame(m_guy_ss, 0, 0);
+    m_guy.add_frame(STILL, &frame1, 1);
+
+    joj::D3D11AnimationFrame frame2 = joj::D3D11AnimationFrame(m_guy_ss, 0, 1);
+    m_guy.add_frame(UPSIDE, &frame2, 1);
 }
 
 void EndlessRunner::update(const f32 dt)
@@ -99,8 +115,29 @@ void EndlessRunner::update(const f32 dt)
     m_fire_animation.update(dt);
     m_ship_animation.update(dt);
 
+    if (joj::Engine::s_input->is_key_pressed('W'))
+        m_guy_inverted = !m_guy_inverted;
+
     if (joj::Engine::s_input->is_key_down('D'))
-        m_guy.update(dt);
+    {
+        if (m_guy_inverted)
+            m_state = WALKUPSIDE;
+        else
+            m_state = WALKRIGHT;
+    }
+
+    if (joj::Engine::s_input->is_key_up('D') &&
+        joj::Engine::s_input->is_key_up('W') &&
+        joj::Engine::s_input->is_key_up('E'))
+    {
+        if (m_guy_inverted)
+            m_state = UPSIDE;
+        else
+            m_state = STILL;
+    }
+
+    m_guy.select(m_state);
+    m_guy.update(dt);
 }
 
 void EndlessRunner::draw()
@@ -110,8 +147,8 @@ void EndlessRunner::draw()
     m_input_layout.bind(joj::Engine::s_renderer->get_device_context());
     joj::Engine::s_renderer->set_primitive_topology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    UINT stride = sizeof(joj::GeometryVertex);
-    UINT offset = 0;
+    u32 stride = sizeof(joj::GeometryVertex);
+    u32 offset = 0;
     vb.bind(joj::Engine::s_renderer->get_device_context(), 0, 1, &stride, &offset);
     ib.bind(joj::Engine::s_renderer->get_device_context(), DXGI_FORMAT_R32_UINT, offset);
 

@@ -15,6 +15,8 @@
 #include <renderer/d3d11/sprite_sheet_d3d11.h>
 #include <renderer/d3d11/animation_frame_d3d11.h>
 
+enum GuyState { STILL, WALKRIGHT, UPSIDE, WALKUPSIDE };
+
 class EndlessRunner : public joj::App
 {
 public:
@@ -37,6 +39,9 @@ private:
 
 	joj::D3D11SpriteSheet m_guy_ss;
 	joj::D3D11SpriteAnimation m_guy;
+
+	GuyState m_state = STILL;
+	b8 m_guy_inverted = false;
 };
 
 #endif // ENDLESS_RUNNER_H
