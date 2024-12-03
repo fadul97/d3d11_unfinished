@@ -1,9 +1,9 @@
 cbuffer cbPerObject : register(b0)
 {
     float4x4 gWorldViewProj;
-    float4 gTexCoord; // Each cell size (e.g., {1.0f / 10, 1.0f / 12})
-    bool gUseTexure;
+    float2 gTexCoord; // Each cell size (e.g., {1.0f / 10, 1.0f / 12})
     float2 gCellSize;
+    bool gUseTexure;
 }; 
 
 // Nonnumeric values cannot be added to a cbuffer.

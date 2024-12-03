@@ -7,9 +7,9 @@
 struct BasicCB
 {
     joj::JFloat4x4 wvp;
-    joj::JFloat4 uv_offset;
-    i32 use_texture;
+    joj::JFloat2 uv_offset;
     joj::JFloat2 cell_size;
+    i32 use_texture;
 };
 
 void EndlessRunner::init()
@@ -49,10 +49,10 @@ void EndlessRunner::init()
     JOJ_LOG_IF_FAIL(m_sampler_state.create_pixel_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_pixel_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_animation = joj::D3D11SpriteAnimation{ 15, true };
+    m_animation = joj::D3D11SpriteAnimation(120, 10, 12, 60);
     
-    joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, 0, 1);
-    m_animation.add_frame(frame);
+    // joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, 0, 1);
+    // m_animation.add_frame(frame);
 
     /*
     for (i32 i = 0; i < 12; ++i)
@@ -91,7 +91,7 @@ void EndlessRunner::draw()
 
     m_sprite_sheet.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    auto scale_mat = DirectX::XMMatrixScaling(100.0f, 100.0f, 1.0f);
+    auto scale_mat = DirectX::XMMatrixScaling(500.0f, 500.0f, 1.0f);
     auto mat = DirectX::XMMatrixTranslation(400.0f, 300.0f, 0.0f);
     auto W = DirectX::XMMatrixMultiply(scale_mat, mat);
     DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, -3, 1);
@@ -106,10 +106,8 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.uv_offset = m_animation.get_tex_coord(); // Offset calculado no método update
-    float cell_width = 1.0f / 10.0f;
-    float cell_height = 1.0f / 12.0f;
-    p1_cb.cell_size = { cell_width, cell_height };
+    p1_cb.uv_offset = m_animation.get_uv_offset(); // Offset calculado no método update
+    p1_cb.cell_size = m_animation.get_cell_size();
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
