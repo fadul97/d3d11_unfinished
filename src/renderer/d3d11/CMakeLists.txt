@@ -17,6 +17,8 @@ add_library(
     input_layout_d3d11.cpp
     tileset_d3d11.cpp
     sprite_animation_d3d11.cpp
+    sprite_sheet_d3d11.cpp
+    animation_frame_d3d11.cpp
 )
 
 # Specify include directories for jojRenderer
