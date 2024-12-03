@@ -40,43 +40,43 @@ void EndlessRunner::init()
 
     // FIXME:
     // Create Textures
-    JOJ_LOG_IF_FAIL(m_sprite_sheet.create(
+    JOJ_LOG_IF_FAIL(m_fire_ss.create(
+        joj::Engine::s_renderer->get_device(),
+        L"../../../../app/textures/fire_animation_atlas.dds",
+        2560, 3072, 12, 10));
+
+    JOJ_LOG_IF_FAIL(m_ship_ss.create(
         joj::Engine::s_renderer->get_device(),
         L"../../../../app/textures/shipanimated.dds",
         256, 64, 1, 4));
-    // L"../../../../app/textures/fire_animation_atlas.dds",
-    //  2560, 3072, 12, 10));
 
     // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_pixel_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_pixel_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_animation = joj::D3D11SpriteAnimation{ 4, true };
-    // m_animation = joj::D3D11SpriteAnimation{ 120, true };
+    m_fire_animation = joj::D3D11SpriteAnimation{ 120, true };
+    m_ship_animation = joj::D3D11SpriteAnimation{ 4, true };
     
-    /*
-    */
     for (i32 i = 0; i < 4; ++i)
     {
-        joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, i, 0);
-        m_animation.add_frame(frame);
+        joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_ship_ss, i, 0);
+        m_ship_animation.add_frame(frame);
     }
 
-    /*
     for (i32 i = 0; i < 12; ++i)
     {
         for (i32 j = 0; j < 10; ++j)
         {
-            joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, j, i);
-            m_animation.add_frame(frame);
+            joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_fire_ss, j, i);
+            m_fire_animation.add_frame(frame);
         }
     }
-    */
 }
 
 void EndlessRunner::update(const f32 dt)
 {
-    m_animation.update(dt);
+    m_fire_animation.update(dt);
+    m_ship_animation.update(dt);
 }
 
 void EndlessRunner::draw()
@@ -97,10 +97,10 @@ void EndlessRunner::draw()
     cb.bind_to_vertex_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
     cb.bind_to_pixel_shader(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_sprite_sheet.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
+    m_fire_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    auto scale_mat = DirectX::XMMatrixScaling(500.0f, 500.0f, 1.0f);
-    auto mat = DirectX::XMMatrixTranslation(400.0f, 300.0f, 0.0f);
+    auto scale_mat = DirectX::XMMatrixScaling(250.0f, 250.0f, 1.0f);
+    auto mat = DirectX::XMMatrixTranslation(250.0f, 300.0f, 0.0f);
     auto W = DirectX::XMMatrixMultiply(scale_mat, mat);
     DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, -3, 1);
     DirectX::XMVECTOR target = DirectX::XMVectorZero();
@@ -114,10 +114,22 @@ void EndlessRunner::draw()
     BasicCB p1_cb;
     XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
     p1_cb.use_texture = 1;
-    p1_cb.uv_offset = m_animation.get_tex_coord(); // Offset calculado no método update
-    float cell_width = 1.0f / 10.0f;
-    float cell_height = 1.0f / 12.0f;
-    p1_cb.cell_size = m_animation.get_cell_size();
+    p1_cb.uv_offset = m_fire_animation.get_tex_coord();
+    p1_cb.cell_size = m_fire_animation.get_cell_size();
+    cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
+
+    joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);
+
+    m_ship_ss.bind(joj::Engine::s_renderer->get_device_context(), 0, 1);
+
+    scale_mat = DirectX::XMMatrixScaling(250.0f, 250.0f, 1.0f);
+    mat = DirectX::XMMatrixTranslation(600.0f, 300.0f, 0.0f);
+    W = DirectX::XMMatrixMultiply(scale_mat, mat);
+    wvp = W * V * P;
+    XMStoreFloat4x4(&p1_cb.wvp, XMMatrixTranspose(wvp));
+    p1_cb.use_texture = 1;
+    p1_cb.uv_offset = m_ship_animation.get_tex_coord();
+    p1_cb.cell_size = m_ship_animation.get_cell_size();
     cb.update(joj::Engine::s_renderer->get_device_context(), p1_cb);
 
     joj::Engine::s_renderer->get_device_context()->DrawIndexed(6, 0, 0);

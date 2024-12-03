@@ -1,7 +1,7 @@
 cbuffer cbPerObject : register(b0)
 {
     float4x4 gWorldViewProj;
-    float2 gTexCoord; // Each cell size (e.g., {1.0f / 10, 1.0f / 12})
+    float2 gTexCoord;
     float2 gCellSize;
     bool gUseTexure;
 }; 
@@ -36,6 +36,7 @@ VertexOut VS(VertexIn vin)
 	// Just pass vertex color into the pixel shader.
     vout.Color = vin.Color;
 
+    // Just pass texture coordinates into the pixel shader.
     vout.TexC = vin.TexC;
 
     return vout;
@@ -43,7 +44,7 @@ VertexOut VS(VertexIn vin)
  
 float4 PS(VertexOut pin) : SV_Target
 {
-    // Adjusting coordenates for first frame
+    // Adjusting coordenates for frame
     float2 adjustedTexCoord = gTexCoord.xy + pin.TexC * gCellSize;
 
     // Sampling texture using adjusted coorenates
