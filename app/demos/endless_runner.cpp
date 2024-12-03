@@ -45,7 +45,7 @@ void EndlessRunner::init()
     JOJ_LOG_IF_FAIL(m_sampler_state.create_anisotropic_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_anisotropic_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_fire_animation = joj::SpriteAnimation(120, 10, 12, 1.0f / 30.0f); // 30 FPS
+    m_fire_animation = joj::D3D11SpriteAnimation(120, 10, 12, 1.0f / 30.0f); // 30 FPS
 }
 
 void EndlessRunner::update(const f32 dt)
