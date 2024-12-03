@@ -42,18 +42,27 @@ void EndlessRunner::init()
     // Create Textures
     JOJ_LOG_IF_FAIL(m_sprite_sheet.create(
         joj::Engine::s_renderer->get_device(),
-        L"../../../../app/textures/fire_animation_atlas.dds",
-        2560, 3072, 12, 10));
+        L"../../../../app/textures/shipanimated.dds",
+        256, 64, 1, 4));
+    // L"../../../../app/textures/fire_animation_atlas.dds",
+    //  2560, 3072, 12, 10));
 
     // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_pixel_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_pixel_state(joj::Engine::s_renderer->get_device_context(), 0, 1);
 
-    m_animation = joj::D3D11SpriteAnimation{ 120, true };
+    m_animation = joj::D3D11SpriteAnimation{ 4, true };
+    // m_animation = joj::D3D11SpriteAnimation{ 120, true };
     
-    // joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, 0, 1);
-    // m_animation.add_frame(frame);
+    /*
+    */
+    for (i32 i = 0; i < 4; ++i)
+    {
+        joj::D3D11AnimationFrame frame = joj::D3D11AnimationFrame(m_sprite_sheet, i, 0);
+        m_animation.add_frame(frame);
+    }
 
+    /*
     for (i32 i = 0; i < 12; ++i)
     {
         for (i32 j = 0; j < 10; ++j)
@@ -62,6 +71,7 @@ void EndlessRunner::init()
             m_animation.add_frame(frame);
         }
     }
+    */
 }
 
 void EndlessRunner::update(const f32 dt)
