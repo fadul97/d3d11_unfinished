@@ -9,15 +9,10 @@
 #include <d3d11.h>
 #include "error_code.h"
 #include <string>
+#include "renderer/renderer.h"
 
 namespace joj
 {
-    enum class ImageType
-    {
-        PNG,
-        DDS
-    };
-
     class JAPI D3D11Tileset
     {
     public:
