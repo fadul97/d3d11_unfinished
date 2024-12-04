@@ -16,8 +16,8 @@ struct BasicCB
 void EndlessRunner::init()
 {
     // Create Shader
-    m_shader.compile_vertex_shader(L"../../../../app/shaders/SpriteAnimation.hlsl", "VS", "vs_5_0");
-    m_shader.compile_pixel_shader(L"../../../../app/shaders/SpriteAnimation.hlsl", "PS", "ps_5_0");
+    m_shader.compile_vertex_shader(L"shaders/SpriteAnimation.hlsl", "VS", "vs_5_0");
+    m_shader.compile_pixel_shader(L"shaders/SpriteAnimation.hlsl", "PS", "ps_5_0");
     JOJ_LOG_IF_FAIL(m_shader.create_vertex_shader(joj::Engine::s_renderer->get_device()));
     JOJ_LOG_IF_FAIL(m_shader.create_pixel_shader(joj::Engine::s_renderer->get_device()));
 
@@ -42,25 +42,25 @@ void EndlessRunner::init()
     // Create Textures
     JOJ_LOG_IF_FAIL(m_fire_ss.create(
         joj::Engine::s_renderer->get_device(),
-        L"../../../../app/textures/fire_animation_atlas.dds",
+        L"textures/fire_animation_atlas.dds",
         2560, 3072, 12, 10));
 
     JOJ_LOG_IF_FAIL(m_ship_ss.create(
         joj::Engine::s_renderer->get_device(),
-        L"../../../../app/textures/shipanimated.dds",
+        L"textures/shipanimated.dds",
         256, 64, 1, 4));
 
     JOJ_LOG_IF_FAIL(m_guy_ss.create(
         joj::Engine::s_renderer->get_device(),
-        L"../../../../app/textures/GravityGuy.dds",
+        L"textures/GravityGuy.dds",
         160, 96, 2, 5));
 
     JOJ_LOG_IF_FAIL(m_background.create(
         joj::Engine::s_renderer->get_device(),
         joj::Engine::s_renderer->get_device_context(),
-        L"../../../../app/textures/Background.jpg",
+        L"textures/Background.jpg",
         joj::ImageType::JPG));
-
+    
     // Setup and Create Sampler States
     JOJ_LOG_IF_FAIL(m_sampler_state.create_pixel_state(joj::Engine::s_renderer->get_device()));
     m_sampler_state.bind_pixel_state(joj::Engine::s_renderer->get_device_context(), 0, 1);

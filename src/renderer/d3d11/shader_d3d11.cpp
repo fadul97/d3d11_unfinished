@@ -75,14 +75,21 @@ void joj::D3D11Shader::compile_vertex_shader(const WCHAR* vertex_path, LPCSTR en
 	// Vertex Shader
 	// --------------------------------
 
-	ID3DBlob* shader_compile_errors_blob;          // To get info about compilation
+	ID3DBlob* shader_compile_errors_blob = nullptr;          // To get info about compilation
 
 	// Compile Vertex Shader
 	if (D3DCompileFromFile(vertex_path, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, shader_model, shader_flags, NULL, &m_vsblob, &shader_compile_errors_blob) != S_OK)
 	{
-		OutputDebugStringA((char*)shader_compile_errors_blob->GetBufferPointer());
-		JERROR(ErrorCode::ERR_SHADER_D3D11_VERTEX_COMPILATION, "%s", (char*)shader_compile_errors_blob->GetBufferPointer());
-		shader_compile_errors_blob->Release();
+		if (shader_compile_errors_blob != nullptr)
+		{
+			OutputDebugStringA((char*)shader_compile_errors_blob->GetBufferPointer());
+			JERROR(ErrorCode::ERR_SHADER_D3D11_VERTEX_COMPILATION, "%s", (char*)shader_compile_errors_blob->GetBufferPointer());
+			shader_compile_errors_blob->Release();
+		}
+		else
+		{
+			JERROR(ErrorCode::ERR_SHADER_D3D11_VERTEX_COMPILATION, "Failed to compile Vertex Shader.");
+		}
 	}
 
 	if (shader_compile_errors_blob != nullptr)
@@ -106,13 +113,21 @@ void joj::D3D11Shader::compile_pixel_shader(const WCHAR* pixel_path, LPCSTR entr
 	// Pixel Shader
 	// --------------------------------
 
-	ID3DBlob* shader_compile_errors_blob;          // To get info about compilation
+	ID3DBlob* shader_compile_errors_blob = nullptr;          // To get info about compilation
 
 	// Compile Pixel Shader
 	if (D3DCompileFromFile(pixel_path, nullptr, D3D_COMPILE_STANDARD_FILE_INCLUDE, entry_point, shader_model, shader_flags, NULL, &m_psblob, &shader_compile_errors_blob) != S_OK)
 	{
-		OutputDebugStringA((char*)shader_compile_errors_blob->GetBufferPointer());
-		JERROR(ErrorCode::ERR_SHADER_D3D11_PIXEL_COMPILATION, "%s", (char*)shader_compile_errors_blob->GetBufferPointer());
+		if (shader_compile_errors_blob != nullptr)
+		{
+			OutputDebugStringA((char*)shader_compile_errors_blob->GetBufferPointer());
+			JERROR(ErrorCode::ERR_SHADER_D3D11_PIXEL_COMPILATION, "%s", (char*)shader_compile_errors_blob->GetBufferPointer());
+			shader_compile_errors_blob->Release();
+		}
+		else
+		{
+			JERROR(ErrorCode::ERR_SHADER_D3D11_PIXEL_COMPILATION, "Failed to compile Pixel Shader.");
+		}
 	}
 
 	if (shader_compile_errors_blob != nullptr)

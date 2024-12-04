@@ -19,13 +19,17 @@ add_executable(
 # mirror_demo.cpp
 # istancing_and_culling_demo.cpp picking_demo.cpp
 
+# TODO: Is it necessary?
 # Copy shaders
+file(COPY shaders/ DESTINATION ${CMAKE_BINARY_DIR}/app/Debug/shaders/)
 file(COPY shaders/ DESTINATION ${CMAKE_BINARY_DIR}/app/shaders/)
 
 # Copy textures
+file(COPY textures/ DESTINATION ${CMAKE_BINARY_DIR}/app/Debug/textures/)
 file(COPY textures/ DESTINATION ${CMAKE_BINARY_DIR}/app/textures/)
 
 # Copy models
+file(COPY models/ DESTINATION ${CMAKE_BINARY_DIR}/app/Debug/models/)
 file(COPY models/ DESTINATION ${CMAKE_BINARY_DIR}/app/models/)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
