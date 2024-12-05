@@ -8,13 +8,11 @@
 #include "joj/renderer/d3d11/vertex_buffer_d3d11.h"
 #include "joj/renderer/d3d11/index_buffer_d3d11.h"
 #include "joj/renderer/d3d11/constant_buffer_d3d11.h"
-#include <renderer/d3d11/texture_d3d11.h>
 #include "joj/math/jmath.h"
-#include <renderer/d3d11/tileset_d3d11.h>
 #include <renderer/d3d11/sprite_animation_d3d11.h>
 #include <renderer/d3d11/sprite_sheet_d3d11.h>
 #include <renderer/d3d11/animation_frame_d3d11.h>
-#include "renderer/d3d11/sprite_d3d11.h"
+#include "renderer/d3d11/texture2d_d3d11.h"
 
 enum GuyState { STILL, WALKRIGHT, UPSIDE, WALKUPSIDE };
 
@@ -44,7 +42,7 @@ private:
 	GuyState m_state = STILL;
 	b8 m_guy_inverted = false;
 
-	joj::D3D11Sprite m_background;
+	joj::D3D11Texture2D m_background;
 };
 
 #endif // ENDLESS_RUNNER_H

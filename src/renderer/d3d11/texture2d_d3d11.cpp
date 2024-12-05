@@ -1,4 +1,4 @@
-#include "renderer/d3d11/sprite_d3d11.h"
+#include "renderer/d3d11/texture2d_d3d11.h"
 
 #if JPLATFORM_WINDOWS
 
@@ -9,12 +9,12 @@
 #include <locale>
 #include <codecvt>
 
-joj::D3D11Sprite::D3D11Sprite()
+joj::D3D11Texture2D::D3D11Texture2D()
     : m_srv(nullptr), m_width(0), m_height(0)
 {
 }
 
-joj::D3D11Sprite::~D3D11Sprite()
+joj::D3D11Texture2D::~D3D11Texture2D()
 {
     if (m_srv)
     {
@@ -23,18 +23,18 @@ joj::D3D11Sprite::~D3D11Sprite()
     }
 }
 
-void joj::D3D11Sprite::bind(ID3D11DeviceContext* device_context, u32 start_slot, u32 num_views)
+void joj::D3D11Texture2D::bind(ID3D11DeviceContext* device_context, u32 start_slot, u32 num_views)
 {
     device_context->PSSetShaderResources(start_slot, num_views, &m_srv);
 }
 
-void joj::D3D11Sprite::unbind(ID3D11DeviceContext* device_context)
+void joj::D3D11Texture2D::unbind(ID3D11DeviceContext* device_context)
 {
     ID3D11ShaderResourceView* null_srv[1] = { nullptr };
     device_context->PSSetShaderResources(0, 1, null_srv);
 }
 
-joj::ErrorCode joj::D3D11Sprite::create(ID3D11Device* device,
+joj::ErrorCode joj::D3D11Texture2D::create(ID3D11Device* device,
     ID3D11DeviceContext* device_context,
     const std::wstring& filepath, ImageType type)
 {
@@ -102,7 +102,7 @@ joj::ErrorCode joj::D3D11Sprite::create(ID3D11Device* device,
     return ErrorCode::OK;
 }
 
-void joj::D3D11Sprite::destroy()
+void joj::D3D11Texture2D::destroy()
 {
     if (m_srv)
     {

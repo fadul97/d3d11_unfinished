@@ -12,14 +12,12 @@ add_library(
     shader_d3d11.cpp
     DDSTextureLoader11.cpp
     WICTextureLoader.cpp
-    texture_d3d11.cpp
+    texture2d_d3d11.cpp
     sampler_state_d3d11.cpp
     input_layout_d3d11.cpp
-    tileset_d3d11.cpp
     sprite_animation_d3d11.cpp
     sprite_sheet_d3d11.cpp
     animation_frame_d3d11.cpp
-    sprite_d3d11.cpp
 )
 
 # Specify include directories for jojRenderer

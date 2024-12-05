@@ -1,5 +1,5 @@
-#ifndef JOJ_D3D11_SPRITE_H
-#define JOJ_D3D11_SPRITE_H
+#ifndef JOJ_D3D11_TEXTURE_2D_H
+#define JOJ_D3D11_TEXTURE_2D_H
 
 #define JOJ_ENGINE_IMPLEMENTATION
 #include "defines.h"
@@ -14,11 +14,11 @@
 
 namespace joj
 {
-    class JAPI D3D11Sprite
+    class JAPI D3D11Texture2D
     {
     public:
-        D3D11Sprite();
-        ~D3D11Sprite();
+        D3D11Texture2D();
+        ~D3D11Texture2D();
 
         void bind(ID3D11DeviceContext* device_context, u32 start_slot, u32 num_views);
         void unbind(ID3D11DeviceContext* device_context);
@@ -37,13 +37,13 @@ namespace joj
         u32 m_height;
     };
 
-    inline const JFloat2 D3D11Sprite::get_tex_coord() const
+    inline const JFloat2 D3D11Texture2D::get_tex_coord() const
     { return JFloat2{ 0.0f, 1.0f}; }
 
-    inline const JFloat2 D3D11Sprite::get_cell_size() const
+    inline const JFloat2 D3D11Texture2D::get_cell_size() const
     { return JFloat2{ 1.0f, 1.0f}; }
 }
 
 #endif // JPLATFORM_WINDOWS
 
-#endif // JOJ_D3D11_SPRITE_H
+#endif // JOJ_D3D11_TEXTURE_2D_H
