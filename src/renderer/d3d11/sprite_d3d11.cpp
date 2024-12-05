@@ -38,7 +38,9 @@ joj::ErrorCode joj::D3D11Sprite::create(ID3D11Device* device,
     ID3D11DeviceContext* device_context,
     const std::wstring& filepath, ImageType type)
 {
-    if (type == ImageType::PNG || type == ImageType::JPG)
+    switch (type)
+    {
+    case joj::ImageType::PNG:
     {
         std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
         std::string str = converter.to_bytes(filepath);
@@ -58,8 +60,29 @@ joj::ErrorCode joj::D3D11Sprite::create(ID3D11Device* device,
             return ErrorCode::ERR_RENDERER_D3D11_SHADER_RESOURCE_VIEW_CREATION;
         }
     }
-    else
+        break;
+    case joj::ImageType::JPG:
     {
+        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+        std::string str = converter.to_bytes(filepath);
+        const char* filename = str.c_str();
+
+        if (D3D11CreateTextureFromFile(
+            device,
+            device_context,
+            filename,
+            nullptr,
+            &m_srv,
+            m_width,
+            m_height) != S_OK)
+        {
+            JERROR(ErrorCode::ERR_RENDERER_D3D11_SHADER_RESOURCE_VIEW_CREATION,
+                "Failed to create texture from JPG file '%s'.", filename);
+            return ErrorCode::ERR_RENDERER_D3D11_SHADER_RESOURCE_VIEW_CREATION;
+        }
+    }
+        break;
+    case joj::ImageType::DDS:
         if (DirectX::CreateDDSTextureFromFile(
             device,
             filepath.c_str(),
@@ -71,6 +94,9 @@ joj::ErrorCode joj::D3D11Sprite::create(ID3D11Device* device,
                 "Failed to create texture from DDS file '%ls'.", filepath);
             return ErrorCode::ERR_RENDERER_D3D11_SHADER_RESOURCE_VIEW_CREATION;
         }
+        break;
+    default:
+        break;
     }
 
     return ErrorCode::OK;
