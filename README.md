@@ -1,12 +1,6 @@
-# Joj - Jogue o jogo
+# DirectX 11 Test Engine
 
-## Game Engine
-
-Version: 0.0.1
-
-### Description
-
-A game engine under development — a never-ending learning project.
+Simple (WIP) engine architecture.
 
 ### References and Resources
 
